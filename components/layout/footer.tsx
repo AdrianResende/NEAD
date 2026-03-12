@@ -3,13 +3,6 @@ import { APP_NAME } from "@/lib/constants";
 
 const footerLinks = [
   {
-    title: "Plataforma",
-    links: [
-      { href: "/cursos", label: "Cursos" },
-      { href: "/dashboard", label: "Dashboard" },
-    ],
-  },
-  {
     title: "Suporte",
     links: [
       { href: "/faq", label: "FAQ" },
