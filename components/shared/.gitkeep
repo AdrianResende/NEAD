@@ -1,0 +1,7 @@
+# Componentes Compartilhados
+
+Coloque aqui componentes reutilizados em múltiplas páginas, como:
+- `card.tsx`
+- `badge.tsx`
+- `avatar.tsx`
+- `modal.tsx`
