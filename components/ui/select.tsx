@@ -37,7 +37,6 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
             </option>
           ))}
         </select>
-        {/* Chevron */}
         <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400">
           <svg
             xmlns="http://www.w3.org/2000/svg"

@@ -1,10 +1,6 @@
 import * as React from "react";
 import { cn } from "@/lib/utils";
 
-/* -------------------------------------------------------------------------- */
-/*  Field (wrapper: label + input + mensagem)                                 */
-/* -------------------------------------------------------------------------- */
-
 interface FieldProps {
   label?: string;
   htmlFor?: string;
@@ -53,10 +49,6 @@ export function Field({
   );
 }
 
-/* -------------------------------------------------------------------------- */
-/*  Form                                                                       */
-/* -------------------------------------------------------------------------- */
-
 interface FormProps extends React.FormHTMLAttributes<HTMLFormElement> {
   children: React.ReactNode;
 }
@@ -72,10 +64,6 @@ export function Form({ children, className, ...props }: FormProps) {
     </form>
   );
 }
-
-/* -------------------------------------------------------------------------- */
-/*  FormSection (agrupamento visual)                                            */
-/* -------------------------------------------------------------------------- */
 
 interface FormSectionProps {
   title?: string;
@@ -115,10 +103,6 @@ export function FormSection({
     </fieldset>
   );
 }
-
-/* -------------------------------------------------------------------------- */
-/*  FormActions (rodapé botões)                                                */
-/* -------------------------------------------------------------------------- */
 
 interface FormActionsProps {
   children: React.ReactNode;

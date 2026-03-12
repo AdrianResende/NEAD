@@ -1,10 +1,6 @@
 import * as React from "react";
 import { cn } from "@/lib/utils";
 
-/* -------------------------------------------------------------------------- */
-/*  Wrapper                                                                    */
-/* -------------------------------------------------------------------------- */
-
 interface TableProps {
   children: React.ReactNode;
   className?: string;
@@ -21,10 +17,6 @@ export function Table({ children, className }: TableProps) {
     </div>
   );
 }
-
-/* -------------------------------------------------------------------------- */
-/*  Head                                                                       */
-/* -------------------------------------------------------------------------- */
 
 export function TableHead({
   children,
@@ -45,10 +37,6 @@ export function TableHead({
   );
 }
 
-/* -------------------------------------------------------------------------- */
-/*  Th                                                                         */
-/* -------------------------------------------------------------------------- */
-
 interface ThProps extends React.ThHTMLAttributes<HTMLTableCellElement> {
   children?: React.ReactNode;
 }
@@ -66,10 +54,6 @@ export function Th({ children, className, ...props }: ThProps) {
     </th>
   );
 }
-
-/* -------------------------------------------------------------------------- */
-/*  Body                                                                       */
-/* -------------------------------------------------------------------------- */
 
 export function TableBody({
   children,
@@ -89,10 +73,6 @@ export function TableBody({
     </tbody>
   );
 }
-
-/* -------------------------------------------------------------------------- */
-/*  Tr                                                                         */
-/* -------------------------------------------------------------------------- */
 
 interface TrProps extends React.HTMLAttributes<HTMLTableRowElement> {
   children: React.ReactNode;
@@ -115,10 +95,6 @@ export function Tr({ children, clickable, className, ...props }: TrProps) {
   );
 }
 
-/* -------------------------------------------------------------------------- */
-/*  Td                                                                         */
-/* -------------------------------------------------------------------------- */
-
 interface TdProps extends React.TdHTMLAttributes<HTMLTableCellElement> {
   children?: React.ReactNode;
   muted?: boolean;
@@ -138,10 +114,6 @@ export function Td({ children, muted, className, ...props }: TdProps) {
     </td>
   );
 }
-
-/* -------------------------------------------------------------------------- */
-/*  Empty state                                                                */
-/* -------------------------------------------------------------------------- */
 
 export function TableEmpty({
   colSpan,

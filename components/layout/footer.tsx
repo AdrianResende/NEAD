@@ -32,7 +32,6 @@ export function Footer() {
     <footer className="mt-auto border-t border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950">
       <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
         <div className="grid grid-cols-2 gap-8 md:grid-cols-4">
-          {/* Brand */}
           <div className="col-span-2 md:col-span-1">
             <span className="text-xl font-bold text-zinc-900 dark:text-zinc-50">
               {APP_NAME}
@@ -42,7 +41,6 @@ export function Footer() {
             </p>
           </div>
 
-          {/* Links */}
           {footerLinks.map(({ title, links }) => (
             <div key={title}>
               <h3 className="text-xs font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">

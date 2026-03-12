@@ -10,7 +10,6 @@ export function Header() {
   return (
     <header className="sticky top-0 z-50 w-full border-b border-zinc-200 bg-white/80 backdrop-blur-sm dark:border-zinc-800 dark:bg-zinc-950/80">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-        {/* Logo */}
         <Link
           href={ROUTES.HOME}
           className="text-xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50"
@@ -18,7 +17,6 @@ export function Header() {
           NEAD
         </Link>
 
-        {/* Navegação */}
         <nav className="hidden items-center gap-6 md:flex">
           {navLinks.map(({ href, label }) => (
             <Link
@@ -31,7 +29,6 @@ export function Header() {
           ))}
         </nav>
 
-        {/* Ações */}
         <div className="flex items-center gap-3">
           <Link
             href={ROUTES.LOGIN}

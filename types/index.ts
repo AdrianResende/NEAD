@@ -1,5 +1,3 @@
-// Tipos globais da aplicação NEAD
-
 export interface User {
   id: string;
   name: string;
@@ -14,7 +12,7 @@ export interface Course {
   description: string;
   instructor: string;
   thumbnail?: string;
-  duration: number; // em minutos
+  duration: number;
   level: "beginner" | "intermediate" | "advanced";
   createdAt: Date;
   updatedAt: Date;

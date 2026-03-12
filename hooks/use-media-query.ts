@@ -9,9 +9,6 @@ const BREAKPOINTS = {
 
 type Breakpoint = keyof typeof BREAKPOINTS;
 
-/**
- * Retorna true quando a largura da janela está abaixo do breakpoint informado.
- */
 export function useMediaQuery(breakpoint: Breakpoint = "md"): boolean {
   const [isBelow, setIsBelow] = useState(false);
 

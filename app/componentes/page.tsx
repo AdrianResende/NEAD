@@ -21,10 +21,6 @@ import {
 export const metadata: Metadata = {
   title: "Componentes",
 };
-
-/* ------------------------------------------------------------------ */
-/* Dados de exemplo para a tabela                                       */
-/* ------------------------------------------------------------------ */
 const courses = [
   {
     id: "1",
@@ -58,10 +54,6 @@ const statusVariant: Record<
   Arquivado: "warning",
   Removido: "danger",
 };
-
-/* ------------------------------------------------------------------ */
-/* Seção visual                                                         */
-/* ------------------------------------------------------------------ */
 function Section({
   title,
   children,
@@ -78,10 +70,6 @@ function Section({
     </section>
   );
 }
-
-/* ------------------------------------------------------------------ */
-/* Página                                                               */
-/* ------------------------------------------------------------------ */
 export default function ComponentsPage() {
   return (
     <div className="mx-auto max-w-4xl space-y-14 px-4 py-12 sm:px-6">
@@ -93,8 +81,6 @@ export default function ComponentsPage() {
           Referência visual dos componentes disponíveis.
         </p>
       </div>
-
-      {/* ---- BOTÕES ---- */}
       <Section title="Botões">
         <div className="flex flex-wrap gap-3">
           <Button variant="primary">Primário</Button>
@@ -111,8 +97,6 @@ export default function ComponentsPage() {
           <Button disabled>Desabilitado</Button>
         </div>
       </Section>
-
-      {/* ---- BADGES ---- */}
       <Section title="Badges">
         <div className="flex flex-wrap gap-2">
           <Badge variant="default">Padrão</Badge>
@@ -123,8 +107,6 @@ export default function ComponentsPage() {
           <Badge variant="outline">Outline</Badge>
         </div>
       </Section>
-
-      {/* ---- INPUTS ---- */}
       <Section title="Inputs">
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label="Nome completo" htmlFor="name" required>
@@ -152,8 +134,6 @@ export default function ComponentsPage() {
           </Field>
         </div>
       </Section>
-
-      {/* ---- SELECT ---- */}
       <Section title="Select">
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label="Nível do curso" htmlFor="level">
@@ -181,8 +161,6 @@ export default function ComponentsPage() {
           </Field>
         </div>
       </Section>
-
-      {/* ---- TEXTAREA ---- */}
       <Section title="Textarea">
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label="Descrição" htmlFor="desc" hint="Máximo de 500 caracteres.">
@@ -193,8 +171,6 @@ export default function ComponentsPage() {
           </Field>
         </div>
       </Section>
-
-      {/* ---- FORMULÁRIO COMPLETO ---- */}
       <Section title="Formulário">
         <Form>
           <FormSection
@@ -245,8 +221,6 @@ export default function ComponentsPage() {
           </FormActions>
         </Form>
       </Section>
-
-      {/* ---- TABELA ---- */}
       <Section title="Tabela">
         <Table>
           <TableHead>

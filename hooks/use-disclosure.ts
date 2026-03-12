@@ -7,9 +7,6 @@ interface UseDisclosureReturn {
   toggle: () => void;
 }
 
-/**
- * Controla o estado aberto/fechado de modais, drawers e similares.
- */
 export function useDisclosure(initialState = false): UseDisclosureReturn {
   const [isOpen, setIsOpen] = useState(initialState);
 

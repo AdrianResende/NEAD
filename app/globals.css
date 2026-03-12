@@ -2,8 +2,6 @@
 
 @theme inline {
   --font-sans: var(--font-inter);
-
-  /* ── Cores NEAD ─────────────────────────────── */
   --color-primary:       #961e1e;
   --color-primary-dark:  #831116;
   --color-primary-light: #fdf2f2;
