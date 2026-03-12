@@ -4,18 +4,22 @@ import { useRouter } from "next/navigation";
 import { ROUTES } from "@/lib/constants";
 import { Button, Field, Form, Input } from "@/components/ui";
 
-export default function LoginPage() {
+export default function CadastroPage() {
   const router = useRouter();
 
   return (
     <div className="mx-auto flex min-h-[calc(100vh-8rem)] w-full max-w-md items-center px-4">
       <div className="w-full rounded-2xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-950">
-        <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-50">Entrar</h1>
+        <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-50">Cadastrar</h1>
         <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-          Faça login para acessar o sistema.
+          Crie seu acesso para entrar no sistema.
         </p>
 
         <Form className="mt-6">
+          <Field label="Nome" htmlFor="name">
+            <Input id="name" type="text" placeholder="Seu nome completo" />
+          </Field>
+
           <Field label="E-mail" htmlFor="email">
             <Input id="email" type="email" placeholder="seuemail@nead.com" />
           </Field>
@@ -30,15 +34,15 @@ export default function LoginPage() {
               className="w-full"
               onClick={() => router.push(ROUTES.DASHBOARD)}
             >
-              Entrar
+              Cadastrar
             </Button>
             <Button
               type="button"
               variant="outline"
               className="w-full"
-              onClick={() => router.push(ROUTES.CADASTRO)}
+              onClick={() => router.push(ROUTES.LOGIN)}
             >
-              Cadastrar
+              Entrar
             </Button>
           </div>
         </Form>

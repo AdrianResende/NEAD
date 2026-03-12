@@ -5,6 +5,7 @@ export const APP_DESCRIPTION =
 export const ROUTES = {
   HOME: "/",
   LOGIN: "/login",
+  CADASTRO: "/cadastro",
   DASHBOARD: "/dashboard",
   COURSES: "/cursos",
 } as const;
