@@ -7,11 +7,55 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum Role {
+  admin
+  atendente
+  solicitante
+}
+
+model Setor {
+  id        Int       @id @default(autoincrement())
+  nome      String    @db.VarChar(150)
+  descricao String?
+  users     User[]
+  servicos  Servico[]
+}
+
 model User {
-  id        String   @id @default(cuid())
-  name      String
-  email     String   @unique
-  password  String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id                  Int       @id @default(autoincrement())
+  nome                String    @db.VarChar(150)
+  email               String    @unique @db.VarChar(150)
+  senha               String
+  role                Role
+  setor_id            Int?
+  created_at          DateTime  @default(now())
+  setor               Setor?    @relation(fields: [setor_id], references: [id])
+  chamadosSolicitante Chamado[] @relation("Solicitante")
+  chamadosAtendente   Chamado[] @relation("Atendente")
+}
+
+model Servico {
+  id         Int       @id @default(autoincrement())
+  nome       String    @db.VarChar(200)
+  descricao  String?
+  setor_id   Int
+  created_at DateTime  @default(now())
+  setor      Setor     @relation(fields: [setor_id], references: [id])
+  chamados   Chamado[]
+}
+
+model Chamado {
+  id             Int      @id @default(autoincrement())
+  titulo         String   @db.VarChar(200)
+  descricao      String
+  status         String   @default("aberto")
+  prioridade     String   @default("normal")
+  solicitante_id Int
+  atendente_id   Int?
+  servico_id     Int
+  created_at     DateTime @default(now())
+  updated_at     DateTime @updatedAt
+  solicitante    User     @relation("Solicitante", fields: [solicitante_id], references: [id])
+  atendente      User?    @relation("Atendente", fields: [atendente_id], references: [id])
+  servico        Servico  @relation(fields: [servico_id], references: [id])
 }
