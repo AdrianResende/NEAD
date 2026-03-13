@@ -12,21 +12,24 @@ function applyTheme(theme: Theme) {
 }
 
 export function ThemeToggle() {
-  const [theme, setTheme] = useState<Theme>(() => {
+  const [theme, setTheme] = useState<Theme>("light");
+
+  useEffect(() => {
     const savedTheme = localStorage.getItem(STORAGE_KEY) as Theme | null;
     const preferredDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-    return savedTheme ?? (preferredDark ? "dark" : "light");
-  });
+    const initialTheme = savedTheme ?? (preferredDark ? "dark" : "light");
+    setTheme(initialTheme);
+    applyTheme(initialTheme);
+  }, []);
 
   useEffect(() => {
     applyTheme(theme);
+    localStorage.setItem(STORAGE_KEY, theme);
   }, [theme]);
 
   const handleToggle = () => {
     const nextTheme: Theme = theme === "dark" ? "light" : "dark";
     setTheme(nextTheme);
-    localStorage.setItem(STORAGE_KEY, nextTheme);
-    applyTheme(nextTheme);
   };
 
   return (
