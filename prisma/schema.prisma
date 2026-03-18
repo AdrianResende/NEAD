@@ -19,6 +19,8 @@ model Setor {
   descricao String?
   users     User[]
   servicos  Servico[]
+
+  @@map("setores")
 }
 
 model User {
@@ -32,6 +34,8 @@ model User {
   setor               Setor?    @relation(fields: [setor_id], references: [id])
   chamadosSolicitante Chamado[] @relation("Solicitante")
   chamadosAtendente   Chamado[] @relation("Atendente")
+
+  @@map("users")
 }
 
 model Servico {
@@ -42,6 +46,8 @@ model Servico {
   created_at DateTime  @default(now())
   setor      Setor     @relation(fields: [setor_id], references: [id])
   chamados   Chamado[]
+
+  @@map("servicos")
 }
 
 model Chamado {
@@ -58,4 +64,6 @@ model Chamado {
   solicitante    User     @relation("Solicitante", fields: [solicitante_id], references: [id])
   atendente      User?    @relation("Atendente", fields: [atendente_id], references: [id])
   servico        Servico  @relation(fields: [servico_id], references: [id])
+
+  @@map("chamados")
 }
