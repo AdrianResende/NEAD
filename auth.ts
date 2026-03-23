@@ -5,6 +5,19 @@ import { prisma } from "@/lib/prisma";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   session: { strategy: "jwt" },
+  logger: {
+    error(code, ...message) {
+      const authErrorCode =
+        typeof code === "string"
+          ? code
+          : (code as { type?: string; name?: string }).type ??
+            (code as { name?: string }).name ??
+            "UnknownAuthError";
+
+      if (authErrorCode === "CredentialsSignin") return;
+      console.error("[auth][error]", authErrorCode, ...message);
+    },
+  },
   providers: [
     Credentials({
       credentials: {

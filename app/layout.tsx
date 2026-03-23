@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
+import { auth } from "@/auth";
 import { LayoutShell } from "@/components/layout/layout-shell";
 import { AuthProvider } from "@/components/providers/auth-provider";
 import "./globals.css";
@@ -25,15 +26,17 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const session = await auth();
+
   return (
     <html lang="pt-BR" className={inter.variable} suppressHydrationWarning>
       <body className="flex min-h-screen flex-col bg-white font-sans antialiased dark:bg-zinc-950">
-        <AuthProvider>
+        <AuthProvider session={session}>
           <LayoutShell>{children}</LayoutShell>
         </AuthProvider>
       </body>
