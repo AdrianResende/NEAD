@@ -1,6 +1,6 @@
 "use server";
 
-import { AuthError } from "next-auth";
+import { isRedirectError } from "next/dist/client/components/redirect-error";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { signIn } from "@/auth";
@@ -49,10 +49,8 @@ export async function cadastroAction(
       redirectTo: ROUTES.DASHBOARD,
     });
   } catch (error) {
-    if (error instanceof AuthError) {
-      return { error: "Usuário criado, mas não foi possível autenticar. Tente entrar novamente." };
-    }
-    throw error;
+    if (isRedirectError(error)) throw error;
+    return { error: "Usuário criado, mas não foi possível autenticar. Tente entrar novamente." };
   }
 
   return {};

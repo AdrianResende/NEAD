@@ -1,6 +1,6 @@
 "use server";
 
-import { AuthError } from "next-auth";
+import { isRedirectError } from "next/dist/client/components/redirect-error";
 import { signIn } from "@/auth";
 import { ROUTES } from "@/lib/constants";
 
@@ -27,9 +27,7 @@ export async function loginAction(
     });
     return {};
   } catch (error) {
-    if (error instanceof AuthError) {
-      return { error: "E-mail ou senha inválidos." };
-    }
-    throw error;
+    if (isRedirectError(error)) throw error;
+    return { error: "E-mail ou senha inválidos." };
   }
 }
