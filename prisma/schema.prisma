@@ -1,16 +1,11 @@
 generator client {
   provider = "prisma-client-js"
+  engineType = "binary"
 }
 
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
-}
-
-enum Role {
-  admin
-  atendente
-  solicitante
 }
 
 model Setor {
@@ -28,14 +23,50 @@ model User {
   nome                String    @db.VarChar(150)
   email               String    @unique @db.VarChar(150)
   senha               String
-  role                Role
+  role                String    @db.VarChar(20)
   setor_id            Int?
   created_at          DateTime  @default(now())
   setor               Setor?    @relation(fields: [setor_id], references: [id])
   chamadosSolicitante Chamado[] @relation("Solicitante")
   chamadosAtendente   Chamado[] @relation("Atendente")
+  sessions            Session[]
+  accounts            Account[]
 
   @@map("users")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       Int
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            Int
+  type              String
+  provider          String
+  providerAccountId String
+  access_token      String?
+  refresh_token     String?
+  expires_at        Int?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verification_tokens")
 }
 
 model Servico {

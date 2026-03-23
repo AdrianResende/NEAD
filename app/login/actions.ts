@@ -1,9 +1,7 @@
 "use server";
 
-import { redirect } from "next/navigation";
-import bcrypt from "bcryptjs";
-import { prisma } from "@/lib/prisma";
-import { createSession } from "@/lib/session";
+import { AuthError } from "next-auth";
+import { signIn } from "@/auth";
 import { ROUTES } from "@/lib/constants";
 
 export type LoginState = {
@@ -15,30 +13,23 @@ export async function loginAction(
   formData: FormData
 ): Promise<LoginState> {
   const email = (formData.get("email") as string)?.trim().toLowerCase();
-  const senha = formData.get("senha") as string;
+  const password = formData.get("password") as string;
 
-  if (!email || !senha) {
+  if (!email || !password) {
     return { error: "Preencha e-mail e senha." };
   }
 
-  const user = await prisma.user.findUnique({ where: { email } });
-
-  if (!user) {
-    return { error: "E-mail ou senha inválidos." };
+  try {
+    await signIn("credentials", {
+      email,
+      password,
+      redirectTo: ROUTES.DASHBOARD,
+    });
+    return {};
+  } catch (error) {
+    if (error instanceof AuthError) {
+      return { error: "E-mail ou senha inválidos." };
+    }
+    throw error;
   }
-
-  const senhaValida = await bcrypt.compare(senha, user.senha);
-
-  if (!senhaValida) {
-    return { error: "E-mail ou senha inválidos." };
-  }
-
-  await createSession({
-    id: user.id,
-    nome: user.nome,
-    email: user.email,
-    role: user.role,
-  });
-
-  redirect(ROUTES.DASHBOARD);
 }

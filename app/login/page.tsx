@@ -22,8 +22,8 @@ export default function LoginPage() {
             <Input id="email" name="email" type="email" placeholder="seuemail@nead.com" required />
           </Field>
 
-          <Field label="Senha" htmlFor="senha">
-            <Input id="senha" name="senha" type="password" placeholder="••••••••" required />
+          <Field label="Senha" htmlFor="password">
+            <Input id="password" name="password" type="password" placeholder="••••••••" required />
           </Field>
 
           {state.error && (

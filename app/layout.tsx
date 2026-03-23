@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { LayoutShell } from "@/components/layout/layout-shell";
+import { AuthProvider } from "@/components/providers/auth-provider";
 import "./globals.css";
 
 const inter = Inter({
@@ -32,7 +33,9 @@ export default function RootLayout({
   return (
     <html lang="pt-BR" className={inter.variable} suppressHydrationWarning>
       <body className="flex min-h-screen flex-col bg-white font-sans antialiased dark:bg-zinc-950">
-        <LayoutShell>{children}</LayoutShell>
+        <AuthProvider>
+          <LayoutShell>{children}</LayoutShell>
+        </AuthProvider>
       </body>
     </html>
   );
