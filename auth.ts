@@ -1,11 +1,9 @@
 import NextAuth from "next-auth";
-import { PrismaAdapter } from "@auth/prisma-adapter";
 import Credentials from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
-  adapter: PrismaAdapter(prisma),
   session: { strategy: "jwt" },
   providers: [
     Credentials({
@@ -14,15 +12,32 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         password: { label: "Senha", type: "password" },
       },
       async authorize(credentials) {
-        const email = credentials.email as string;
-        const password = credentials.password as string;
+        const email = (credentials.email as string | undefined)?.trim().toLowerCase();
+        const password = credentials.password as string | undefined;
 
         if (!email || !password) return null;
 
         const user = await prisma.user.findUnique({ where: { email } });
         if (!user) return null;
 
-        const valid = await bcrypt.compare(password, user.senha);
+        const senhaArmazenada = user.senha;
+        const isBcryptHash = /^\$2[aby]\$/.test(senhaArmazenada);
+
+        let valid = false;
+        if (isBcryptHash) {
+          valid = await bcrypt.compare(password, senhaArmazenada);
+        } else {
+          // Migra senha legada em texto puro para hash no primeiro login válido.
+          valid = password === senhaArmazenada;
+          if (valid) {
+            const novaSenhaHash = await bcrypt.hash(password, 10);
+            await prisma.user.update({
+              where: { id: user.id },
+              data: { senha: novaSenhaHash },
+            });
+          }
+        }
+
         if (!valid) return null;
 
         return {

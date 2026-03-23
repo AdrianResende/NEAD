@@ -8,8 +8,10 @@ import logo from "@/app/assets/logo.png";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
 
 export function Header() {
-  const { data: session } = useSession();
-  const isLogged = !!session?.user;
+  const { data: session, status } = useSession();
+  const isLogged = status === "authenticated";
+  const isLoading = status === "loading";
+  const userName = session?.user?.name?.trim() || "Usuário";
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-zinc-200 bg-white/80 backdrop-blur-sm dark:border-zinc-800 dark:bg-zinc-950/80">
@@ -23,15 +25,15 @@ export function Header() {
         />
 
         <div className="flex items-center gap-3">
-          <ThemeToggle />
-          {isLogged ? (
+          {isLoading ? (
+            <span className="inline-flex h-10 items-center justify-center rounded-lg border border-zinc-300 bg-transparent px-4 text-sm font-medium text-zinc-500 dark:border-zinc-700 dark:text-zinc-400">
+              Carregando...
+            </span>
+          ) : isLogged ? (
             <>
-              <Link
-                href={ROUTES.DASHBOARD}
-                className="inline-flex h-10 items-center justify-center rounded-lg border border-zinc-300 bg-transparent px-4 text-sm font-medium text-zinc-900 transition-colors hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-50 dark:hover:bg-zinc-800"
-              >
-                Dashboard
-              </Link>
+              <span className="max-w-40 truncate text-sm font-medium text-zinc-700 dark:text-zinc-200">
+                {userName}
+              </span>
               <button
                 type="button"
                 onClick={() => signOut({ redirectTo: ROUTES.LOGIN })}
@@ -48,6 +50,7 @@ export function Header() {
               Entrar
             </Link>
           )}
+          <ThemeToggle />
         </div>
       </div>
     </header>
