@@ -21,7 +21,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         const user = await prisma.user.findUnique({ where: { email } });
         if (!user) return null;
 
-        const senhaArmazenada = user.senha;
+        const senhaArmazenada = user.password;
         const isBcryptHash = /^\$2[aby]\$/.test(senhaArmazenada);
 
         let valid = false;
@@ -34,7 +34,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             const novaSenhaHash = await bcrypt.hash(password, 10);
             await prisma.user.update({
               where: { id: user.id },
-              data: { senha: novaSenhaHash },
+              data: { password: novaSenhaHash },
             });
           }
         }

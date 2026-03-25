@@ -1,16 +1,22 @@
-import NextAuth from "next-auth";
-import authConfig from "@/auth.config";
+import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
+import { getSessionFromRequest, validateSession } from "@/lib/auth";
 
-const { auth } = NextAuth(authConfig);
+export default async function proxy(request: NextRequest) {
+  const token = getSessionFromRequest(request);
 
-export default auth((req) => {
-  const isLogged = !!req.auth;
-  if (!isLogged) {
-    return Response.redirect(new URL("/login", req.url));
+  if (!token) {
+    return NextResponse.redirect(new URL("/login", request.url));
   }
-  return undefined;
-});
+
+  const user = await validateSession(token);
+  if (!user) {
+    return NextResponse.redirect(new URL("/login", request.url));
+  }
+
+  return NextResponse.next();
+}
 
 export const config = {
-  matcher: ["/dashboard/:path*", "/api/protected/:path*"],
+  matcher: ["/dashboard/:path*"],
 };

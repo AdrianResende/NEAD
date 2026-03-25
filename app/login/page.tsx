@@ -1,13 +1,47 @@
 "use client";
 
-import { useActionState } from "react";
+import { FormEvent, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { ROUTES } from "@/lib/constants";
 import { Button, Field, Form, Input } from "@/components/ui";
-import { loginAction } from "./actions";
 
 export default function LoginPage() {
-  const [state, action, isPending] = useActionState(loginAction, {});
+  const router = useRouter();
+  const [error, setError] = useState<string | null>(null);
+  const [isPending, setIsPending] = useState(false);
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setError(null);
+    setIsPending(true);
+
+    const formData = new FormData(event.currentTarget);
+    const email = (formData.get("email") as string | null)?.trim().toLowerCase() ?? "";
+    const password = (formData.get("password") as string | null) ?? "";
+
+    if (!email || !password) {
+      setError("Preencha e-mail e senha.");
+      setIsPending(false);
+      return;
+    }
+
+    const response = await fetch("/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password }),
+    });
+
+    if (!response.ok) {
+      const payload = (await response.json().catch(() => null)) as { error?: string } | null;
+      setError(payload?.error ?? "E-mail ou senha inválidos.");
+      setIsPending(false);
+      return;
+    }
+
+    router.push(ROUTES.DASHBOARD);
+    router.refresh();
+  }
 
   return (
     <div className="mx-auto flex min-h-screen w-full max-w-md items-center px-4">
@@ -17,7 +51,7 @@ export default function LoginPage() {
           Faça login para acessar o sistema.
         </p>
 
-        <Form action={action} className="mt-6">
+        <Form onSubmit={handleSubmit} className="mt-6">
           <Field label="E-mail" htmlFor="email">
             <Input id="email" name="email" type="email" placeholder="seuemail@nead.com" required />
           </Field>
@@ -26,9 +60,9 @@ export default function LoginPage() {
             <Input id="password" name="password" type="password" placeholder="••••••••" required />
           </Field>
 
-          {state.error && (
+          {error && (
             <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600 dark:bg-red-950/40 dark:text-red-400">
-              {state.error}
+              {error}
             </p>
           )}
 

@@ -1,9 +1,14 @@
 "use server";
 
-import { isRedirectError } from "next/dist/client/components/redirect-error";
-import bcrypt from "bcryptjs";
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
+import {
+  createSession,
+  getSessionMaxAge,
+  hashPassword,
+  SESSION_COOKIE_NAME,
+} from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { signIn } from "@/auth";
 import { ROUTES } from "@/lib/constants";
 
 export type CadastroState = {
@@ -31,27 +36,28 @@ export async function cadastroAction(
     return { error: "Este e-mail já está em uso." };
   }
 
-  const senhaHash = await bcrypt.hash(password, 10);
+  const passwordHash = await hashPassword(password);
 
-  await prisma.user.create({
+  const user = await prisma.user.create({
     data: {
       nome,
       email,
-      senha: senhaHash,
+      password: passwordHash,
       role: "solicitante",
     },
   });
 
-  try {
-    await signIn("credentials", {
-      email,
-      password,
-      redirectTo: ROUTES.DASHBOARD,
-    });
-  } catch (error) {
-    if (isRedirectError(error)) throw error;
-    return { error: "Usuário criado, mas não foi possível autenticar. Tente entrar novamente." };
-  }
+  const token = await createSession(user.id);
+  const cookieStore = await cookies();
+  cookieStore.set(SESSION_COOKIE_NAME, token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    maxAge: getSessionMaxAge(),
+    path: "/",
+  });
+
+  redirect(ROUTES.DASHBOARD);
 
   return {};
 }

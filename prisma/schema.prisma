@@ -22,7 +22,7 @@ model User {
   id                  Int       @id @default(autoincrement())
   nome                String    @db.VarChar(150)
   email               String    @unique @db.VarChar(150)
-  senha               String
+  password            String    @map("senha")
   role                String    @db.VarChar(20)
   setor_id            Int?
   created_at          DateTime  @default(now())
@@ -36,11 +36,12 @@ model User {
 }
 
 model Session {
-  id           String   @id @default(cuid())
-  sessionToken String   @unique
-  userId       Int
-  expires      DateTime
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id        String   @id @default(cuid())
+  userId    Int
+  token     String   @unique @map("sessionToken")
+  expiresAt DateTime @map("expires")
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("sessions")
 }

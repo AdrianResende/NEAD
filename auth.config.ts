@@ -1,6 +1,6 @@
 import type { NextAuthConfig } from "next-auth";
 
-const authConfig = {
+const authConfig: Omit<NextAuthConfig, "providers"> = {
   session: { strategy: "jwt" },
   logger: {
     error(code, ...message) {
@@ -35,6 +35,6 @@ const authConfig = {
   pages: {
     signIn: "/login",
   },
-} satisfies NextAuthConfig;
+};
 
 export default authConfig;
