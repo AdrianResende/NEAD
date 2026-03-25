@@ -1,23 +1,11 @@
 import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
+import authConfig from "@/auth.config";
 import { prisma } from "@/lib/prisma";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
-  session: { strategy: "jwt" },
-  logger: {
-    error(code, ...message) {
-      const authErrorCode =
-        typeof code === "string"
-          ? code
-          : (code as { type?: string; name?: string }).type ??
-            (code as { name?: string }).name ??
-            "UnknownAuthError";
-
-      if (authErrorCode === "CredentialsSignin") return;
-      console.error("[auth][error]", authErrorCode, ...message);
-    },
-  },
+  ...authConfig,
   providers: [
     Credentials({
       credentials: {
@@ -62,24 +50,4 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       },
     }),
   ],
-  callbacks: {
-    async jwt({ token, user }) {
-      if (user) {
-        token.id = Number(user.id);
-        token.role = (user as { role?: string }).role;
-      }
-      return token;
-    },
-    async session({ session, token }) {
-      if (session.user) {
-        (session.user as { id: number; role: string }).id = Number(token.id);
-        (session.user as { id: number; role: string }).role =
-          (token.role as string) ?? "solicitante";
-      }
-      return session;
-    },
-  },
-  pages: {
-    signIn: "/login",
-  },
 });
