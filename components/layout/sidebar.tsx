@@ -12,6 +12,7 @@ type MenuItem = {
 
 const MENU_ITEMS: MenuItem[] = [
   { label: "Inicio", href: ROUTES.DASHBOARD },
+  { label: "Cadastro", href: ROUTES.CADASTRO },
 ];
 
 export function Sidebar() {

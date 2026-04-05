@@ -1,30 +1,37 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
-import { redirect } from "next/navigation";
-import {
-  createSession,
-  getSessionMaxAge,
-  hashPassword,
-  SESSION_COOKIE_NAME,
-} from "@/lib/auth";
+import { hashPassword, SESSION_COOKIE_NAME, validateSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { ROUTES } from "@/lib/constants";
+import { getAssignableRoles, normalizeRole } from "@/lib/roles";
 
 export type CadastroState = {
   error?: string;
+  success?: boolean;
 };
 
 export async function cadastroAction(
   _prevState: CadastroState,
   formData: FormData
 ): Promise<CadastroState> {
+  const cookieStore = await cookies();
+  const sessionToken = cookieStore.get(SESSION_COOKIE_NAME)?.value;
+  const currentUser = sessionToken ? await validateSession(sessionToken) : null;
+
   const nome = (formData.get("name") as string | null)?.trim();
   const email = (formData.get("email") as string | null)?.trim().toLowerCase();
   const password = formData.get("password") as string | null;
+  const requestedRole = normalizeRole(formData.get("role") as string | null);
+
+  const assignableRoles = getAssignableRoles(currentUser?.role);
 
   if (!nome || !email || !password) {
     return { error: "Preencha nome, e-mail e senha." };
+  }
+
+  if (!assignableRoles.includes(requestedRole)) {
+    return { error: "Você não tem permissão para cadastrar esse perfil." };
   }
 
   if (password.length < 6) {
@@ -38,26 +45,66 @@ export async function cadastroAction(
 
   const passwordHash = await hashPassword(password);
 
-  const user = await prisma.user.create({
+  await prisma.user.create({
     data: {
       nome,
       email,
       password: passwordHash,
-      role: "solicitante",
+      role: requestedRole,
     },
   });
 
-  const token = await createSession(user.id);
+  revalidatePath("/cadastro");
+  return { success: true };
+}
+
+export type EditarRoleState = {
+  error?: string;
+  success?: boolean;
+};
+
+export async function editarRoleAction(
+  _prevState: EditarRoleState,
+  formData: FormData
+): Promise<EditarRoleState> {
   const cookieStore = await cookies();
-  cookieStore.set(SESSION_COOKIE_NAME, token, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    maxAge: getSessionMaxAge(),
-    path: "/",
+  const sessionToken = cookieStore.get(SESSION_COOKIE_NAME)?.value;
+  const currentUser = sessionToken ? await validateSession(sessionToken) : null;
+
+  if (!currentUser) {
+    return { error: "Não autenticado." };
+  }
+
+  const targetId = Number(formData.get("userId"));
+  const newRole = normalizeRole(formData.get("role") as string | null);
+
+  if (!targetId || Number.isNaN(targetId)) {
+    return { error: "Usuário inválido." };
+  }
+
+  const assignableRoles = getAssignableRoles(currentUser.role);
+  if (!assignableRoles.includes(newRole)) {
+    return { error: "Você não tem permissão para atribuir esse perfil." };
+  }
+
+  const target = await prisma.user.findUnique({ where: { id: targetId } });
+  if (!target) {
+    return { error: "Usuário não encontrado." };
+  }
+
+  if (target.role === "admin" && currentUser.role !== "admin") {
+    return { error: "Sem permissão para editar administradores." };
+  }
+
+  if (target.id === currentUser.id) {
+    return { error: "Você não pode alterar o seu próprio perfil." };
+  }
+
+  await prisma.user.update({
+    where: { id: targetId },
+    data: { role: newRole },
   });
 
-  redirect(ROUTES.DASHBOARD);
-
-  return {};
+  revalidatePath("/cadastro");
+  return { success: true };
 }
