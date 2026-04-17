@@ -10,13 +10,33 @@ type MenuItem = {
   href: string;
 };
 
-const MENU_ITEMS: MenuItem[] = [
-  { label: "Inicio", href: ROUTES.DASHBOARD },
-  { label: "Cadastro", href: ROUTES.CADASTRO },
-];
+function getMenuItems(role: string | null): MenuItem[] {
+  if (role === "admin") {
+    return [
+      { label: "Início", href: ROUTES.DASHBOARD },
+      { label: "Usuários", href: ROUTES.CADASTRO },
+      { label: "Setores", href: ROUTES.SETORES },
+      { label: "Serviços", href: ROUTES.SERVICOS },
+      { label: "Chamados", href: ROUTES.CHAMADOS },
+    ];
+  }
+  if (role === "atendente") {
+    return [
+      { label: "Início", href: ROUTES.DASHBOARD },
+      { label: "Chamados", href: ROUTES.CHAMADOS },
+    ];
+  }
+  // solicitante or null
+  return [
+    { label: "Início", href: ROUTES.DASHBOARD },
+    { label: "Meus Chamados", href: ROUTES.CHAMADOS },
+    { label: "Abrir Chamado", href: ROUTES.CHAMADOS_NOVO },
+  ];
+}
 
-export function Sidebar() {
+export function Sidebar({ role }: { role: string | null }) {
   const pathname = usePathname();
+  const MENU_ITEMS = getMenuItems(role);
 
   return (
     <>
