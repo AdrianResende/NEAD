@@ -42,14 +42,14 @@ export function Sidebar({ role }: { role: string | null }) {
           Menu
         </p>
         <nav className="space-y-1" aria-label="Menu lateral">
-          {MENU_ITEMS.map((item) => {
+          {MENU_ITEMS.map((item, index) => {
             const isActive =
               pathname === item.href ||
               (item.href !== ROUTES.HOME && pathname.startsWith(item.href));
 
             return (
               <Link
-                key={item.href}
+                key={`${item.href}-${item.label}-${index}`}
                 href={item.href}
                 className={cn(
                   "block rounded-lg px-3 py-2 text-sm font-medium transition-colors",
@@ -70,14 +70,14 @@ export function Sidebar({ role }: { role: string | null }) {
         aria-label="Menu mobile"
       >
         <div className="flex gap-2 overflow-x-auto">
-          {MENU_ITEMS.map((item) => {
+          {MENU_ITEMS.map((item, index) => {
             const isActive =
               pathname === item.href ||
               (item.href !== ROUTES.HOME && pathname.startsWith(item.href));
 
             return (
               <Link
-                key={item.href}
+                key={`${item.href}-${item.label}-${index}`}
                 href={item.href}
                 className={cn(
                   "whitespace-nowrap rounded-full border px-3 py-1.5 text-sm font-medium transition-colors",
