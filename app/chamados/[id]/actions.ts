@@ -30,7 +30,10 @@ export async function atualizarChamadoAction(
 
   if (!id || isNaN(id)) return { error: "Chamado inválido." };
 
-  const chamado = await prisma.chamado.findUnique({ where: { id } });
+  const chamado = await prisma.chamado.findUnique({
+    where: { id },
+    include: { servico: true },
+  });
   if (!chamado) return { error: "Chamado não encontrado." };
 
   // Solicitante só pode cancelar o próprio chamado
@@ -44,6 +47,10 @@ export async function atualizarChamadoAction(
 
   if (user.role !== "admin" && user.role !== "atendente") {
     return { error: "Sem permissão." };
+  }
+
+  if (user.role === "atendente" && user.setor_id && chamado.servico.setor_id !== user.setor_id) {
+    return { error: "Você só pode atender solicitações do seu setor." };
   }
 
   if (status && !STATUS_VALIDOS.includes(status as (typeof STATUS_VALIDOS)[number])) {

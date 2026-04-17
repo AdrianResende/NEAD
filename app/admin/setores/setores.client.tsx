@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useEffect, useState } from "react";
 import {
   Badge,
   Button,
@@ -62,8 +62,13 @@ function Modal({
 function CriarSetorModal({ onClose }: { onClose: () => void }) {
   const [state, action, pending] = useActionState(criarSetorAction, {});
 
+  useEffect(() => {
+    if (state.success) {
+      onClose();
+    }
+  }, [onClose, state.success]);
+
   if (state.success) {
-    onClose();
     return null;
   }
 
@@ -87,8 +92,13 @@ function CriarSetorModal({ onClose }: { onClose: () => void }) {
 function EditarSetorModal({ setor, onClose }: { setor: Setor; onClose: () => void }) {
   const [state, action, pending] = useActionState(editarSetorAction, {});
 
+  useEffect(() => {
+    if (state.success) {
+      onClose();
+    }
+  }, [onClose, state.success]);
+
   if (state.success) {
-    onClose();
     return null;
   }
 

@@ -44,7 +44,12 @@ export default async function ChamadoDetalhePage({
   const atendentes =
     user.role === "admin"
       ? await prisma.user.findMany({
-          where: { role: { in: ["admin", "atendente"] } },
+          where: {
+            OR: [
+              { role: "admin" },
+              { role: "atendente", setor_id: chamado.servico.setor.id },
+            ],
+          },
           orderBy: { nome: "asc" },
           select: { id: true, nome: true },
         })

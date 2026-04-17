@@ -1,6 +1,8 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import Link from "next/link";
+import { useActionState, useEffect, useState } from "react";
+import { ROUTES } from "@/lib/constants";
 import {
   Badge,
   Button,
@@ -125,12 +127,17 @@ export function ServicosClient({
     <div className="mx-auto max-w-5xl px-4 py-10 sm:px-6 lg:px-8">
       <div className="mb-6 flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-50">Serviços</h1>
+          <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-50">Catálogo de Serviços</h1>
           <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-            Gerencie os serviços disponíveis para solicitação.
+            Gerencie os tipos de serviço que podem ser solicitados.
           </p>
         </div>
-        <Button onClick={() => setShowCriar(true)}>+ Novo Serviço</Button>
+        <div className="flex gap-2">
+          <Link href={ROUTES.CHAMADOS}>
+            <Button variant="outline">Ver Solicitações</Button>
+          </Link>
+          <Button onClick={() => setShowCriar(true)}>+ Novo Serviço</Button>
+        </div>
       </div>
 
       {deleteError && (
@@ -200,7 +207,15 @@ export function ServicosClient({
 
 function CriarServicoForm({ setores, onClose }: { setores: Setor[]; onClose: () => void }) {
   const [state, action, pending] = useActionState(criarServicoAction, {});
-  if (state.success) { onClose(); return null; }
+
+  useEffect(() => {
+    if (state.success) {
+      onClose();
+    }
+  }, [onClose, state.success]);
+
+  if (state.success) return null;
+
   return (
     <ServicoForm
       setores={setores}
@@ -214,7 +229,14 @@ function CriarServicoForm({ setores, onClose }: { setores: Setor[]; onClose: () 
 
 function EditarServicoForm({ servico, setores, onClose }: { servico: Servico; setores: Setor[]; onClose: () => void }) {
   const [state, action, pending] = useActionState(editarServicoAction, {});
-  if (state.success) { onClose(); return null; }
+
+  useEffect(() => {
+    if (state.success) {
+      onClose();
+    }
+  }, [onClose, state.success]);
+
+  if (state.success) return null;
 
   const wrappedAction = (formData: FormData) => {
     formData.set("id", String(servico.id));

@@ -31,11 +31,11 @@ export function NovoChamadoClient({ servicos }: { servicos: Servico[] }) {
           href={ROUTES.CHAMADOS}
           className="text-sm text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200"
         >
-          ← Voltar para chamados
+          ← Voltar para serviços
         </Link>
-        <h1 className="mt-3 text-2xl font-bold text-zinc-900 dark:text-zinc-50">Abrir Chamado</h1>
+        <h1 className="mt-3 text-2xl font-bold text-zinc-900 dark:text-zinc-50">Solicitar Serviço</h1>
         <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-          Descreva o que você precisa e nossa equipe entrará em contato.
+          Escolha o serviço, descreva a necessidade e acompanhe o atendimento por aqui.
         </p>
       </div>
 
@@ -84,7 +84,7 @@ export function NovoChamadoClient({ servicos }: { servicos: Servico[] }) {
           </Field>
 
           <Button type="submit" disabled={pending} className="w-full">
-            {pending ? "Enviando..." : "Abrir Chamado"}
+            {pending ? "Enviando..." : "Solicitar Serviço"}
           </Button>
         </Form>
       </div>

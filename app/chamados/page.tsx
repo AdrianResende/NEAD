@@ -22,19 +22,23 @@ export default async function ChamadosPage() {
           }
         : {};
 
-  const chamados = await prisma.chamado.findMany({
-    where,
-    orderBy: { created_at: "desc" },
-    include: {
-      servico: true,
-      solicitante: true,
-      atendente: true,
-    },
-  });
+  const [chamados, totalServicos] = await Promise.all([
+    prisma.chamado.findMany({
+      where,
+      orderBy: { created_at: "desc" },
+      include: {
+        servico: true,
+        solicitante: true,
+        atendente: true,
+      },
+    }),
+    user.role === "admin" ? prisma.servico.count() : Promise.resolve(0),
+  ]);
 
   return (
     <ChamadosClient
       role={user.role}
+      totalServicos={totalServicos}
       chamados={chamados.map((c) => ({
         id: c.id,
         titulo: c.titulo,

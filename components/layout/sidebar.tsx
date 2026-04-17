@@ -13,24 +13,21 @@ type MenuItem = {
 function getMenuItems(role: string | null): MenuItem[] {
   if (role === "admin") {
     return [
-      { label: "Início", href: ROUTES.DASHBOARD },
       { label: "Usuários", href: ROUTES.CADASTRO },
       { label: "Setores", href: ROUTES.SETORES },
-      { label: "Serviços", href: ROUTES.SERVICOS },
       { label: "Chamados", href: ROUTES.CHAMADOS },
     ];
   }
   if (role === "atendente") {
     return [
-      { label: "Início", href: ROUTES.DASHBOARD },
       { label: "Chamados", href: ROUTES.CHAMADOS },
     ];
   }
   // solicitante or null
   return [
-    { label: "Início", href: ROUTES.DASHBOARD },
-    { label: "Meus Chamados", href: ROUTES.CHAMADOS },
-    { label: "Abrir Chamado", href: ROUTES.CHAMADOS_NOVO },
+    
+    { label: "Meus Serviços", href: ROUTES.CHAMADOS },
+    { label: "Solicitar Serviço", href: ROUTES.CHAMADOS_NOVO },
   ];
 }
 

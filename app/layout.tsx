@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import { LayoutShell } from "@/components/layout/layout-shell";
 import { validateSession } from "@/lib/auth";
 import { SESSION_COOKIE_NAME } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 import { cookies } from "next/headers";
 import "./globals.css";
 
@@ -36,11 +37,30 @@ export default async function RootLayout({
   const token = cookieStore.get(SESSION_COOKIE_NAME)?.value;
   const user = token ? await validateSession(token) : null;
   const role = user?.role ?? null;
+  const currentUser = user
+    ? await prisma.user.findUnique({
+        where: { id: user.id },
+        include: { setor: true },
+      })
+    : null;
 
   return (
     <html lang="pt-BR" className={inter.variable} suppressHydrationWarning>
       <body className="flex min-h-screen flex-col bg-white font-sans antialiased dark:bg-zinc-950">
-        <LayoutShell role={role}>{children}</LayoutShell>
+        <LayoutShell
+          role={role}
+          currentUser={
+            currentUser
+              ? {
+                  nome: currentUser.nome,
+                  role: currentUser.role,
+                  setor: currentUser.setor?.nome ?? null,
+                }
+              : null
+          }
+        >
+          {children}
+        </LayoutShell>
       </body>
     </html>
   );

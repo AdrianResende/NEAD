@@ -8,9 +8,14 @@ import { ROUTES } from "@/lib/constants";
 type LayoutShellProps = {
   children: React.ReactNode;
   role: string | null;
+  currentUser: {
+    nome: string;
+    role: string;
+    setor: string | null;
+  } | null;
 };
 
-export function LayoutShell({ children, role }: LayoutShellProps) {
+export function LayoutShell({ children, role, currentUser }: LayoutShellProps) {
   const pathname = usePathname();
   const isAuthPage = pathname === ROUTES.LOGIN;
 
@@ -24,7 +29,7 @@ export function LayoutShell({ children, role }: LayoutShellProps) {
 
   return (
     <>
-      <Header />
+      <Header currentUser={currentUser} />
       <div className="flex flex-1 flex-col md:flex-row">
         <Sidebar role={role} />
         <main className="flex-1">{children}</main>

@@ -18,6 +18,7 @@ type Chamado = {
 type Props = {
   chamados: Chamado[];
   role: string;
+  totalServicos?: number;
 };
 
 const STATUS_BADGE: Record<string, "default" | "warning" | "success" | "danger" | "info"> = {
@@ -43,27 +44,35 @@ const PRIORIDADE_BADGE: Record<string, "default" | "warning" | "danger" | "succe
   urgente: "danger",
 };
 
-export function ChamadosClient({ chamados, role }: Props) {
+export function ChamadosClient({ chamados, role, totalServicos = 0 }: Props) {
   const isSolicitante = role === "solicitante";
+  const isAdmin = role === "admin";
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
       <div className="mb-6 flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-50">
-            {isSolicitante ? "Meus Chamados" : "Chamados"}
+            {isSolicitante ? "Meus Serviços" : "Serviços"}
           </h1>
           <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
             {isSolicitante
               ? "Acompanhe o status das suas solicitações."
-              : "Gerencie os chamados em aberto."}
+              : "Gerencie os atendimentos e solicitações de serviço."}
           </p>
         </div>
-        {isSolicitante && (
-          <Link href={ROUTES.CHAMADOS_NOVO}>
-            <Button>+ Abrir Chamado</Button>
-          </Link>
-        )}
+        <div className="flex gap-2">
+          {isAdmin && (
+            <Link href={ROUTES.SERVICOS}>
+              <Button variant="outline">Catálogo ({totalServicos})</Button>
+            </Link>
+          )}
+          {isSolicitante && (
+            <Link href={ROUTES.CHAMADOS_NOVO}>
+              <Button>+ Solicitar Serviço</Button>
+            </Link>
+          )}
+        </div>
       </div>
 
       <Table>
@@ -86,8 +95,8 @@ export function ChamadosClient({ chamados, role }: Props) {
               colSpan={isSolicitante ? 8 : 9}
               message={
                 isSolicitante
-                  ? "Você ainda não abriu nenhum chamado."
-                  : "Nenhum chamado encontrado."
+                  ? "Você ainda não solicitou nenhum serviço."
+                  : "Nenhuma solicitação encontrada."
               }
             />
           ) : (
