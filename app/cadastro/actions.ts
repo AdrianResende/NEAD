@@ -23,6 +23,7 @@ export async function cadastroAction(
   const email = (formData.get("email") as string | null)?.trim().toLowerCase();
   const password = formData.get("password") as string | null;
   const requestedRole = normalizeRole(formData.get("role") as string | null);
+  const setor_id = formData.get("setor_id") ? Number(formData.get("setor_id")) : null;
 
   const assignableRoles = getAssignableRoles(currentUser?.role);
 
@@ -51,6 +52,7 @@ export async function cadastroAction(
       email,
       password: passwordHash,
       role: requestedRole,
+      setor_id: setor_id || null,
     },
   });
 
@@ -77,6 +79,7 @@ export async function editarRoleAction(
 
   const targetId = Number(formData.get("userId"));
   const newRole = normalizeRole(formData.get("role") as string | null);
+  const setor_id = formData.get("setor_id") ? Number(formData.get("setor_id")) : null;
 
   if (!targetId || Number.isNaN(targetId)) {
     return { error: "Usuário inválido." };
@@ -102,7 +105,7 @@ export async function editarRoleAction(
 
   await prisma.user.update({
     where: { id: targetId },
-    data: { role: newRole },
+    data: { role: newRole, setor_id: setor_id || null },
   });
 
   revalidatePath("/cadastro");

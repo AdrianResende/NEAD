@@ -16,7 +16,10 @@ export default async function ChamadosPage() {
     user.role === "solicitante"
       ? { solicitante_id: user.id }
       : user.role === "atendente"
-        ? { status: { in: ["aberto", "em_andamento"] } }
+        ? {
+            status: { in: ["aberto", "em_andamento"] },
+            ...(user.setor_id ? { servico: { setor_id: user.setor_id } } : {}),
+          }
         : {};
 
   const chamados = await prisma.chamado.findMany({

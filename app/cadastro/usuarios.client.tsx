@@ -25,14 +25,17 @@ type User = {
   email: string;
   role: string;
   setor: string | null;
+  setor_id: number | null;
   createdAt: string;
 };
 
 type RoleOption = { value: string; label: string };
+type SetorOption = { value: string; label: string };
 
 type UsuariosClientProps = {
   users: User[];
   roleOptions: RoleOption[];
+  setorOptions: SetorOption[];
   canEdit: boolean;
   currentUserId: number;
 };
@@ -86,6 +89,7 @@ function Modal({
 export function UsuariosClient({
   users,
   roleOptions,
+  setorOptions,
   canEdit,
   currentUserId,
 }: UsuariosClientProps) {
@@ -200,6 +204,14 @@ export function UsuariosClient({
                 options={roleOptions}
               />
             </Field>
+            <Field label="Setor" htmlFor="c-setor">
+              <Select
+                id="c-setor"
+                name="setor_id"
+                options={setorOptions}
+                placeholder="Sem setor"
+              />
+            </Field>
 
             {createState.error && (
               <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600 dark:bg-red-950/40 dark:text-red-400">
@@ -237,12 +249,21 @@ export function UsuariosClient({
           </p>
           <Form action={editAction}>
             <input type="hidden" name="userId" value={editingUser.id} />
-            <Field label="Novo perfil" htmlFor="e-role">
+            <Field label="Perfil" htmlFor="e-role">
               <Select
                 id="e-role"
                 name="role"
                 defaultValue={editingUser.role}
                 options={roleOptions}
+              />
+            </Field>
+            <Field label="Setor" htmlFor="e-setor">
+              <Select
+                id="e-setor"
+                name="setor_id"
+                options={setorOptions}
+                defaultValue={editingUser.setor_id ? String(editingUser.setor_id) : ""}
+                placeholder="Sem setor"
               />
             </Field>
 

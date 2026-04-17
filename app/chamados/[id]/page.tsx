@@ -36,6 +36,11 @@ export default async function ChamadoDetalhePage({
     redirect(ROUTES.CHAMADOS);
   }
 
+  // Atendente só pode ver chamados do seu setor
+  if (user.role === "atendente" && user.setor_id && chamado.servico.setor.id !== user.setor_id) {
+    redirect(ROUTES.CHAMADOS);
+  }
+
   const atendentes =
     user.role === "admin"
       ? await prisma.user.findMany({
