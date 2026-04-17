@@ -8,6 +8,10 @@ export const ROUTES = {
   CADASTRO: "/cadastro",
   DASHBOARD: "/dashboard",
   COURSES: "/cursos",
+  SETORES: "/admin/setores",
+  SERVICOS: "/admin/servicos",
+  CHAMADOS: "/chamados",
+  CHAMADOS_NOVO: "/chamados/novo",
 } as const;
 
 export const PAGINATION = {
