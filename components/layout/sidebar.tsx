@@ -36,11 +36,8 @@ function getMenuItems(role: string | null): MenuItem[] {
       { label: "Chamados", href: ROUTES.CHAMADOS },
     ];
   }
-  // solicitante or null
   return [
-    
     { label: "Meus Serviços", href: ROUTES.CHAMADOS },
-    { label: "Solicitar Serviço", href: ROUTES.CHAMADOS_NOVO },
   ];
 }
 

@@ -23,7 +23,7 @@ export default async function ChamadosPage() {
           }
         : {};
 
-  const [chamados, totalServicos] = await Promise.all([
+  const [chamados, totalServicos, servicos] = await Promise.all([
     prisma.chamado.findMany({
       where,
       orderBy: { created_at: "desc" },
@@ -34,12 +34,24 @@ export default async function ChamadosPage() {
       },
     }),
     user.role === "admin" ? prisma.servico.count() : Promise.resolve(0),
+    user.role === "solicitante"
+      ? prisma.servico.findMany({
+          orderBy: [{ setor: { nome: "asc" } }, { nome: "asc" }],
+          include: { setor: true },
+        })
+      : Promise.resolve([]),
   ]);
 
   return (
     <ChamadosClient
       role={user.role}
       totalServicos={totalServicos}
+      servicos={servicos.map((s) => ({
+        id: s.id,
+        nome: s.nome,
+        setor: s.setor.nome,
+        setor_id: s.setor_id,
+      }))}
       chamados={chamados.map((c) => ({
         id: c.id,
         titulo: c.titulo,
