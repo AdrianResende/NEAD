@@ -11,6 +11,7 @@ export default async function NovoChamadoPage() {
   const user = token ? await validateSession(token) : null;
 
   if (!user) redirect(ROUTES.LOGIN);
+  if (user.role !== "solicitante") redirect(ROUTES.CHAMADOS);
 
   const servicos = await prisma.servico.findMany({
     orderBy: { nome: "asc" },
@@ -22,6 +23,7 @@ export default async function NovoChamadoPage() {
       servicos={servicos.map((s) => ({
         id: s.id,
         nome: s.nome,
+        setor_id: s.setor_id,
         setor: s.setor.nome,
       }))}
     />

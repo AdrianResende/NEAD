@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import { SESSION_COOKIE_NAME, validateSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { ROUTES } from "@/lib/constants";
+import { getFirstMenuRouteByRole } from "@/lib/navigation";
 import { SetoresClient } from "./setores.client";
 
 export default async function SetoresPage() {
@@ -11,7 +12,7 @@ export default async function SetoresPage() {
   const user = token ? await validateSession(token) : null;
 
   if (!user) redirect(ROUTES.LOGIN);
-  if (user.role !== "admin") redirect(ROUTES.DASHBOARD);
+  if (user.role !== "admin") redirect(getFirstMenuRouteByRole(user.role));
 
   const setores = await prisma.setor.findMany({
     orderBy: { nome: "asc" },
