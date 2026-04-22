@@ -1,12 +1,14 @@
+import { redirect } from "next/navigation";
+import { cookies } from "next/headers";
+import { SESSION_COOKIE_NAME, validateSession } from "@/lib/auth";
+import { ROUTES } from "@/lib/constants";
+import { getFirstMenuRouteByRole } from "@/lib/navigation";
+
 export default async function DashboardPage() {
-  return (
-    <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
-      <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-50">
-        Dashboard
-      </h1>
-      <p className="mt-2 text-zinc-500 dark:text-zinc-400">
-        Área inicial do sistema NEAD.
-      </p>
-    </div>
-  );
+  const cookieStore = await cookies();
+  const token = cookieStore.get(SESSION_COOKIE_NAME)?.value;
+  const user = token ? await validateSession(token) : null;
+
+  if (!user) redirect(ROUTES.LOGIN);
+  redirect(getFirstMenuRouteByRole(user.role));
 }
