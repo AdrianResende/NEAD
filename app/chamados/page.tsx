@@ -3,7 +3,7 @@ import { cookies } from "next/headers";
 import { SESSION_COOKIE_NAME, validateSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { ROUTES } from "@/lib/constants";
-import { resolveAtendenteSetorFilterId } from "@/lib/permissions";
+import { getSetorFilter } from "@/lib/permissions";
 import { ChamadosClient } from "./chamados.client";
 
 export default async function ChamadosPage() {
@@ -19,7 +19,7 @@ export default async function ChamadosPage() {
       : user.role === "atendente"
         ? {
             status: { in: ["aberto", "em_andamento"] },
-            servico: { setor_id: resolveAtendenteSetorFilterId(user.setor_id) },
+            servico: { setor_id: getSetorFilter(user.setor_id) },
           }
         : {};
 

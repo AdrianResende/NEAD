@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
 import { SESSION_COOKIE_NAME, validateSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { canAtendenteAccessServicoSetor } from "@/lib/permissions";
+import { hasSetorAccess } from "@/lib/permissions";
 
 export type AtenderChamadoState = {
   error?: string;
@@ -52,7 +52,7 @@ export async function atualizarChamadoAction(
 
   if (
     user.role === "atendente" &&
-    !canAtendenteAccessServicoSetor(user.setor_id, chamado.servico.setor_id)
+    !hasSetorAccess(user.setor_id, chamado.servico.setor_id)
   ) {
     return { error: "Você só pode atender solicitações do seu setor." };
   }

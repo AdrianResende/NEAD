@@ -11,7 +11,7 @@ export type CadastroState = {
   success?: boolean;
 };
 
-export async function cadastroAction(
+export async function criarUsuarioAction(
   _prevState: CadastroState,
   formData: FormData
 ): Promise<CadastroState> {
@@ -60,15 +60,15 @@ export async function cadastroAction(
   return { success: true };
 }
 
-export type EditarRoleState = {
+export type EditarUsuarioState = {
   error?: string;
   success?: boolean;
 };
 
-export async function editarRoleAction(
-  _prevState: EditarRoleState,
+export async function editarUsuarioAction(
+  _prevState: EditarUsuarioState,
   formData: FormData
-): Promise<EditarRoleState> {
+): Promise<EditarUsuarioState> {
   const cookieStore = await cookies();
   const sessionToken = cookieStore.get(SESSION_COOKIE_NAME)?.value;
   const currentUser = sessionToken ? await validateSession(sessionToken) : null;

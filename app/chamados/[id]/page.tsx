@@ -3,7 +3,7 @@ import { cookies } from "next/headers";
 import { SESSION_COOKIE_NAME, validateSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { ROUTES } from "@/lib/constants";
-import { canAtendenteAccessServicoSetor } from "@/lib/permissions";
+import { hasSetorAccess } from "@/lib/permissions";
 import { ChamadoDetalheClient } from "./chamado.client";
 
 export default async function ChamadoDetalhePage({
@@ -40,7 +40,7 @@ export default async function ChamadoDetalhePage({
   // Atendente só pode ver chamados do seu setor
   if (
     user.role === "atendente" &&
-    !canAtendenteAccessServicoSetor(user.setor_id, chamado.servico.setor.id)
+    !hasSetorAccess(user.setor_id, chamado.servico.setor.id)
   ) {
     redirect(ROUTES.CHAMADOS);
   }

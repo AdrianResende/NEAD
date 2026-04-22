@@ -4,7 +4,7 @@ import { SESSION_COOKIE_NAME, validateSession } from "@/lib/auth";
 import { getAssignableRoles, ROLE_LABELS } from "@/lib/roles";
 import { prisma } from "@/lib/prisma";
 import { ROUTES } from "@/lib/constants";
-import { UsuariosClient } from "./usuarios.client";
+import { CadastroClient } from "./cadastro.client";
 
 export default async function CadastroPage() {
   const cookieStore = await cookies();
@@ -29,7 +29,7 @@ export default async function CadastroPage() {
   const canEdit = currentUser.role === "admin" || currentUser.role === "atendente";
 
   return (
-    <UsuariosClient
+    <CadastroClient
       currentUserId={currentUser.id}
       canEdit={canEdit}
       roleOptions={roleOptions}
