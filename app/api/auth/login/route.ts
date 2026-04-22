@@ -5,6 +5,7 @@ import {
   SESSION_COOKIE_NAME,
   verifyPassword,
 } from "@/lib/auth";
+import { getFirstMenuRouteByRole } from "@/lib/navigation";
 import { prisma } from "@/lib/prisma";
 
 export async function POST(request: Request) {
@@ -28,7 +29,10 @@ export async function POST(request: Request) {
     }
 
     const token = await createSession(user.id);
-    const response = NextResponse.json({ success: true });
+    const response = NextResponse.json({
+      success: true,
+      redirectTo: getFirstMenuRouteByRole(user.role),
+    });
 
     response.cookies.set(SESSION_COOKIE_NAME, token, {
       httpOnly: true,
