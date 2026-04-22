@@ -11,16 +11,20 @@ function applyTheme(theme: Theme) {
   root.classList.toggle("dark", theme === "dark");
 }
 
-export function ThemeToggle() {
-  const [theme, setTheme] = useState<Theme>("light");
+function getInitialTheme(): Theme {
+  if (typeof window === "undefined") return "light";
 
-  useEffect(() => {
-    const savedTheme = localStorage.getItem(STORAGE_KEY) as Theme | null;
-    const preferredDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-    const initialTheme = savedTheme ?? (preferredDark ? "dark" : "light");
-    setTheme(initialTheme);
-    applyTheme(initialTheme);
-  }, []);
+  const savedTheme = localStorage.getItem(STORAGE_KEY);
+  if (savedTheme === "light" || savedTheme === "dark") {
+    return savedTheme;
+  }
+
+  const preferredDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+  return preferredDark ? "dark" : "light";
+}
+
+export function ThemeToggle() {
+  const [theme, setTheme] = useState<Theme>(getInitialTheme);
 
   useEffect(() => {
     applyTheme(theme);
