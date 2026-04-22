@@ -39,7 +39,11 @@ export default function LoginPage() {
       return;
     }
 
-    router.push(ROUTES.DASHBOARD);
+    const payload = (await response.json().catch(() => null)) as
+      | { redirectTo?: string }
+      | null;
+
+    router.push(payload?.redirectTo ?? ROUTES.CHAMADOS);
     router.refresh();
   }
 

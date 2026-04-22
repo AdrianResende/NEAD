@@ -10,11 +10,24 @@ type MenuItem = {
   href: string;
 };
 
+function isPathMatch(pathname: string, href: string) {
+  if (pathname === href) return true;
+  if (href === ROUTES.HOME) return false;
+  return pathname.startsWith(`${href}/`);
+}
+
+function getActiveHref(pathname: string, items: MenuItem[]) {
+  const matches = items.filter((item) => isPathMatch(pathname, item.href));
+  if (matches.length === 0) return null;
+  return matches.sort((a, b) => b.href.length - a.href.length)[0].href;
+}
+
 function getMenuItems(role: string | null): MenuItem[] {
   if (role === "admin") {
     return [
       { label: "Usuários", href: ROUTES.CADASTRO },
       { label: "Setores", href: ROUTES.SETORES },
+      { label: "Serviços", href: ROUTES.SERVICOS },
       { label: "Chamados", href: ROUTES.CHAMADOS },
     ];
   }
@@ -34,6 +47,7 @@ function getMenuItems(role: string | null): MenuItem[] {
 export function Sidebar({ role }: { role: string | null }) {
   const pathname = usePathname();
   const MENU_ITEMS = getMenuItems(role);
+  const activeHref = getActiveHref(pathname, MENU_ITEMS);
 
   return (
     <>
@@ -43,9 +57,7 @@ export function Sidebar({ role }: { role: string | null }) {
         </p>
         <nav className="space-y-1" aria-label="Menu lateral">
           {MENU_ITEMS.map((item, index) => {
-            const isActive =
-              pathname === item.href ||
-              (item.href !== ROUTES.HOME && pathname.startsWith(item.href));
+            const isActive = item.href === activeHref;
 
             return (
               <Link
@@ -71,9 +83,7 @@ export function Sidebar({ role }: { role: string | null }) {
       >
         <div className="flex gap-2 overflow-x-auto">
           {MENU_ITEMS.map((item, index) => {
-            const isActive =
-              pathname === item.href ||
-              (item.href !== ROUTES.HOME && pathname.startsWith(item.href));
+            const isActive = item.href === activeHref;
 
             return (
               <Link

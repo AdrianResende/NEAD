@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useSyncExternalStore } from "react";
 
 const BREAKPOINTS = {
   sm: 640,
@@ -10,16 +10,21 @@ const BREAKPOINTS = {
 type Breakpoint = keyof typeof BREAKPOINTS;
 
 export function useMediaQuery(breakpoint: Breakpoint = "md"): boolean {
-  const [isBelow, setIsBelow] = useState(false);
+  const mediaQuery = `(max-width: ${BREAKPOINTS[breakpoint] - 1}px)`;
 
-  useEffect(() => {
-    const query = window.matchMedia(`(max-width: ${BREAKPOINTS[breakpoint] - 1}px)`);
-    setIsBelow(query.matches);
+  const subscribe = (onStoreChange: () => void) => {
+    if (typeof window === "undefined") return () => undefined;
 
-    const handler = (e: MediaQueryListEvent) => setIsBelow(e.matches);
+    const query = window.matchMedia(mediaQuery);
+    const handler = () => onStoreChange();
     query.addEventListener("change", handler);
     return () => query.removeEventListener("change", handler);
-  }, [breakpoint]);
+  };
 
-  return isBelow;
+  const getSnapshot = () => {
+    if (typeof window === "undefined") return false;
+    return window.matchMedia(mediaQuery).matches;
+  };
+
+  return useSyncExternalStore(subscribe, getSnapshot, () => false);
 }
