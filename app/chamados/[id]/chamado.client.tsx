@@ -23,7 +23,6 @@ type Atendente = { id: number; nome: string };
 
 type Props = {
   chamado: Chamado;
-  currentUserId: number;
   currentUserRole: string;
   atendentes: Atendente[];
 };
@@ -147,12 +146,11 @@ function CancelarForm({ chamadoId }: { chamadoId: number }) {
   );
 }
 
-export function ChamadoDetalheClient({ chamado, currentUserId, currentUserRole, atendentes }: Props) {
+export function ChamadoDetalheClient({ chamado, currentUserRole, atendentes }: Props) {
   const isSolicitante = currentUserRole === "solicitante";
   const isAtendente = currentUserRole === "atendente";
   const isAdmin = currentUserRole === "admin";
   const canAtend = isAdmin || isAtendente;
-  const isMyChamado = chamado.solicitante.nome && currentUserId === Number(chamado.solicitante);
   const canCancel = isSolicitante && ["aberto"].includes(chamado.status);
 
   return (

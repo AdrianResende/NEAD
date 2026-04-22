@@ -23,15 +23,18 @@ export async function abrirChamadoAction(
   const user = token ? await validateSession(token) : null;
 
   if (!user) return { error: "Não autenticado." };
+  if (user.role !== "solicitante") return { error: "Apenas solicitantes podem abrir chamados." };
 
   const titulo = (formData.get("titulo") as string | null)?.trim();
   const descricao = (formData.get("descricao") as string | null)?.trim();
+  const setor_id = Number(formData.get("setor_id"));
   const servico_id = Number(formData.get("servico_id"));
   const prioridade = (formData.get("prioridade") as string | null) ?? "normal";
 
   if (!titulo) return { error: "O título é obrigatório." };
   if (titulo.length > 200) return { error: "Título deve ter no máximo 200 caracteres." };
   if (!descricao) return { error: "A descrição é obrigatória." };
+  if (!setor_id || isNaN(setor_id)) return { error: "Selecione um setor." };
   if (!servico_id || isNaN(servico_id)) return { error: "Selecione um serviço." };
   if (!PRIORIDADES.includes(prioridade as (typeof PRIORIDADES)[number])) {
     return { error: "Prioridade inválida." };
@@ -39,6 +42,9 @@ export async function abrirChamadoAction(
 
   const servico = await prisma.servico.findUnique({ where: { id: servico_id } });
   if (!servico) return { error: "Serviço não encontrado." };
+  if (servico.setor_id !== setor_id) {
+    return { error: "O serviço selecionado não pertence ao setor informado." };
+  }
 
   const chamado = await prisma.chamado.create({
     data: {
