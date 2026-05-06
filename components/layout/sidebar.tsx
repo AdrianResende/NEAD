@@ -37,7 +37,7 @@ function getMenuItems(role: string | null): MenuItem[] {
     ];
   }
   return [
-    { label: "Meus Serviços", href: ROUTES.CHAMADOS },
+    { label: "Meus Chamados", href: ROUTES.CHAMADOS },
   ];
 }
 
