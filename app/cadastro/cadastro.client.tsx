@@ -156,7 +156,7 @@ export function CadastroClient({
             </p>
           </div>
           {canEdit && (
-            <Button onClick={() => setCreateOpen(true)}>
+            <Button onClick={() => setCreateOpen(true)} className="w-full justify-center sm:w-auto">
               <span className="material-symbols-outlined text-[18px]" title="Novo usuário" aria-hidden="true">
                 person_add
               </span>
@@ -166,7 +166,65 @@ export function CadastroClient({
         </div>
       </div>
 
-      <div className="overflow-hidden rounded-2xl border border-zinc-200/80 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
+      <div className="space-y-3 md:hidden">
+        {users.length === 0 ? (
+          <div className="rounded-2xl border border-zinc-200/80 bg-white p-4 text-sm text-zinc-500 shadow-sm dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-400">
+            Nenhum usuário cadastrado.
+          </div>
+        ) : (
+          users.map((user) => (
+            <article key={user.id} className="rounded-2xl border border-zinc-200/80 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-semibold text-zinc-900 dark:text-zinc-50">{user.nome}</p>
+                  <p className="truncate text-xs text-zinc-500 dark:text-zinc-400">{user.email}</p>
+                </div>
+                <Badge variant={ROLE_BADGE[user.role] ?? "default"}>
+                  {ROLE_LABEL[user.role] ?? user.role}
+                </Badge>
+              </div>
+
+              <div className="mt-3 grid grid-cols-2 gap-2 border-t border-zinc-200/80 pt-3 text-xs dark:border-zinc-800">
+                <div>
+                  <p className="font-medium text-zinc-500 dark:text-zinc-400">Setor</p>
+                  <p className="mt-0.5 text-zinc-700 dark:text-zinc-300">{user.setor ?? "—"}</p>
+                </div>
+                <div>
+                  <p className="font-medium text-zinc-500 dark:text-zinc-400">Serviços</p>
+                  <p className="mt-0.5 text-zinc-700 dark:text-zinc-300">{user.servicos.length || "—"}</p>
+                </div>
+                <div>
+                  <p className="font-medium text-zinc-500 dark:text-zinc-400">Cadastro</p>
+                  <p className="mt-0.5 text-zinc-700 dark:text-zinc-300">{new Date(user.createdAt).toLocaleDateString("pt-BR")}</p>
+                </div>
+                {canEdit && (
+                  <div className="flex items-end justify-end">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      disabled={user.id === currentUserId}
+                      aria-label={`Editar usuário ${user.nome}`}
+                      title={`Editar usuário ${user.nome}`}
+                      onClick={() => {
+                        setEditingUser(user);
+                        setEditRole(user.role);
+                        setEditSetor(user.role === "solicitante" ? "" : user.setor_id ? String(user.setor_id) : "");
+                        setEditServicoIds(user.servico_ids.map(String));
+                      }}
+                    >
+                      <span className="material-symbols-outlined" aria-hidden="true">
+                        edit
+                      </span>
+                    </Button>
+                  </div>
+                )}
+              </div>
+            </article>
+          ))
+        )}
+      </div>
+
+      <div className="hidden overflow-hidden rounded-2xl border border-zinc-200/80 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-950 md:block">
       <Table>
         <TableHead>
           <Tr>

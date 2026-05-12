@@ -145,7 +145,7 @@ export function SetoresClient({ setores }: { setores: Setor[] }) {
               Gerencie os setores da organização.
             </p>
           </div>
-          <Button onClick={() => setShowCriar(true)} title="Novo setor">
+          <Button onClick={() => setShowCriar(true)} title="Novo setor" className="w-full justify-center sm:w-auto">
             <Plus className="h-4 w-4" aria-hidden="true" />
             Novo Setor
           </Button>
@@ -158,7 +158,51 @@ export function SetoresClient({ setores }: { setores: Setor[] }) {
         </div>
       )}
 
-      <div className="overflow-hidden rounded-2xl border border-zinc-200/80 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
+      <div className="space-y-3 md:hidden">
+        {setores.length === 0 ? (
+          <div className="rounded-2xl border border-zinc-200/80 bg-white p-4 text-sm text-zinc-500 shadow-sm dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-400">
+            Nenhum setor cadastrado.
+          </div>
+        ) : (
+          setores.map((s) => (
+            <article key={s.id} className="rounded-2xl border border-zinc-200/80 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <h3 className="truncate text-sm font-semibold text-zinc-900 dark:text-zinc-50">{s.nome}</h3>
+                  <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">{s.descricao ?? "Sem descrição"}</p>
+                </div>
+                <div className="flex items-center gap-1">
+                  <Badge variant="default">U: {s._count.users}</Badge>
+                  <Badge variant="default">S: {s._count.servicos}</Badge>
+                </div>
+              </div>
+
+              <div className="mt-3 flex items-center justify-end gap-2 border-t border-zinc-200/80 pt-3 dark:border-zinc-800">
+                <Link href={`${ROUTES.SETORES}/${s.id}/servicos`}>
+                  <Button size="sm" variant="ghost" aria-label={`Acessar serviços do setor ${s.nome}`} title={`Acessar serviços do setor ${s.nome}`}>
+                    <ExternalLink className="h-4 w-4" aria-hidden="true" />
+                  </Button>
+                </Link>
+                <Button variant="ghost" size="sm" onClick={() => setEditando(s)} aria-label={`Editar setor ${s.nome}`} title={`Editar setor ${s.nome}`}>
+                  <Edit2 className="h-4 w-4" aria-hidden="true" />
+                </Button>
+                <Button
+                  variant="danger"
+                  size="sm"
+                  onClick={() => handleExcluir(s.id)}
+                  disabled={s._count.users > 0 || s._count.servicos > 0}
+                  aria-label={`Excluir setor ${s.nome}`}
+                  title={`Excluir setor ${s.nome}`}
+                >
+                  <Trash2 className="h-4 w-4" aria-hidden="true" />
+                </Button>
+              </div>
+            </article>
+          ))
+        )}
+      </div>
+
+      <div className="hidden overflow-hidden rounded-2xl border border-zinc-200/80 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-950 md:block">
         <Table>
           <TableHead>
             <tr>

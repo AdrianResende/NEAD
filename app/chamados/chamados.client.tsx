@@ -119,7 +119,56 @@ export function ChamadosClient({ chamados, role, servicos = [] }: Props) {
         </div>
       </div>
 
-      <div className="overflow-hidden rounded-2xl border border-zinc-200/80 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
+      <div className="space-y-3 md:hidden">
+        {chamados.length === 0 ? (
+          <div className="rounded-2xl border border-zinc-200/80 bg-white p-4 text-sm text-zinc-500 shadow-sm dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-400">
+            {isSolicitante
+              ? "Você ainda não solicitou nenhum serviço."
+              : "Nenhuma solicitação encontrada."}
+          </div>
+        ) : (
+          chamados.map((c) => (
+            <article key={c.id} className="rounded-2xl border border-zinc-200/80 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="text-xs font-medium text-zinc-500 dark:text-zinc-400">#{c.id}</p>
+                  <h3 className="truncate text-sm font-semibold text-zinc-900 dark:text-zinc-50">{c.titulo}</h3>
+                  <p className="mt-1 truncate text-xs text-zinc-500 dark:text-zinc-400">{c.servico}</p>
+                </div>
+                <Badge variant={STATUS_BADGE[c.status] ?? "default"}>
+                  {STATUS_LABEL[c.status] ?? c.status}
+                </Badge>
+              </div>
+
+              <div className="mt-3 grid grid-cols-2 gap-2 border-t border-zinc-200/80 pt-3 text-xs dark:border-zinc-800">
+                {!isSolicitante && (
+                  <div>
+                    <p className="font-medium text-zinc-500 dark:text-zinc-400">Solicitante</p>
+                    <p className="mt-0.5 text-zinc-700 dark:text-zinc-300">{c.solicitante}</p>
+                  </div>
+                )}
+                <div>
+                  <p className="font-medium text-zinc-500 dark:text-zinc-400">Atendente</p>
+                  <p className="mt-0.5 text-zinc-700 dark:text-zinc-300">{c.atendente ?? "—"}</p>
+                </div>
+                <div>
+                  <p className="font-medium text-zinc-500 dark:text-zinc-400">Aberto em</p>
+                  <p className="mt-0.5 text-zinc-700 dark:text-zinc-300">{new Date(c.createdAt).toLocaleDateString("pt-BR")}</p>
+                </div>
+                <div className="flex items-end justify-end">
+                  <Link href={`${ROUTES.CHAMADOS}/${c.id}`}>
+                    <Button variant="ghost" size="sm" aria-label={`Ver chamado ${c.id}`} title={`Ver chamado ${c.id}`}>
+                      <Eye className="h-4 w-4" aria-hidden="true" />
+                    </Button>
+                  </Link>
+                </div>
+              </div>
+            </article>
+          ))
+        )}
+      </div>
+
+      <div className="hidden overflow-hidden rounded-2xl border border-zinc-200/80 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-950 md:block">
         <Table>
           <TableHead>
             <tr>
@@ -163,7 +212,7 @@ export function ChamadosClient({ chamados, role, servicos = [] }: Props) {
                     <Link href={`${ROUTES.CHAMADOS}/${c.id}`}>
                       <Button variant="ghost" size="sm" aria-label={`Ver chamado ${c.id}`} title={`Ver chamado ${c.id}`}>
                         <Eye className="h-4 w-4" aria-hidden="true" />
-                        Ver
+                        <span className="hidden lg:inline">Ver</span>
                       </Button>
                     </Link>
                   </Td>

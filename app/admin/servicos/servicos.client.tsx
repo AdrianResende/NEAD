@@ -154,20 +154,20 @@ export function ServicosClient({
           </div>
           <div className="flex flex-wrap items-center gap-2">
             {setorAtual ? (
-              <Link href={ROUTES.SETORES}>
-                <Button variant="outline" size="sm" title="Voltar para setores">
+              <Link href={ROUTES.SETORES} className="w-full sm:w-auto">
+                <Button variant="outline" size="sm" title="Voltar para setores" className="w-full justify-center sm:w-auto">
                   <ArrowLeft className="h-4 w-4" aria-hidden="true" />
                   Voltar
                 </Button>
               </Link>
             ) : (
-              <Link href={ROUTES.CHAMADOS}>
-                <Button variant="outline" size="sm">
+              <Link href={ROUTES.CHAMADOS} className="w-full sm:w-auto">
+                <Button variant="outline" size="sm" className="w-full justify-center sm:w-auto">
                   Ver Solicitações
                 </Button>
               </Link>
             )}
-            <Button onClick={() => setShowCriar(true)} title="Novo serviço">
+            <Button onClick={() => setShowCriar(true)} title="Novo serviço" className="w-full justify-center sm:w-auto">
               <Plus className="h-4 w-4" aria-hidden="true" />
               Novo Serviço
             </Button>
@@ -181,7 +181,46 @@ export function ServicosClient({
         </div>
       )}
 
-      <div className="overflow-hidden rounded-2xl border border-zinc-200/80 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
+      <div className="space-y-3 md:hidden">
+        {servicos.length === 0 ? (
+          <div className="rounded-2xl border border-zinc-200/80 bg-white p-4 text-sm text-zinc-500 shadow-sm dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-400">
+            Nenhum serviço cadastrado.
+          </div>
+        ) : (
+          servicos.map((s) => (
+            <article key={s.id} className="rounded-2xl border border-zinc-200/80 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <h3 className="truncate text-sm font-semibold text-zinc-900 dark:text-zinc-50">{s.nome}</h3>
+                  <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">{s.descricao ?? "Sem descrição"}</p>
+                </div>
+                <Badge variant="default">{s._count.chamados}</Badge>
+              </div>
+
+              <div className="mt-3 flex items-center justify-between border-t border-zinc-200/80 pt-3 dark:border-zinc-800">
+                <Badge variant="info">{s.setor.nome}</Badge>
+                <div className="flex items-center gap-2">
+                  <Button variant="ghost" size="sm" onClick={() => setEditando(s)} aria-label={`Editar serviço ${s.nome}`} title={`Editar serviço ${s.nome}`}>
+                    <Edit2 className="h-4 w-4" aria-hidden="true" />
+                  </Button>
+                  <Button
+                    variant="danger"
+                    size="sm"
+                    onClick={() => handleExcluir(s.id)}
+                    disabled={s._count.chamados > 0}
+                    aria-label={`Excluir serviço ${s.nome}`}
+                    title={`Excluir serviço ${s.nome}`}
+                  >
+                    <Trash2 className="h-4 w-4" aria-hidden="true" />
+                  </Button>
+                </div>
+              </div>
+            </article>
+          ))
+        )}
+      </div>
+
+      <div className="hidden overflow-hidden rounded-2xl border border-zinc-200/80 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-950 md:block">
         <Table>
           <TableHead>
             <tr>
