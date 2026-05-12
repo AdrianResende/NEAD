@@ -13,13 +13,6 @@ export type ServicoOption = {
   setor_id: number;
 };
 
-const PRIORIDADE_OPTIONS = [
-  { value: "baixa", label: "Baixa" },
-  { value: "normal", label: "Normal" },
-  { value: "alta", label: "Alta" },
-  { value: "urgente", label: "Urgente" },
-];
-
 export function NovoChamadoForm({ servicos }: { servicos: ServicoOption[] }) {
   const [state, action, pending] = useActionState(abrirChamadoAction, {});
   const [setorSelecionado, setSetorSelecionado] = useState<string>("");
