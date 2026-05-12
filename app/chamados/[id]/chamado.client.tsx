@@ -271,7 +271,7 @@ export function ChamadoDetalheClient({ chamado, currentUserId, currentUserRole, 
   const isAtendente = currentUserRole === "atendente";
   const isAdmin = currentUserRole === "admin";
   const canAtend = isAdmin || isAtendente;
-  const canCancel = isSolicitante && !["fechado", "cancelado"].includes(chamado.status);
+  const canCancel = isSolicitante && chamado.status === "resolvido";
   const canClose = isSolicitante && chamado.status === "resolvido";
 
   return (

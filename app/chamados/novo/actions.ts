@@ -22,6 +22,42 @@ function sanitizeFileName(fileName: string) {
   return fileName.replace(/[^a-zA-Z0-9._-]/g, "_");
 }
 
+async function selecionarAtendentePorFila(servicoId: number): Promise<number | null> {
+  const vinculados = await prisma.atendenteServico.findMany({
+    where: { servico_id: servicoId },
+    select: { user_id: true },
+    orderBy: { user_id: "asc" },
+  });
+
+  if (vinculados.length === 0) return null;
+
+  const filaIds = vinculados.map((v) => v.user_id);
+
+  const ultimoChamadoAtribuido = await prisma.chamado.findFirst({
+    where: {
+      servico_id: servicoId,
+      atendente_id: { in: filaIds },
+    },
+    orderBy: [{ created_at: "desc" }, { id: "desc" }],
+    select: { atendente_id: true },
+  });
+
+  // Primeira atribuição do serviço: inicia em posição aleatória.
+  if (!ultimoChamadoAtribuido?.atendente_id) {
+    const indiceAleatorio = Math.floor(Math.random() * filaIds.length);
+    return filaIds[indiceAleatorio];
+  }
+
+  const indiceAtual = filaIds.indexOf(ultimoChamadoAtribuido.atendente_id);
+  if (indiceAtual < 0) {
+    const indiceAleatorio = Math.floor(Math.random() * filaIds.length);
+    return filaIds[indiceAleatorio];
+  }
+
+  const proximoIndice = (indiceAtual + 1) % filaIds.length;
+  return filaIds[proximoIndice];
+}
+
 export async function abrirChamadoAction(
   _prevState: NovoChamadoState,
   formData: FormData
@@ -66,13 +102,32 @@ export async function abrirChamadoAction(
     return { error: "O serviço selecionado não pertence ao setor informado." };
   }
 
-  const chamado = await prisma.chamado.create({
-    data: {
-      titulo,
-      descricao,
-      servico_id,
-      solicitante_id: user.id,
-    },
+  const atendenteId = await selecionarAtendentePorFila(servico_id);
+
+  const chamado = await prisma.$transaction(async (tx) => {
+    const criado = await tx.chamado.create({
+      data: {
+        titulo,
+        descricao,
+        servico_id,
+        solicitante_id: user.id,
+        atendente_id: atendenteId,
+        status: atendenteId ? "atribuido" : "aberto",
+      },
+    });
+
+    if (atendenteId) {
+      await tx.chamadoStatusHistorico.create({
+        data: {
+          chamado_id: criado.id,
+          de_status: "aberto",
+          para_status: "atribuido",
+          observacao: "Atribuição automática por fila do serviço.",
+        },
+      });
+    }
+
+    return criado;
   });
 
   if (anexos.length > 0) {

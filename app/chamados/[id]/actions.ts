@@ -48,8 +48,8 @@ export async function atualizarChamadoAction(
       return { error: "Solicitantes só podem cancelar ou fechar chamados." };
     }
 
-    if (status === "fechado" && chamado.status !== "resolvido") {
-      return { error: "Somente chamados resolvidos podem ser fechados pelo solicitante." };
+    if (chamado.status !== "resolvido") {
+      return { error: "Somente chamados resolvidos podem ser cancelados ou fechados pelo solicitante." };
     }
 
     if (status !== chamado.status) {
