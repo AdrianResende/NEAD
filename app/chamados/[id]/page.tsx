@@ -27,6 +27,10 @@ export default async function ChamadoDetalhePage({
       solicitante: true,
       atendente: true,
       anexos: { orderBy: { created_at: "asc" } },
+      mensagens: {
+        orderBy: { created_at: "asc" },
+        include: { autor: true },
+      },
     },
   });
 
@@ -99,10 +103,21 @@ export default async function ChamadoDetalhePage({
           mimeType: a.mime_type,
           tamanhoBytes: a.tamanho_bytes,
         })),
+        mensagens: chamado.mensagens.map((m) => ({
+          id: m.id,
+          mensagem: m.mensagem,
+          createdAt: m.created_at.toISOString(),
+          autor: {
+            id: m.autor.id,
+            nome: m.autor.nome,
+            role: m.autor.role,
+          },
+        })),
         atendente: chamado.atendente
           ? { id: chamado.atendente.id, nome: chamado.atendente.nome }
           : null,
       }}
+      currentUserId={user.id}
       currentUserRole={user.role}
       atendentes={atendentes}
     />

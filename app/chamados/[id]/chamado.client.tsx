@@ -2,8 +2,8 @@
 
 import { useActionState } from "react";
 import Link from "next/link";
-import { Badge, Button, Field, Form, Select } from "@/components/ui";
-import { atualizarChamadoAction } from "./actions";
+import { Badge, Button, Field, Form, Input, Select } from "@/components/ui";
+import { atualizarChamadoAction, enviarMensagemChamadoAction } from "./actions";
 import { ROUTES } from "@/lib/constants";
 
 type Chamado = {
@@ -23,6 +23,12 @@ type Chamado = {
     mimeType: string;
     tamanhoBytes: number;
   }>;
+  mensagens: Array<{
+    id: number;
+    mensagem: string;
+    createdAt: string;
+    autor: { id: number; nome: string; role: string };
+  }>;
   atendente: { id: number; nome: string } | null;
 };
 
@@ -30,6 +36,7 @@ type Atendente = { id: number; nome: string };
 
 type Props = {
   chamado: Chamado;
+  currentUserId: number;
   currentUserRole: string;
   atendentes: Atendente[];
 };
@@ -125,7 +132,7 @@ function AtendimentoForm({
         </Field>
 
         {role === "admin" && (
-          <Field label="Atendente" htmlFor="atendente_id">
+          <Field label="Atendente" htmlFor="atendente_id" hint="Você pode trocar o atendente deste chamado a qualquer momento.">
             <Select
               id="atendente_id"
               name="atendente_id"
@@ -160,7 +167,76 @@ function CancelarForm({ chamadoId }: { chamadoId: number }) {
   );
 }
 
-export function ChamadoDetalheClient({ chamado, currentUserRole, atendentes }: Props) {
+function MensagensPanel({
+  chamado,
+  currentUserId,
+}: {
+  chamado: Chamado;
+  currentUserId: number;
+}) {
+  const [state, action, pending] = useActionState(enviarMensagemChamadoAction, {});
+
+  return (
+    <div className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
+      <h2 className="mb-4 text-base font-semibold text-zinc-900 dark:text-zinc-50">Histórico de mensagens</h2>
+
+      <div className="mb-4 max-h-72 space-y-2 overflow-y-auto rounded-xl border border-zinc-200 bg-zinc-50 p-3 dark:border-zinc-800 dark:bg-zinc-900/40">
+        {chamado.mensagens.length === 0 ? (
+          <p className="text-sm text-zinc-500 dark:text-zinc-400">Nenhuma mensagem ainda.</p>
+        ) : (
+          chamado.mensagens.map((msg) => {
+            const isMine = msg.autor.id === currentUserId;
+            return (
+              <div
+                key={msg.id}
+                className={isMine ? "flex justify-end" : "flex justify-start"}
+              >
+                <div
+                  className={
+                    isMine
+                      ? "max-w-[90%] rounded-2xl rounded-br-md bg-primary px-3 py-2 text-white"
+                      : "max-w-[90%] rounded-2xl rounded-bl-md bg-white px-3 py-2 text-zinc-800 dark:bg-zinc-950 dark:text-zinc-100"
+                  }
+                >
+                  <p className={isMine ? "text-xs font-semibold text-white/90" : "text-xs font-semibold text-zinc-500 dark:text-zinc-400"}>
+                    {msg.autor.nome}
+                  </p>
+                  <p className="mt-1 whitespace-pre-wrap text-sm">{msg.mensagem}</p>
+                  <p className={isMine ? "mt-1 text-[11px] text-white/80" : "mt-1 text-[11px] text-zinc-500 dark:text-zinc-400"}>
+                    {new Date(msg.createdAt).toLocaleString("pt-BR")}
+                  </p>
+                </div>
+              </div>
+            );
+          })
+        )}
+      </div>
+
+      {state.error && (
+        <div className="mb-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700 dark:border-red-900 dark:bg-red-950 dark:text-red-400">
+          {state.error}
+        </div>
+      )}
+      {state.success && (
+        <div className="mb-3 rounded-lg border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-700 dark:border-green-900 dark:bg-green-950 dark:text-green-400">
+          Mensagem enviada.
+        </div>
+      )}
+
+      <Form action={action} className="gap-3">
+        <input type="hidden" name="chamado_id" value={chamado.id} />
+        <Field label="Nova mensagem" htmlFor="mensagem">
+          <Input id="mensagem" name="mensagem" placeholder="Escreva uma mensagem para o histórico..." maxLength={2000} />
+        </Field>
+        <Button type="submit" disabled={pending}>
+          {pending ? "Enviando..." : "Enviar mensagem"}
+        </Button>
+      </Form>
+    </div>
+  );
+}
+
+export function ChamadoDetalheClient({ chamado, currentUserId, currentUserRole, atendentes }: Props) {
   const isSolicitante = currentUserRole === "solicitante";
   const isAtendente = currentUserRole === "atendente";
   const isAdmin = currentUserRole === "admin";
@@ -172,9 +248,10 @@ export function ChamadoDetalheClient({ chamado, currentUserRole, atendentes }: P
       <div className="mb-6">
         <Link
           href={ROUTES.CHAMADOS}
-          className="text-sm text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200"
+          className="inline-flex items-center gap-2 rounded-lg border border-primary/20 bg-primary/10 px-3 py-2 text-sm font-medium text-primary hover:bg-primary/15 dark:border-primary/30"
         >
-          ← Voltar para chamados
+          <span aria-hidden="true">←</span>
+          <span>Voltar para chamados</span>
         </Link>
         <div className="mt-3 flex flex-wrap items-center gap-3">
           <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-50">
@@ -250,6 +327,7 @@ export function ChamadoDetalheClient({ chamado, currentUserRole, atendentes }: P
           {canAtend && (
             <AtendimentoForm chamado={chamado} atendentes={atendentes} role={currentUserRole} />
           )}
+          <MensagensPanel chamado={chamado} currentUserId={currentUserId} />
           {canCancel && (
             <div className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
               <h2 className="mb-4 text-base font-semibold text-zinc-900 dark:text-zinc-50">Ações</h2>

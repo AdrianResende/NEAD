@@ -10,6 +10,11 @@ export type AtenderChamadoState = {
   success?: boolean;
 };
 
+export type MensagemChamadoState = {
+  error?: string;
+  success?: boolean;
+};
+
 const STATUS_VALIDOS = ["aberto", "em_andamento", "resolvido", "fechado", "cancelado"] as const;
 
 export async function atualizarChamadoAction(
@@ -105,5 +110,72 @@ export async function atualizarChamadoAction(
   await prisma.chamado.update({ where: { id }, data: updateData });
   revalidatePath(`/chamados/${id}`);
   revalidatePath("/chamados");
+  return { success: true };
+}
+
+export async function enviarMensagemChamadoAction(
+  _prevState: MensagemChamadoState,
+  formData: FormData,
+): Promise<MensagemChamadoState> {
+  const cookieStore = await cookies();
+  const token = cookieStore.get(SESSION_COOKIE_NAME)?.value;
+  const user = token ? await validateSession(token) : null;
+
+  if (!user) return { error: "Não autenticado." };
+
+  const chamadoId = Number(formData.get("chamado_id"));
+  const mensagem = (formData.get("mensagem") as string | null)?.trim();
+
+  if (!chamadoId || Number.isNaN(chamadoId)) {
+    return { error: "Chamado inválido." };
+  }
+
+  if (!mensagem) {
+    return { error: "Digite uma mensagem." };
+  }
+
+  if (mensagem.length > 2000) {
+    return { error: "A mensagem deve ter no máximo 2000 caracteres." };
+  }
+
+  const chamado = await prisma.chamado.findUnique({
+    where: { id: chamadoId },
+    include: { servico: true },
+  });
+
+  if (!chamado) return { error: "Chamado não encontrado." };
+
+  if (user.role === "solicitante" && chamado.solicitante_id !== user.id) {
+    return { error: "Sem permissão." };
+  }
+
+  if (user.role === "atendente") {
+    const vinculo = await prisma.atendenteServico.findUnique({
+      where: {
+        user_id_servico_id: {
+          user_id: user.id,
+          servico_id: chamado.servico_id,
+        },
+      },
+    });
+
+    if (!vinculo) {
+      return { error: "Você não pode interagir neste chamado." };
+    }
+  }
+
+  if (user.role !== "admin" && user.role !== "atendente" && user.role !== "solicitante") {
+    return { error: "Sem permissão." };
+  }
+
+  await prisma.chamadoMensagem.create({
+    data: {
+      chamado_id: chamadoId,
+      autor_id: user.id,
+      mensagem,
+    },
+  });
+
+  revalidatePath(`/chamados/${chamadoId}`);
   return { success: true };
 }
