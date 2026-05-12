@@ -54,7 +54,7 @@ export default async function RootLayout({
               ? {
                   nome: currentUser.nome,
                   role: currentUser.role,
-                  setor: currentUser.setor?.nome ?? null,
+                    setor: currentUser.role === "solicitante" ? null : currentUser.setor?.nome ?? null,
                 }
               : null
           }

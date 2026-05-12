@@ -100,6 +100,9 @@ export function CadastroClient({
   const [createState, createAction, isCreating] = useActionState(criarUsuarioAction, {});
   const [editState, editAction, isEditing] = useActionState(editarUsuarioAction, {});
 
+  const showCreateSetor = createRole !== "solicitante";
+  const showEditSetor = editRole !== "solicitante";
+
   function closeCreate() {
     setCreateOpen(false);
     router.refresh();
@@ -202,16 +205,26 @@ export function CadastroClient({
                 name="role"
                 defaultValue={roleOptions[0]?.value}
                 options={roleOptions}
+                onChange={(e) => {
+                  const roleSelecionado = e.target.value;
+                  setCreateRole(roleSelecionado);
+                  if (roleSelecionado === "solicitante") {
+                    setCreateSetor("");
+                    setCreateServicoIds([]);
+                  }
+                }}
               />
             </Field>
-            <Field label="Setor" htmlFor="c-setor">
-              <Select
-                id="c-setor"
-                name="setor_id"
-                options={setorOptions}
-                placeholder="Sem setor"
-              />
-            </Field>
+            {showCreateSetor && (
+              <Field label="Setor" htmlFor="c-setor">
+                <Select
+                  id="c-setor"
+                  name="setor_id"
+                  options={setorOptions}
+                  placeholder="Sem setor"
+                />
+              </Field>
+            )}
 
             {createState.error && (
               <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600 dark:bg-red-950/40 dark:text-red-400">
@@ -255,17 +268,27 @@ export function CadastroClient({
                 name="role"
                 defaultValue={editingUser.role}
                 options={roleOptions}
+                onChange={(e) => {
+                  const roleSelecionado = e.target.value;
+                  setEditRole(roleSelecionado);
+                  if (roleSelecionado === "solicitante") {
+                    setEditSetor("");
+                    setEditServicoIds([]);
+                  }
+                }}
               />
             </Field>
-            <Field label="Setor" htmlFor="e-setor">
-              <Select
-                id="e-setor"
-                name="setor_id"
-                options={setorOptions}
-                defaultValue={editingUser.setor_id ? String(editingUser.setor_id) : ""}
-                placeholder="Sem setor"
-              />
-            </Field>
+            {showEditSetor && (
+              <Field label="Setor" htmlFor="e-setor">
+                <Select
+                  id="e-setor"
+                  name="setor_id"
+                  options={setorOptions}
+                  defaultValue={editingUser.setor_id ? String(editingUser.setor_id) : ""}
+                  placeholder="Sem setor"
+                />
+              </Field>
+            )}
 
             {editState.error && (
               <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600 dark:bg-red-950/40 dark:text-red-400">

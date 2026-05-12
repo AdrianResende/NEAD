@@ -151,20 +151,35 @@ function AtendimentoForm({
   );
 }
 
-function CancelarForm({ chamadoId }: { chamadoId: number }) {
+const STATUS_OPTIONS_SOLICITANTE = [
+  { value: "cancelado", label: "Cancelar chamado" },
+  { value: "fechado", label: "Fechar chamado" },
+];
+
+function AcoesSolicitanteForm({ chamadoId }: { chamadoId: number }) {
   const [state, action, pending] = useActionState(atualizarChamadoAction, {});
 
   return (
-    <Form action={action}>
-      <input type="hidden" name="id" value={chamadoId} />
-      <input type="hidden" name="status" value="cancelado" />
-      {state.error && (
-        <p className="mb-2 text-sm text-red-600 dark:text-red-400">{state.error}</p>
-      )}
-      <Button type="submit" variant="danger" disabled={pending}>
-        {pending ? "Cancelando..." : "Cancelar Chamado"}
-      </Button>
-    </Form>
+    <div className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
+      <h2 className="mb-4 text-base font-semibold text-zinc-900 dark:text-zinc-50">Ações do solicitante</h2>
+      <Form action={action} className="gap-3">
+        <input type="hidden" name="id" value={chamadoId} />
+        <Field label="Escolha a ação" htmlFor="status" hint="Disponível apenas quando o chamado estiver resolvido.">
+          <Select
+            id="status"
+            name="status"
+            options={STATUS_OPTIONS_SOLICITANTE}
+            placeholder="Selecione uma ação"
+          />
+        </Field>
+        {state.error && (
+          <p className="text-sm text-red-600 dark:text-red-400">{state.error}</p>
+        )}
+        <Button type="submit" variant="outline" disabled={pending}>
+          {pending ? "Processando..." : "Executar ação"}
+        </Button>
+      </Form>
+    </div>
   );
 }
 
@@ -271,8 +286,7 @@ export function ChamadoDetalheClient({ chamado, currentUserId, currentUserRole, 
   const isAtendente = currentUserRole === "atendente";
   const isAdmin = currentUserRole === "admin";
   const canAtend = isAdmin || isAtendente;
-  const canCancel = isSolicitante && chamado.status === "resolvido";
-  const canClose = isSolicitante && chamado.status === "resolvido";
+  const canSolicitanteAction = isSolicitante && chamado.status === "resolvido";
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
@@ -357,22 +371,7 @@ export function ChamadoDetalheClient({ chamado, currentUserId, currentUserRole, 
           )}
           <HistoricoStatusPanel chamado={chamado} />
           <MensagensPanel chamado={chamado} currentUserId={currentUserId} />
-          {canClose && (
-            <div className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
-              <h2 className="mb-4 text-base font-semibold text-zinc-900 dark:text-zinc-50">Fechar chamado</h2>
-              <Form action={atualizarChamadoAction}>
-                <input type="hidden" name="id" value={chamado.id} />
-                <input type="hidden" name="status" value="fechado" />
-                <Button type="submit" variant="outline">Fechar chamado</Button>
-              </Form>
-            </div>
-          )}
-          {canCancel && (
-            <div className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
-              <h2 className="mb-4 text-base font-semibold text-zinc-900 dark:text-zinc-50">Ações</h2>
-              <CancelarForm chamadoId={chamado.id} />
-            </div>
-          )}
+          {canSolicitanteAction && <AcoesSolicitanteForm chamadoId={chamado.id} />}
         </div>
       </div>
     </div>

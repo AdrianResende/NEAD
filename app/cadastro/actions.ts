@@ -75,7 +75,7 @@ export async function criarUsuarioAction(
       email,
       password: passwordHash,
       role: requestedRole,
-      setor_id: setor_id || null,
+      setor_id: requestedRole === "solicitante" ? null : setor_id || null,
       servicosAtendidos:
         requestedRole === "atendente"
           ? {
@@ -159,7 +159,7 @@ export async function editarUsuarioAction(
     where: { id: targetId },
     data: {
       role: newRole,
-      setor_id: setor_id || null,
+      setor_id: newRole === "solicitante" ? null : setor_id || null,
       servicosAtendidos:
         newRole === "atendente"
           ? {

@@ -266,7 +266,7 @@ export function CadastroClient({
               />
             </Field>
 
-            {createRole === "atendente" && (
+            {createRole === "atendente" && createSetor && (
               <Field
                 label="Serviços vinculados"
                 hint="Selecione um ou mais serviços que o atendente poderá atender."
@@ -362,7 +362,7 @@ export function CadastroClient({
               />
             </Field>
 
-            {editRole === "atendente" && (
+            {editRole === "atendente" && editSetor && (
               <Field
                 label="Serviços vinculados"
                 hint="Selecione um ou mais serviços que o atendente poderá atender."
