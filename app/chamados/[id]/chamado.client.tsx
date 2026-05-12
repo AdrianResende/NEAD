@@ -198,13 +198,15 @@ function MensagensPanel({
                       : "max-w-[90%] rounded-2xl rounded-bl-md bg-white px-3 py-2 text-zinc-800 dark:bg-zinc-950 dark:text-zinc-100"
                   }
                 >
-                  <p className={isMine ? "text-xs font-semibold text-white/90" : "text-xs font-semibold text-zinc-500 dark:text-zinc-400"}>
-                    {msg.autor.nome}
-                  </p>
+                  <div className="flex items-center gap-2">
+                    <p className={isMine ? "text-xs font-semibold text-white/90" : "text-xs font-semibold text-zinc-500 dark:text-zinc-400"}>
+                      {msg.autor.nome}
+                    </p>
+                    <p className={isMine ? "text-[11px] text-white/80" : "text-[11px] text-zinc-500 dark:text-zinc-400"}>
+                      {new Date(msg.createdAt).toLocaleString("pt-BR")}
+                    </p>
+                  </div>
                   <p className="mt-1 whitespace-pre-wrap text-sm">{msg.mensagem}</p>
-                  <p className={isMine ? "mt-1 text-[11px] text-white/80" : "mt-1 text-[11px] text-zinc-500 dark:text-zinc-400"}>
-                    {new Date(msg.createdAt).toLocaleString("pt-BR")}
-                  </p>
                 </div>
               </div>
             );
@@ -244,7 +246,7 @@ export function ChamadoDetalheClient({ chamado, currentUserId, currentUserRole, 
   const canCancel = isSolicitante && ["aberto"].includes(chamado.status);
 
   return (
-    <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6 lg:px-8">
+    <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
       <div className="mb-6">
         <Link
           href={ROUTES.CHAMADOS}
@@ -266,8 +268,8 @@ export function ChamadoDetalheClient({ chamado, currentUserId, currentUserRole, 
         </div>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-3">
-        <div className="lg:col-span-2 space-y-6">
+      <div className="grid gap-6 lg:grid-cols-5">
+        <div className="lg:col-span-3 space-y-6">
           {/* Detalhes */}
           <div className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
             <h2 className="mb-4 text-base font-semibold text-zinc-900 dark:text-zinc-50">Detalhes</h2>
@@ -323,7 +325,7 @@ export function ChamadoDetalheClient({ chamado, currentUserId, currentUserRole, 
         </div>
 
         {/* Painel lateral */}
-        <div className="space-y-4">
+        <div className="space-y-4 lg:col-span-2">
           {canAtend && (
             <AtendimentoForm chamado={chamado} atendentes={atendentes} role={currentUserRole} />
           )}
