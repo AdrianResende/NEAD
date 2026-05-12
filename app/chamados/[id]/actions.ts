@@ -15,7 +15,7 @@ export type MensagemChamadoState = {
   success?: boolean;
 };
 
-const STATUS_VALIDOS = ["aberto", "em_andamento", "resolvido", "fechado", "cancelado"] as const;
+const STATUS_VALIDOS = ["aberto", "atribuido", "em_andamento", "resolvido", "fechado", "cancelado"] as const;
 
 export async function atualizarChamadoAction(
   _prevState: AtenderChamadoState,
@@ -41,12 +41,33 @@ export async function atualizarChamadoAction(
   });
   if (!chamado) return { error: "Chamado não encontrado." };
 
-  // Solicitante só pode cancelar o próprio chamado
+  // Solicitante só pode cancelar/fechar o próprio chamado.
   if (user.role === "solicitante") {
     if (chamado.solicitante_id !== user.id) return { error: "Sem permissão." };
-    if (status !== "cancelado") return { error: "Solicitantes só podem cancelar chamados." };
-    await prisma.chamado.update({ where: { id }, data: { status: "cancelado" } });
+    if (!status || (status !== "cancelado" && status !== "fechado")) {
+      return { error: "Solicitantes só podem cancelar ou fechar chamados." };
+    }
+
+    if (status === "fechado" && chamado.status !== "resolvido") {
+      return { error: "Somente chamados resolvidos podem ser fechados pelo solicitante." };
+    }
+
+    if (status !== chamado.status) {
+      await prisma.$transaction([
+        prisma.chamado.update({ where: { id }, data: { status } }),
+        prisma.chamadoStatusHistorico.create({
+          data: {
+            chamado_id: id,
+            de_status: chamado.status,
+            para_status: status,
+            autor_id: user.id,
+          },
+        }),
+      ]);
+    }
+
     revalidatePath(`/chamados/${id}`);
+    revalidatePath("/chamados");
     return { success: true };
   }
 
@@ -71,6 +92,10 @@ export async function atualizarChamadoAction(
 
   if (status && !STATUS_VALIDOS.includes(status as (typeof STATUS_VALIDOS)[number])) {
     return { error: "Status inválido." };
+  }
+
+  if (status && (status === "cancelado" || status === "fechado")) {
+    return { error: "Apenas o solicitante pode cancelar ou fechar chamados." };
   }
 
   const updateData: { status?: string; atendente_id?: number | null } = {};
@@ -104,10 +129,36 @@ export async function atualizarChamadoAction(
       }
 
       updateData.atendente_id = atendente_id;
+
+      if (!status && chamado.status === "aberto") {
+        updateData.status = "atribuido";
+      }
     }
   }
 
-  await prisma.chamado.update({ where: { id }, data: updateData });
+  const novoStatus = updateData.status;
+
+  if (Object.keys(updateData).length > 0) {
+    const operations = [
+      prisma.chamado.update({ where: { id }, data: updateData }),
+    ];
+
+    if (novoStatus && novoStatus !== chamado.status) {
+      operations.push(
+        prisma.chamadoStatusHistorico.create({
+          data: {
+            chamado_id: id,
+            de_status: chamado.status,
+            para_status: novoStatus,
+            autor_id: user.id,
+          },
+        }),
+      );
+    }
+
+    await prisma.$transaction(operations);
+  }
+
   revalidatePath(`/chamados/${id}`);
   revalidatePath("/chamados");
   return { success: true };

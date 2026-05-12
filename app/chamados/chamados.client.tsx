@@ -63,6 +63,7 @@ function Modal({
 
 const STATUS_BADGE: Record<string, "default" | "warning" | "success" | "danger" | "info"> = {
   aberto: "info",
+  atribuido: "default",
   em_andamento: "warning",
   resolvido: "success",
   fechado: "default",
@@ -71,6 +72,7 @@ const STATUS_BADGE: Record<string, "default" | "warning" | "success" | "danger" 
 
 const STATUS_LABEL: Record<string, string> = {
   aberto: "Aberto",
+  atribuido: "Atribuído",
   em_andamento: "Em andamento",
   resolvido: "Resolvido",
   fechado: "Fechado",

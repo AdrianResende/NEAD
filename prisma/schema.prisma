@@ -29,6 +29,7 @@ model User {
   setor               Setor?    @relation(fields: [setor_id], references: [id])
   chamadosSolicitante Chamado[] @relation("Solicitante")
   chamadosAtendente   Chamado[] @relation("Atendente")
+  historicosStatus    ChamadoStatusHistorico[]
   mensagensChamado    ChamadoMensagem[]
   servicosAtendidos   AtendenteServico[]
   sessions            Session[]
@@ -110,8 +111,23 @@ model Chamado {
   servico        Servico  @relation(fields: [servico_id], references: [id])
   anexos         ChamadoAnexo[]
   mensagens      ChamadoMensagem[]
+  historicoStatus ChamadoStatusHistorico[]
 
   @@map("chamados")
+}
+
+model ChamadoStatusHistorico {
+  id           Int      @id @default(autoincrement())
+  chamado_id   Int
+  de_status    String
+  para_status  String
+  autor_id     Int?
+  observacao   String?
+  created_at   DateTime @default(now())
+  chamado      Chamado  @relation(fields: [chamado_id], references: [id], onDelete: Cascade)
+  autor        User?    @relation(fields: [autor_id], references: [id], onDelete: SetNull)
+
+  @@map("chamado_status_historico")
 }
 
 model ChamadoMensagem {

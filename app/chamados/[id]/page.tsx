@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import { SESSION_COOKIE_NAME, validateSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { ROUTES } from "@/lib/constants";
+import { autoFecharChamadosResolvidos } from "@/lib/chamados-status";
 import { ChamadoDetalheClient } from "./chamado.client";
 
 export default async function ChamadoDetalhePage({
@@ -17,6 +18,8 @@ export default async function ChamadoDetalhePage({
 
   if (!user) redirect(ROUTES.LOGIN);
 
+  await autoFecharChamadosResolvidos();
+
   const id = Number(idParam);
   if (isNaN(id)) notFound();
 
@@ -28,6 +31,10 @@ export default async function ChamadoDetalhePage({
       atendente: true,
       anexos: { orderBy: { created_at: "asc" } },
       mensagens: {
+        orderBy: { created_at: "asc" },
+        include: { autor: true },
+      },
+      historicoStatus: {
         orderBy: { created_at: "asc" },
         include: { autor: true },
       },
@@ -111,6 +118,14 @@ export default async function ChamadoDetalhePage({
             nome: m.autor.nome,
             role: m.autor.role,
           },
+        })),
+        historicoStatus: chamado.historicoStatus.map((h) => ({
+          id: h.id,
+          deStatus: h.de_status,
+          paraStatus: h.para_status,
+          createdAt: h.created_at.toISOString(),
+          autorNome: h.autor?.nome ?? "Sistema",
+          observacao: h.observacao ?? null,
         })),
         atendente: chamado.atendente
           ? { id: chamado.atendente.id, nome: chamado.atendente.nome }

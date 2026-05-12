@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import { SESSION_COOKIE_NAME, validateSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { ROUTES } from "@/lib/constants";
+import { autoFecharChamadosResolvidos } from "@/lib/chamados-status";
 import { ChamadosClient } from "./chamados.client";
 
 export default async function ChamadosPage() {
@@ -12,12 +13,14 @@ export default async function ChamadosPage() {
 
   if (!user) redirect(ROUTES.LOGIN);
 
+  await autoFecharChamadosResolvidos();
+
   const where =
     user.role === "solicitante"
       ? { solicitante_id: user.id }
       : user.role === "atendente"
         ? {
-            status: { in: ["aberto", "em_andamento"] },
+            status: { in: ["aberto", "atribuido", "em_andamento"] },
             servico: {
               atendentes: {
                 some: {

@@ -28,6 +28,14 @@ type Chamado = {
     createdAt: string;
     autor: { id: number; nome: string; role: string };
   }>;
+  historicoStatus: Array<{
+    id: number;
+    deStatus: string;
+    paraStatus: string;
+    createdAt: string;
+    autorNome: string;
+    observacao: string | null;
+  }>;
   atendente: { id: number; nome: string } | null;
 };
 
@@ -42,6 +50,7 @@ type Props = {
 
 const STATUS_BADGE: Record<string, "default" | "warning" | "success" | "danger" | "info"> = {
   aberto: "info",
+  atribuido: "default",
   em_andamento: "warning",
   resolvido: "success",
   fechado: "default",
@@ -50,6 +59,7 @@ const STATUS_BADGE: Record<string, "default" | "warning" | "success" | "danger" 
 
 const STATUS_LABEL: Record<string, string> = {
   aberto: "Aberto",
+  atribuido: "Atribuído",
   em_andamento: "Em andamento",
   resolvido: "Resolvido",
   fechado: "Fechado",
@@ -58,10 +68,9 @@ const STATUS_LABEL: Record<string, string> = {
 
 const STATUS_OPTIONS_ATENDENTE = [
   { value: "aberto", label: "Aberto" },
+  { value: "atribuido", label: "Atribuído" },
   { value: "em_andamento", label: "Em andamento" },
   { value: "resolvido", label: "Resolvido" },
-  { value: "fechado", label: "Fechado" },
-  { value: "cancelado", label: "Cancelado" },
 ];
 
 function InfoRow({ label, children }: { label: string; children: React.ReactNode }) {
@@ -230,12 +239,40 @@ function MensagensPanel({
   );
 }
 
+function HistoricoStatusPanel({ chamado }: { chamado: Chamado }) {
+  return (
+    <div className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
+      <h2 className="mb-4 text-base font-semibold text-zinc-900 dark:text-zinc-50">Histórico de status</h2>
+      {chamado.historicoStatus.length === 0 ? (
+        <p className="text-sm text-zinc-500 dark:text-zinc-400">Nenhuma mudança de status registrada.</p>
+      ) : (
+        <ul className="space-y-2">
+          {chamado.historicoStatus.map((item) => (
+            <li key={item.id} className="rounded-lg border border-zinc-200 px-3 py-2 text-sm dark:border-zinc-800">
+              <p className="font-medium text-zinc-800 dark:text-zinc-100">
+                {STATUS_LABEL[item.deStatus] ?? item.deStatus} {"→"} {STATUS_LABEL[item.paraStatus] ?? item.paraStatus}
+              </p>
+              <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                {item.autorNome} em {new Date(item.createdAt).toLocaleString("pt-BR")}
+              </p>
+              {item.observacao && (
+                <p className="mt-1 text-xs text-zinc-600 dark:text-zinc-300">{item.observacao}</p>
+              )}
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
 export function ChamadoDetalheClient({ chamado, currentUserId, currentUserRole, atendentes }: Props) {
   const isSolicitante = currentUserRole === "solicitante";
   const isAtendente = currentUserRole === "atendente";
   const isAdmin = currentUserRole === "admin";
   const canAtend = isAdmin || isAtendente;
-  const canCancel = isSolicitante && ["aberto"].includes(chamado.status);
+  const canCancel = isSolicitante && !["fechado", "cancelado"].includes(chamado.status);
+  const canClose = isSolicitante && chamado.status === "resolvido";
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
@@ -318,7 +355,18 @@ export function ChamadoDetalheClient({ chamado, currentUserId, currentUserRole, 
           {canAtend && (
             <AtendimentoForm chamado={chamado} atendentes={atendentes} role={currentUserRole} />
           )}
+          <HistoricoStatusPanel chamado={chamado} />
           <MensagensPanel chamado={chamado} currentUserId={currentUserId} />
+          {canClose && (
+            <div className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
+              <h2 className="mb-4 text-base font-semibold text-zinc-900 dark:text-zinc-50">Fechar chamado</h2>
+              <Form action={atualizarChamadoAction}>
+                <input type="hidden" name="id" value={chamado.id} />
+                <input type="hidden" name="status" value="fechado" />
+                <Button type="submit" variant="outline">Fechar chamado</Button>
+              </Form>
+            </div>
+          )}
           {canCancel && (
             <div className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
               <h2 className="mb-4 text-base font-semibold text-zinc-900 dark:text-zinc-50">Ações</h2>
