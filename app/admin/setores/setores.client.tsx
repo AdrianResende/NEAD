@@ -61,6 +61,7 @@ function Modal({
   );
 }
 
+
 function CriarSetorModal({ onClose }: { onClose: () => void }) {
   const [state, action, pending] = useActionState(criarSetorAction, {});
 
@@ -178,20 +179,22 @@ export function SetoresClient({ setores }: { setores: Setor[] }) {
                 <Td className="text-right">
                   <div className="flex justify-end gap-2">
                     <Link href={`${ROUTES.SETORES}/${s.id}/servicos`}>
-                      <Button size="sm">
-                        Acessar
+                      <Button size="sm" variant="outline" aria-label={`Acessar serviços do setor ${s.nome}`} title={`Acessar serviços do setor ${s.nome}`}>
+                        <span className="material-symbols-outlined">open_in_new</span>
                       </Button>
                     </Link>
-                    <Button variant="outline" size="sm" onClick={() => setEditando(s)}>
-                      Editar
+                    <Button variant="outline" size="sm" onClick={() => setEditando(s)} aria-label={`Editar setor ${s.nome}`} title={`Editar setor ${s.nome}`}>
+                      <span className="material-symbols-outlined">edit</span>
                     </Button>
                     <Button
                       variant="danger"
                       size="sm"
                       onClick={() => handleExcluir(s.id)}
                       disabled={s._count.users > 0 || s._count.servicos > 0}
+                      aria-label={`Excluir setor ${s.nome}`}
+                      title={`Excluir setor ${s.nome}`}
                     >
-                      Excluir
+                      <span className="material-symbols-outlined">delete</span>
                     </Button>
                   </div>
                 </Td>

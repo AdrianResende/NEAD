@@ -61,6 +61,7 @@ function Modal({
   );
 }
 
+
 const STATUS_BADGE: Record<string, "default" | "warning" | "success" | "danger" | "info"> = {
   aberto: "info",
   atribuido: "default",
@@ -150,8 +151,8 @@ export function ChamadosClient({ chamados, role, servicos = [] }: Props) {
                 </Td>
                 <Td className="text-right">
                   <Link href={`${ROUTES.CHAMADOS}/${c.id}`}>
-                    <Button variant="outline" size="sm">
-                      Ver
+                    <Button variant="outline" size="sm" aria-label={`Ver chamado ${c.id}`} title={`Ver chamado ${c.id}`}>
+                      <span className="material-symbols-outlined">visibility</span>
                     </Button>
                   </Link>
                 </Td>

@@ -90,6 +90,7 @@ function Modal({
   );
 }
 
+
 export function CadastroClient({
   users,
   roleOptions,
@@ -155,9 +156,9 @@ export function CadastroClient({
         </div>
         {canEdit && (
           <Button onClick={() => setCreateOpen(true)}>
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="h-4 w-4">
-              <path d="M10.75 4.75a.75.75 0 0 0-1.5 0v4.5h-4.5a.75.75 0 0 0 0 1.5h4.5v4.5a.75.75 0 0 0 1.5 0v-4.5h4.5a.75.75 0 0 0 0-1.5h-4.5v-4.5Z" />
-            </svg>
+            <span className="material-symbols-outlined text-[18px]" title="Novo usuário" aria-hidden="true">
+              person_add
+            </span>
             Novo usuário
           </Button>
         )}
@@ -199,6 +200,8 @@ export function CadastroClient({
                       variant="ghost"
                       size="sm"
                       disabled={user.id === currentUserId}
+                      aria-label={`Editar usuário ${user.nome}`}
+                      title={`Editar usuário ${user.nome}`}
                       onClick={() => {
                         setEditingUser(user);
                         setEditRole(user.role);
@@ -206,7 +209,9 @@ export function CadastroClient({
                         setEditServicoIds(user.servico_ids.map(String));
                       }}
                     >
-                      Editar
+                      <span className="material-symbols-outlined" title={`Editar usuário ${user.nome}`} aria-hidden="true">
+                        edit
+                      </span>
                     </Button>
                   </Td>
                 )}
@@ -317,10 +322,16 @@ export function CadastroClient({
 
             <div className="flex justify-end gap-2 pt-1">
               <Button type="button" variant="outline" onClick={closeCreate}>
+                <span className="material-symbols-outlined text-[18px]" title={createState.success ? "Fechar" : "Cancelar"} aria-hidden="true">
+                  {createState.success ? "close" : "cancel"}
+                </span>
                 {createState.success ? "Fechar" : "Cancelar"}
               </Button>
               {!createState.success && (
                 <Button type="submit" loading={isCreating}>
+                  <span className="material-symbols-outlined text-[18px]" title="Cadastrar usuário" aria-hidden="true">
+                    person_add
+                  </span>
                   Cadastrar
                 </Button>
               )}
@@ -422,10 +433,16 @@ export function CadastroClient({
 
             <div className="flex justify-end gap-2 pt-1">
               <Button type="button" variant="outline" onClick={closeEdit}>
+                <span className="material-symbols-outlined text-[18px]" title={editState.success ? "Fechar" : "Cancelar"} aria-hidden="true">
+                  {editState.success ? "close" : "cancel"}
+                </span>
                 {editState.success ? "Fechar" : "Cancelar"}
               </Button>
               {!editState.success && (
                 <Button type="submit" loading={isEditing}>
+                  <span className="material-symbols-outlined text-[18px]" title="Salvar alterações" aria-hidden="true">
+                    save
+                  </span>
                   Salvar
                 </Button>
               )}

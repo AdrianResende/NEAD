@@ -65,6 +65,7 @@ function Modal({
   );
 }
 
+
 function ServicoForm({
   defaultValues,
   setores,
@@ -195,16 +196,18 @@ export function ServicosClient({
                 </Td>
                 <Td className="text-right">
                   <div className="flex justify-end gap-2">
-                    <Button variant="outline" size="sm" onClick={() => setEditando(s)}>
-                      Editar
+                    <Button variant="outline" size="sm" onClick={() => setEditando(s)} aria-label={`Editar serviço ${s.nome}`} title={`Editar serviço ${s.nome}`}>
+                      <span className="material-symbols-outlined">edit</span>
                     </Button>
                     <Button
                       variant="danger"
                       size="sm"
                       onClick={() => handleExcluir(s.id)}
                       disabled={s._count.chamados > 0}
+                      aria-label={`Excluir serviço ${s.nome}`}
+                      title={`Excluir serviço ${s.nome}`}
                     >
-                      Excluir
+                      <span className="material-symbols-outlined">delete</span>
                     </Button>
                   </div>
                 </Td>
