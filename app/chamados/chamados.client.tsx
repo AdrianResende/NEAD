@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { Plus, Eye, MapPin } from "lucide-react";
 import { Badge, Button, Table, TableBody, TableEmpty, TableHead, Td, Th, Tr } from "@/components/ui";
 import { NovoChamadoForm, type ServicoOption } from "./novo/novo-form";
 import { ROUTES } from "@/lib/constants";
@@ -86,81 +87,92 @@ export function ChamadosClient({ chamados, role, servicos = [] }: Props) {
   const [showSolicitarModal, setShowSolicitarModal] = useState(false);
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
-      <div className="mb-6 flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-50">
-            {isSolicitante ? "Meus Chamados" : "Chamados"}
-          </h1>
-          <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-            {isSolicitante
-              ? "Acompanhe o status das suas solicitações."
-              : "Gerencie os atendimentos e solicitações de serviço."}
-          </p>
-        </div>
-        <div className="flex gap-2">
-          {isAdmin && (
-            <Link href={ROUTES.SETORES}>
-              <Button variant="outline">Setores</Button>
-            </Link>
-          )}
-          {isSolicitante && (
-            <Button onClick={() => setShowSolicitarModal(true)}>+ Solicitar Serviço</Button>
-          )}
+    <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
+      <div className="mb-6 rounded-2xl border border-zinc-200/80 bg-white/95 p-5 shadow-sm ring-1 ring-zinc-100/60 backdrop-blur-sm dark:border-zinc-800 dark:bg-zinc-950 dark:ring-zinc-900 sm:p-6">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">
+              {isSolicitante ? "Meus Chamados" : "Chamados"}
+            </h1>
+            <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
+              {isSolicitante
+                ? "Acompanhe o status das suas solicitações."
+                : "Gerencie os atendimentos e solicitações de serviço."}
+            </p>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            {isAdmin && (
+              <Link href={ROUTES.SETORES} title="Acessar setores">
+                <Button variant="outline" size="sm">
+                  <MapPin className="h-4 w-4" aria-hidden="true" />
+                  Setores
+                </Button>
+              </Link>
+            )}
+            {isSolicitante && (
+              <Button onClick={() => setShowSolicitarModal(true)} title="Solicitar novo serviço">
+                <Plus className="h-4 w-4" aria-hidden="true" />
+                Solicitar Serviço
+              </Button>
+            )}
+          </div>
         </div>
       </div>
 
-      <Table>
-        <TableHead>
-          <tr>
-            <Th>#</Th>
-            <Th>Título</Th>
-            <Th>Serviço</Th>
-            {!isSolicitante && <Th>Solicitante</Th>}
-            <Th>Atendente</Th>
-            <Th>Status</Th>
-            <Th>Aberto em</Th>
-            <Th className="text-right">Ação</Th>
-          </tr>
-        </TableHead>
-        <TableBody>
-          {chamados.length === 0 ? (
-            <TableEmpty
-              colSpan={isSolicitante ? 7 : 8}
-              message={
-                isSolicitante
-                  ? "Você ainda não solicitou nenhum serviço."
-                  : "Nenhuma solicitação encontrada."
-              }
-            />
-          ) : (
-            chamados.map((c) => (
-              <Tr key={c.id}>
-                <Td className="text-zinc-500">#{c.id}</Td>
-                <Td className="font-medium">{c.titulo}</Td>
-                <Td className="text-zinc-500 dark:text-zinc-400">{c.servico}</Td>
-                {!isSolicitante && <Td>{c.solicitante}</Td>}
-                <Td>{c.atendente ?? <span className="text-zinc-400">—</span>}</Td>
-                <Td>
-                  <Badge variant={STATUS_BADGE[c.status] ?? "default"}>
-                    {STATUS_LABEL[c.status] ?? c.status}
-                  </Badge>
-                </Td>
-                <Td className="text-zinc-500 text-xs">
-                  {new Date(c.createdAt).toLocaleDateString("pt-BR")}
-                </Td>
-                <Td className="text-right">
-                  <Link href={`${ROUTES.CHAMADOS}/${c.id}`}>
-                    <Button variant="outline" size="sm" aria-label={`Ver chamado ${c.id}`} title={`Ver chamado ${c.id}`}>
-                      <span className="material-symbols-outlined">visibility</span>
-                    </Button>
-                  </Link>
-                </Td>
-              </Tr>
-            ))
-          )}
-        </TableBody>
-      </Table>
+      <div className="overflow-hidden rounded-2xl border border-zinc-200/80 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
+        <Table>
+          <TableHead>
+            <tr>
+              <Th>#</Th>
+              <Th>Título</Th>
+              <Th>Serviço</Th>
+              {!isSolicitante && <Th>Solicitante</Th>}
+              <Th>Atendente</Th>
+              <Th>Status</Th>
+              <Th>Aberto em</Th>
+              <Th className="text-right">Ação</Th>
+            </tr>
+          </TableHead>
+          <TableBody>
+            {chamados.length === 0 ? (
+              <TableEmpty
+                colSpan={isSolicitante ? 7 : 8}
+                message={
+                  isSolicitante
+                    ? "Você ainda não solicitou nenhum serviço."
+                    : "Nenhuma solicitação encontrada."
+                }
+              />
+            ) : (
+              chamados.map((c) => (
+                <Tr key={c.id}>
+                  <Td className="text-zinc-500">#{c.id}</Td>
+                  <Td className="font-semibold">{c.titulo}</Td>
+                  <Td className="text-zinc-500 dark:text-zinc-400">{c.servico}</Td>
+                  {!isSolicitante && <Td className="text-zinc-600 dark:text-zinc-300">{c.solicitante}</Td>}
+                  <Td>{c.atendente ?? <span className="text-zinc-400">—</span>}</Td>
+                  <Td>
+                    <Badge variant={STATUS_BADGE[c.status] ?? "default"}>
+                      {STATUS_LABEL[c.status] ?? c.status}
+                    </Badge>
+                  </Td>
+                  <Td className="text-zinc-500 text-xs">
+                    {new Date(c.createdAt).toLocaleDateString("pt-BR")}
+                  </Td>
+                  <Td className="text-right">
+                    <Link href={`${ROUTES.CHAMADOS}/${c.id}`}>
+                      <Button variant="ghost" size="sm" aria-label={`Ver chamado ${c.id}`} title={`Ver chamado ${c.id}`}>
+                        <Eye className="h-4 w-4" aria-hidden="true" />
+                        Ver
+                      </Button>
+                    </Link>
+                  </Td>
+                </Tr>
+              ))
+            )}
+          </TableBody>
+        </Table>
+      </div>
 
       {isSolicitante && showSolicitarModal && (
         <Modal title="Solicitar Serviço" onClose={() => setShowSolicitarModal(false)}>

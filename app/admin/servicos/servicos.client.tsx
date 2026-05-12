@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useActionState, useEffect, useState } from "react";
+import { Plus, Edit2, Trash2, ArrowLeft } from "lucide-react";
 import { ROUTES } from "@/lib/constants";
 import {
   Badge,
@@ -138,29 +139,39 @@ export function ServicosClient({
   }
 
   return (
-    <div className="mx-auto max-w-5xl px-4 py-10 sm:px-6 lg:px-8">
-      <div className="mb-6 flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-50">
-            {setorAtual ? `Serviços do Setor: ${setorAtual.nome}` : "Catálogo de Serviços"}
-          </h1>
-          <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-            {setorAtual
-              ? "Cadastre e mantenha os serviços deste setor."
-              : "Gerencie os tipos de serviço que podem ser solicitados."}
-          </p>
-        </div>
-        <div className="flex gap-2">
-          {setorAtual ? (
-            <Link href={ROUTES.SETORES}>
-              <Button variant="outline">Voltar para Setores</Button>
-            </Link>
-          ) : (
-            <Link href={ROUTES.CHAMADOS}>
-              <Button variant="outline">Ver Solicitações</Button>
-            </Link>
-          )}
-          <Button onClick={() => setShowCriar(true)}>+ Novo Serviço</Button>
+    <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
+      <div className="mb-6 rounded-2xl border border-zinc-200/80 bg-white/95 p-5 shadow-sm ring-1 ring-zinc-100/60 backdrop-blur-sm dark:border-zinc-800 dark:bg-zinc-950 dark:ring-zinc-900 sm:p-6">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">
+              {setorAtual ? `Serviços do Setor: ${setorAtual.nome}` : "Catálogo de Serviços"}
+            </h1>
+            <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
+              {setorAtual
+                ? "Cadastre e mantenha os serviços deste setor."
+                : "Gerencie os tipos de serviço que podem ser solicitados."}
+            </p>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            {setorAtual ? (
+              <Link href={ROUTES.SETORES}>
+                <Button variant="outline" size="sm" title="Voltar para setores">
+                  <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+                  Voltar
+                </Button>
+              </Link>
+            ) : (
+              <Link href={ROUTES.CHAMADOS}>
+                <Button variant="outline" size="sm">
+                  Ver Solicitações
+                </Button>
+              </Link>
+            )}
+            <Button onClick={() => setShowCriar(true)} title="Novo serviço">
+              <Plus className="h-4 w-4" aria-hidden="true" />
+              Novo Serviço
+            </Button>
+          </div>
         </div>
       </div>
 
@@ -170,52 +181,54 @@ export function ServicosClient({
         </div>
       )}
 
-      <Table>
-        <TableHead>
-          <tr>
-            <Th>Nome</Th>
-            <Th>Setor</Th>
-            <Th>Descrição</Th>
-            <Th className="text-center">Chamados</Th>
-            <Th className="text-right">Ações</Th>
-          </tr>
-        </TableHead>
-        <TableBody>
-          {servicos.length === 0 ? (
-            <TableEmpty colSpan={5} message="Nenhum serviço cadastrado." />
-          ) : (
-            servicos.map((s) => (
-              <Tr key={s.id}>
-                <Td className="font-medium">{s.nome}</Td>
-                <Td>
-                  <Badge variant="info">{s.setor.nome}</Badge>
-                </Td>
-                <Td className="text-zinc-500 dark:text-zinc-400">{s.descricao ?? "—"}</Td>
-                <Td className="text-center">
-                  <Badge variant="default">{s._count.chamados}</Badge>
-                </Td>
-                <Td className="text-right">
-                  <div className="flex justify-end gap-2">
-                    <Button variant="outline" size="sm" onClick={() => setEditando(s)} aria-label={`Editar serviço ${s.nome}`} title={`Editar serviço ${s.nome}`}>
-                      <span className="material-symbols-outlined">edit</span>
-                    </Button>
-                    <Button
-                      variant="danger"
-                      size="sm"
-                      onClick={() => handleExcluir(s.id)}
-                      disabled={s._count.chamados > 0}
-                      aria-label={`Excluir serviço ${s.nome}`}
-                      title={`Excluir serviço ${s.nome}`}
-                    >
-                      <span className="material-symbols-outlined">delete</span>
-                    </Button>
-                  </div>
-                </Td>
-              </Tr>
-            ))
-          )}
-        </TableBody>
-      </Table>
+      <div className="overflow-hidden rounded-2xl border border-zinc-200/80 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
+        <Table>
+          <TableHead>
+            <tr>
+              <Th>Nome</Th>
+              <Th>Setor</Th>
+              <Th>Descrição</Th>
+              <Th className="text-center">Chamados</Th>
+              <Th className="text-right">Ações</Th>
+            </tr>
+          </TableHead>
+          <TableBody>
+            {servicos.length === 0 ? (
+              <TableEmpty colSpan={5} message="Nenhum serviço cadastrado." />
+            ) : (
+              servicos.map((s) => (
+                <Tr key={s.id}>
+                  <Td className="font-semibold">{s.nome}</Td>
+                  <Td>
+                    <Badge variant="info">{s.setor.nome}</Badge>
+                  </Td>
+                  <Td className="text-zinc-500 dark:text-zinc-400">{s.descricao ?? "—"}</Td>
+                  <Td className="text-center">
+                    <Badge variant="default">{s._count.chamados}</Badge>
+                  </Td>
+                  <Td className="text-right">
+                    <div className="flex justify-end gap-2">
+                      <Button variant="ghost" size="sm" onClick={() => setEditando(s)} aria-label={`Editar serviço ${s.nome}`} title={`Editar serviço ${s.nome}`}>
+                        <Edit2 className="h-4 w-4" aria-hidden="true" />
+                      </Button>
+                      <Button
+                        variant="danger"
+                        size="sm"
+                        onClick={() => handleExcluir(s.id)}
+                        disabled={s._count.chamados > 0}
+                        aria-label={`Excluir serviço ${s.nome}`}
+                        title={`Excluir serviço ${s.nome}`}
+                      >
+                        <Trash2 className="h-4 w-4" aria-hidden="true" />
+                      </Button>
+                    </div>
+                  </Td>
+                </Tr>
+              ))
+            )}
+          </TableBody>
+        </Table>
+      </div>
 
       {showCriar && (
         <Modal title="Novo Serviço" onClose={() => setShowCriar(false)}>

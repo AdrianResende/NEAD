@@ -221,8 +221,8 @@ function AtendimentoForm({
           </Field>
         )}
 
-        <Button type="submit" disabled={pending}>
-          <CheckCircle2 className="h-4 w-4" title="Salvar alterações" aria-hidden="true" />
+        <Button type="submit" disabled={pending} title="Salvar alterações do atendimento">
+          <CheckCircle2 className="h-4 w-4" aria-hidden="true" />
           {pending ? "Salvando..." : "Salvar mudanças"}
         </Button>
       </Form>
@@ -245,8 +245,8 @@ function AcoesSolicitanteForm({ chamadoId }: { chamadoId: number }) {
           <Select id="status" name="status" options={STATUS_OPTIONS_SOLICITANTE} placeholder="Selecione uma ação" />
         </Field>
         {state.error && <p className="text-sm text-red-600 dark:text-red-400">{state.error}</p>}
-        <Button type="submit" variant="outline" disabled={pending}>
-          <Sparkles className="h-4 w-4" title="Executar ação" aria-hidden="true" />
+        <Button type="submit" variant="outline" disabled={pending} title="Executar ação selecionada">
+          <Sparkles className="h-4 w-4" aria-hidden="true" />
           {pending ? "Processando..." : "Executar ação"}
         </Button>
       </Form>
@@ -324,8 +324,8 @@ function MensagensPanel({
             rows={3}
           />
         </Field>
-        <Button type="submit" disabled={pending}>
-          <SendHorizonal className="h-4 w-4" title="Enviar mensagem" aria-hidden="true" />
+        <Button type="submit" disabled={pending} title="Enviar mensagem">
+          <SendHorizonal className="h-4 w-4" aria-hidden="true" />
           {pending ? "Enviando..." : "Enviar mensagem"}
         </Button>
       </Form>
@@ -401,25 +401,75 @@ export function ChamadoDetalheClient({ chamado, currentUserId, currentUserRole, 
         <Link
           href={ROUTES.CHAMADOS}
           className="inline-flex items-center gap-2 rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:bg-zinc-800"
+          title="Voltar para chamados"
         >
-          <ArrowLeft className="h-4 w-4" title="Voltar para chamados" aria-hidden="true" />
-          <span>Voltar para chamados</span>
+          <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+          <span>Voltar</span>
         </Link>
 
-        <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-          <div className="space-y-1.5">
-            <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Chamado #{chamado.id}</p>
-            <h1 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">{chamado.titulo}</h1>
-            <p className="text-sm text-zinc-500 dark:text-zinc-400">
-              Serviço {chamado.servico.nome} • Setor {chamado.servico.setor}
-            </p>
+        <div className="mt-5 grid gap-4 sm:gap-5">
+          {/* Linha 1: Título e Status */}
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+            <div className="space-y-1.5">
+              <div className="flex items-center gap-2.5">
+                <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-zinc-200 bg-zinc-50 text-zinc-600 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300">
+                  <LifeBuoy className="h-4 w-4" aria-hidden="true" />
+                </span>
+                <span className="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Chamado #{chamado.id}</span>
+              </div>
+              <h1 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">{chamado.titulo}</h1>
+            </div>
+
+            <div className="flex items-center gap-2 self-start rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-2 dark:border-zinc-800 dark:bg-zinc-900">
+              <StatusIcon className="h-4 w-4 text-zinc-600 dark:text-zinc-300" aria-hidden="true" />
+              <Badge variant={STATUS_BADGE[chamado.status] ?? "default"}>
+                {STATUS_LABEL[chamado.status] ?? chamado.status}
+              </Badge>
+            </div>
           </div>
 
-          <div className="flex items-center gap-2 self-start rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-2 dark:border-zinc-800 dark:bg-zinc-900">
-            <StatusIcon className="h-4 w-4 text-zinc-600 dark:text-zinc-300" aria-hidden="true" />
-            <Badge variant={STATUS_BADGE[chamado.status] ?? "default"}>
-              {STATUS_LABEL[chamado.status] ?? chamado.status}
-            </Badge>
+          {/* Linha 2: Informações principais (4 colunas) */}
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4">
+            {/* Solicitante */}
+            <div className="rounded-xl border border-zinc-200/80 bg-zinc-50/70 p-3 dark:border-zinc-800 dark:bg-zinc-900/50">
+              <p className="text-[10px] font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Solicitante</p>
+              <div className="mt-1.5 flex items-center gap-2">
+                <User className="h-3.5 w-3.5 shrink-0 text-zinc-600 dark:text-zinc-400" aria-hidden="true" />
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-semibold text-zinc-900 dark:text-zinc-50">{chamado.solicitante.nome}</p>
+                  <p className="truncate text-xs text-zinc-500 dark:text-zinc-400">{chamado.solicitante.email}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Serviço */}
+            <div className="rounded-xl border border-zinc-200/80 bg-zinc-50/70 p-3 dark:border-zinc-800 dark:bg-zinc-900/50">
+              <p className="text-[10px] font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Serviço</p>
+              <p className="mt-1.5 text-sm font-semibold text-zinc-900 dark:text-zinc-50">{chamado.servico.nome}</p>
+              <p className="text-xs text-zinc-500 dark:text-zinc-400">{chamado.servico.setor}</p>
+            </div>
+
+            {/* Atendente */}
+            <div className="rounded-xl border border-zinc-200/80 bg-zinc-50/70 p-3 dark:border-zinc-800 dark:bg-zinc-900/50">
+              <p className="text-[10px] font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Atendente</p>
+              <div className="mt-1.5 flex items-center gap-2">
+                <UserCheck className="h-3.5 w-3.5 shrink-0 text-zinc-600 dark:text-zinc-400" aria-hidden="true" />
+                <p className="truncate text-sm font-semibold text-zinc-900 dark:text-zinc-50">
+                  {chamado.atendente?.nome ?? "Não atribuído"}
+                </p>
+              </div>
+            </div>
+
+            {/* Data */}
+            <div className="rounded-xl border border-zinc-200/80 bg-zinc-50/70 p-3 dark:border-zinc-800 dark:bg-zinc-900/50">
+              <p className="text-[10px] font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Aberto em</p>
+              <div className="mt-1.5 flex items-center gap-2">
+                <CalendarClock className="h-3.5 w-3.5 shrink-0 text-zinc-600 dark:text-zinc-400" aria-hidden="true" />
+                <div className="min-w-0">
+                  <p className="truncate text-xs font-medium text-zinc-900 dark:text-zinc-50">{formatDateTime(chamado.createdAt)}</p>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>

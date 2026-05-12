@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useActionState, useEffect, useState } from "react";
+import { Plus, Edit2, Trash2, ExternalLink } from "lucide-react";
 import { ROUTES } from "@/lib/constants";
 import {
   Badge,
@@ -135,15 +136,20 @@ export function SetoresClient({ setores }: { setores: Setor[] }) {
   }
 
   return (
-    <div className="mx-auto max-w-5xl px-4 py-10 sm:px-6 lg:px-8">
-      <div className="mb-6 flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-50">Setores</h1>
-          <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-            Gerencie os setores da organização.
-          </p>
+    <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
+      <div className="mb-6 rounded-2xl border border-zinc-200/80 bg-white/95 p-5 shadow-sm ring-1 ring-zinc-100/60 backdrop-blur-sm dark:border-zinc-800 dark:bg-zinc-950 dark:ring-zinc-900 sm:p-6">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">Setores</h1>
+            <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
+              Gerencie os setores da organização.
+            </p>
+          </div>
+          <Button onClick={() => setShowCriar(true)} title="Novo setor">
+            <Plus className="h-4 w-4" aria-hidden="true" />
+            Novo Setor
+          </Button>
         </div>
-        <Button onClick={() => setShowCriar(true)}>+ Novo Setor</Button>
       </div>
 
       {deleteError && (
@@ -152,57 +158,59 @@ export function SetoresClient({ setores }: { setores: Setor[] }) {
         </div>
       )}
 
-      <Table>
-        <TableHead>
-          <tr>
-            <Th>Nome</Th>
-            <Th>Descrição</Th>
-            <Th className="text-center">Usuários</Th>
-            <Th className="text-center">Serviços</Th>
-            <Th className="text-right">Ações</Th>
-          </tr>
-        </TableHead>
-        <TableBody>
-          {setores.length === 0 ? (
-            <TableEmpty colSpan={5} message="Nenhum setor cadastrado." />
-          ) : (
-            setores.map((s) => (
-              <Tr key={s.id}>
-                <Td className="font-medium">{s.nome}</Td>
-                <Td className="text-zinc-500 dark:text-zinc-400">{s.descricao ?? "—"}</Td>
-                <Td className="text-center">
-                  <Badge variant="default">{s._count.users}</Badge>
-                </Td>
-                <Td className="text-center">
-                  <Badge variant="default">{s._count.servicos}</Badge>
-                </Td>
-                <Td className="text-right">
-                  <div className="flex justify-end gap-2">
-                    <Link href={`${ROUTES.SETORES}/${s.id}/servicos`}>
-                      <Button size="sm" variant="outline" aria-label={`Acessar serviços do setor ${s.nome}`} title={`Acessar serviços do setor ${s.nome}`}>
-                        <span className="material-symbols-outlined">open_in_new</span>
+      <div className="overflow-hidden rounded-2xl border border-zinc-200/80 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
+        <Table>
+          <TableHead>
+            <tr>
+              <Th>Nome</Th>
+              <Th>Descrição</Th>
+              <Th className="text-center">Usuários</Th>
+              <Th className="text-center">Serviços</Th>
+              <Th className="text-right">Ações</Th>
+            </tr>
+          </TableHead>
+          <TableBody>
+            {setores.length === 0 ? (
+              <TableEmpty colSpan={5} message="Nenhum setor cadastrado." />
+            ) : (
+              setores.map((s) => (
+                <Tr key={s.id}>
+                  <Td className="font-semibold">{s.nome}</Td>
+                  <Td className="text-zinc-500 dark:text-zinc-400">{s.descricao ?? "—"}</Td>
+                  <Td className="text-center">
+                    <Badge variant="default">{s._count.users}</Badge>
+                  </Td>
+                  <Td className="text-center">
+                    <Badge variant="default">{s._count.servicos}</Badge>
+                  </Td>
+                  <Td className="text-right">
+                    <div className="flex justify-end gap-2">
+                      <Link href={`${ROUTES.SETORES}/${s.id}/servicos`}>
+                        <Button size="sm" variant="ghost" aria-label={`Acessar serviços do setor ${s.nome}`} title={`Acessar serviços do setor ${s.nome}`}>
+                          <ExternalLink className="h-4 w-4" aria-hidden="true" />
+                        </Button>
+                      </Link>
+                      <Button variant="ghost" size="sm" onClick={() => setEditando(s)} aria-label={`Editar setor ${s.nome}`} title={`Editar setor ${s.nome}`}>
+                        <Edit2 className="h-4 w-4" aria-hidden="true" />
                       </Button>
-                    </Link>
-                    <Button variant="outline" size="sm" onClick={() => setEditando(s)} aria-label={`Editar setor ${s.nome}`} title={`Editar setor ${s.nome}`}>
-                      <span className="material-symbols-outlined">edit</span>
-                    </Button>
-                    <Button
-                      variant="danger"
-                      size="sm"
-                      onClick={() => handleExcluir(s.id)}
-                      disabled={s._count.users > 0 || s._count.servicos > 0}
-                      aria-label={`Excluir setor ${s.nome}`}
-                      title={`Excluir setor ${s.nome}`}
-                    >
-                      <span className="material-symbols-outlined">delete</span>
-                    </Button>
-                  </div>
-                </Td>
-              </Tr>
-            ))
-          )}
-        </TableBody>
-      </Table>
+                      <Button
+                        variant="danger"
+                        size="sm"
+                        onClick={() => handleExcluir(s.id)}
+                        disabled={s._count.users > 0 || s._count.servicos > 0}
+                        aria-label={`Excluir setor ${s.nome}`}
+                        title={`Excluir setor ${s.nome}`}
+                      >
+                        <Trash2 className="h-4 w-4" aria-hidden="true" />
+                      </Button>
+                    </div>
+                  </Td>
+                </Tr>
+              ))
+            )}
+          </TableBody>
+        </Table>
+      </div>
 
       {showCriar && <CriarSetorModal onClose={() => setShowCriar(false)} />}
       {editando && <EditarSetorModal setor={editando} onClose={() => setEditando(null)} />}

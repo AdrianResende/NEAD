@@ -144,54 +144,86 @@ export function CadastroClient({
   );
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
-      <div className="mb-6 flex items-start justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-50">
-            Cadastro de Usuários
-          </h1>
-          <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-            Gerencie os usuários do sistema.
-          </p>
+    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+      <div className="mb-6 rounded-2xl border border-zinc-200/80 bg-white/95 p-5 shadow-sm ring-1 ring-zinc-100/60 backdrop-blur-sm dark:border-zinc-800 dark:bg-zinc-950 dark:ring-zinc-900 sm:p-6">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">
+              Cadastro de Usuários
+            </h1>
+            <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
+              Gerencie os usuários do sistema.
+            </p>
+          </div>
+          {canEdit && (
+            <Button onClick={() => setCreateOpen(true)}>
+              <span className="material-symbols-outlined text-[18px]" title="Novo usuário" aria-hidden="true">
+                person_add
+              </span>
+              Novo usuário
+            </Button>
+          )}
         </div>
-        {canEdit && (
-          <Button onClick={() => setCreateOpen(true)}>
-            <span className="material-symbols-outlined text-[18px]" title="Novo usuário" aria-hidden="true">
-              person_add
-            </span>
-            Novo usuário
-          </Button>
-        )}
       </div>
 
+      <div className="overflow-hidden rounded-2xl border border-zinc-200/80 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
       <Table>
         <TableHead>
           <Tr>
-            <Th>Nome</Th>
-            <Th>E-mail</Th>
+            <Th>Usuário</Th>
             <Th>Perfil</Th>
             <Th>Setor</Th>
-            <Th>Serviços vinculados</Th>
-            <Th>Cadastrado em</Th>
+            <Th>Serviços</Th>
+            <Th>Cadastrado</Th>
             {canEdit && <Th className="text-right">Ações</Th>}
           </Tr>
         </TableHead>
         <TableBody>
           {users.length === 0 ? (
-            <TableEmpty colSpan={canEdit ? 7 : 6} message="Nenhum usuário cadastrado." />
+            <TableEmpty colSpan={canEdit ? 6 : 5} message="Nenhum usuário cadastrado." />
           ) : (
             users.map((user) => (
               <Tr key={user.id}>
-                <Td>{user.nome}</Td>
-                <Td muted>{user.email}</Td>
+                <Td>
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <span className="material-symbols-outlined text-base text-zinc-400">account_circle</span>
+                      <span className="font-semibold text-zinc-900 dark:text-zinc-50">{user.nome}</span>
+                    </div>
+                    <div className="text-xs text-zinc-500 dark:text-zinc-400">{user.email}</div>
+                  </div>
+                </Td>
                 <Td>
                   <Badge variant={ROLE_BADGE[user.role] ?? "default"}>
                     {ROLE_LABEL[user.role] ?? user.role}
                   </Badge>
                 </Td>
-                <Td muted>{user.setor ?? "—"}</Td>
-                <Td muted>{user.servicos.length > 0 ? user.servicos.join(", ") : "—"}</Td>
-                <Td muted>
+                <Td>
+                  {user.setor ? (
+                    <Badge variant="info">{user.setor}</Badge>
+                  ) : (
+                    <span className="text-xs text-zinc-400 dark:text-zinc-600">—</span>
+                  )}
+                </Td>
+                <Td>
+                  {user.servicos.length > 0 ? (
+                    <div className="flex flex-wrap gap-1">
+                      {user.servicos.slice(0, 2).map((s) => (
+                        <Badge key={s} variant="outline" className="text-xs">
+                          {s}
+                        </Badge>
+                      ))}
+                      {user.servicos.length > 2 && (
+                        <span className="text-xs text-zinc-500 dark:text-zinc-400">
+                          +{user.servicos.length - 2}
+                        </span>
+                      )}
+                    </div>
+                  ) : (
+                    <span className="text-xs text-zinc-400 dark:text-zinc-600">—</span>
+                  )}
+                </Td>
+                <Td className="text-xs text-zinc-500 dark:text-zinc-400">
                   {new Date(user.createdAt).toLocaleDateString("pt-BR")}
                 </Td>
                 {canEdit && (
@@ -220,6 +252,7 @@ export function CadastroClient({
           )}
         </TableBody>
       </Table>
+      </div>
 
       {/* Modal: Novo usuário */}
       {createOpen && (

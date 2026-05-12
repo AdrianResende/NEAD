@@ -2,12 +2,14 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { Users, Layers3, Ticket } from "lucide-react";
 import { ROUTES } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 
 type MenuItem = {
   label: string;
   href: string;
+  icon: React.ReactNode;
 };
 
 function isPathMatch(pathname: string, href: string) {
@@ -25,18 +27,18 @@ function getActiveHref(pathname: string, items: MenuItem[]) {
 function getMenuItems(role: string | null): MenuItem[] {
   if (role === "admin") {
     return [
-      { label: "Usuários", href: ROUTES.CADASTRO },
-      { label: "Setores", href: ROUTES.SETORES },
-      { label: "Chamados", href: ROUTES.CHAMADOS },
+      { label: "Usuários", href: ROUTES.CADASTRO, icon: <Users className="h-4 w-4" /> },
+      { label: "Setores", href: ROUTES.SETORES, icon: <Layers3 className="h-4 w-4" /> },
+      { label: "Chamados", href: ROUTES.CHAMADOS, icon: <Ticket className="h-4 w-4" /> },
     ];
   }
   if (role === "atendente") {
     return [
-      { label: "Chamados", href: ROUTES.CHAMADOS },
+      { label: "Chamados", href: ROUTES.CHAMADOS, icon: <Ticket className="h-4 w-4" /> },
     ];
   }
   return [
-    { label: "Meus Chamados", href: ROUTES.CHAMADOS },
+    { label: "Meus Chamados", href: ROUTES.CHAMADOS, icon: <Ticket className="h-4 w-4" /> },
   ];
 }
 
@@ -60,12 +62,15 @@ export function Sidebar({ role }: { role: string | null }) {
                 key={`${item.href}-${item.label}-${index}`}
                 href={item.href}
                 className={cn(
-                  "block rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                  "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
                   isActive
                     ? "bg-primary text-white"
                     : "text-zinc-700 hover:bg-zinc-200/70 dark:text-zinc-200 dark:hover:bg-zinc-800"
                 )}
               >
+                <span className={isActive ? "text-white" : "text-zinc-500 dark:text-zinc-400"}>
+                  {item.icon}
+                </span>
                 {item.label}
               </Link>
             );
@@ -86,12 +91,15 @@ export function Sidebar({ role }: { role: string | null }) {
                 key={`${item.href}-${item.label}-${index}`}
                 href={item.href}
                 className={cn(
-                  "whitespace-nowrap rounded-full border px-3 py-1.5 text-sm font-medium transition-colors",
+                  "flex items-center gap-2 whitespace-nowrap rounded-full border px-3 py-1.5 text-sm font-medium transition-colors",
                   isActive
                     ? "border-primary bg-primary text-white"
                     : "border-zinc-300 text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800"
                 )}
               >
+                <span className={isActive ? "text-white" : "text-zinc-500 dark:text-zinc-400"}>
+                  {item.icon}
+                </span>
                 {item.label}
               </Link>
             );
