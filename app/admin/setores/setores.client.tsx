@@ -178,7 +178,7 @@ export function SetoresClient({ setores }: { setores: Setor[] }) {
                 <Td className="text-right">
                   <div className="flex justify-end gap-2">
                     <Link href={`${ROUTES.SETORES}/${s.id}/servicos`}>
-                      <Button variant="default" size="sm">
+                      <Button size="sm">
                         Acessar
                       </Button>
                     </Link>
