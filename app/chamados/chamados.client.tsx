@@ -20,7 +20,6 @@ type Chamado = {
 type Props = {
   chamados: Chamado[];
   role: string;
-  totalServicos?: number;
   servicos?: ServicoOption[];
 };
 
@@ -86,7 +85,7 @@ const PRIORIDADE_BADGE: Record<string, "default" | "warning" | "danger" | "succe
   urgente: "danger",
 };
 
-export function ChamadosClient({ chamados, role, totalServicos = 0, servicos = [] }: Props) {
+export function ChamadosClient({ chamados, role, servicos = [] }: Props) {
   const isSolicitante = role === "solicitante";
   const isAdmin = role === "admin";
   const [showSolicitarModal, setShowSolicitarModal] = useState(false);
@@ -96,7 +95,7 @@ export function ChamadosClient({ chamados, role, totalServicos = 0, servicos = [
       <div className="mb-6 flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-50">
-            {isSolicitante ? "Meus Serviços" : "Serviços"}
+            {isSolicitante ? "Meus Chamados" : "Chamados"}
           </h1>
           <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
             {isSolicitante
@@ -106,8 +105,8 @@ export function ChamadosClient({ chamados, role, totalServicos = 0, servicos = [
         </div>
         <div className="flex gap-2">
           {isAdmin && (
-            <Link href={ROUTES.SERVICOS}>
-              <Button variant="outline">Catálogo ({totalServicos})</Button>
+            <Link href={ROUTES.SETORES}>
+              <Button variant="outline">Setores</Button>
             </Link>
           )}
           {isSolicitante && (

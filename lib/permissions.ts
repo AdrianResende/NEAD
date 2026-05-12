@@ -1,12 +1,7 @@
-export function hasSetorAccess(
-  atendenteSetorId: number | null | undefined,
-  servicoSetorId: number,
+export function hasServicoAccess(
+  servicosPermitidos: number[] | null | undefined,
+  servicoId: number,
 ): boolean {
-  return atendenteSetorId === servicoSetorId;
-}
-
-export function getSetorFilter(
-  atendenteSetorId: number | null | undefined,
-): number {
-  return atendenteSetorId ?? -1;
+  if (!servicosPermitidos || servicosPermitidos.length === 0) return false;
+  return servicosPermitidos.includes(servicoId);
 }

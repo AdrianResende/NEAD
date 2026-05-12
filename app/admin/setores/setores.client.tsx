@@ -1,6 +1,8 @@
 "use client";
 
+import Link from "next/link";
 import { useActionState, useEffect, useState } from "react";
+import { ROUTES } from "@/lib/constants";
 import {
   Badge,
   Button,
@@ -175,6 +177,11 @@ export function SetoresClient({ setores }: { setores: Setor[] }) {
                 </Td>
                 <Td className="text-right">
                   <div className="flex justify-end gap-2">
+                    <Link href={`${ROUTES.SETORES}/${s.id}/servicos`}>
+                      <Button variant="default" size="sm">
+                        Acessar
+                      </Button>
+                    </Link>
                     <Button variant="outline" size="sm" onClick={() => setEditando(s)}>
                       Editar
                     </Button>

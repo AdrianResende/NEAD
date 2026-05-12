@@ -38,6 +38,7 @@ export async function criarServicoAction(
 
   await prisma.servico.create({ data: { nome, descricao, setor_id } });
   revalidatePath("/admin/servicos");
+  revalidatePath(`/admin/setores/${setor_id}/servicos`);
   return { success: true };
 }
 
@@ -61,8 +62,13 @@ export async function editarServicoAction(
   const setorExists = await prisma.setor.findUnique({ where: { id: setor_id } });
   if (!setorExists) return { error: "Setor não encontrado." };
 
+  const existingServico = await prisma.servico.findUnique({ where: { id } });
+  if (!existingServico) return { error: "Serviço não encontrado." };
+
   await prisma.servico.update({ where: { id }, data: { nome, descricao, setor_id } });
   revalidatePath("/admin/servicos");
+  revalidatePath(`/admin/setores/${setor_id}/servicos`);
+  revalidatePath(`/admin/setores/${existingServico.setor_id}/servicos`);
   return { success: true };
 }
 
@@ -70,10 +76,14 @@ export async function excluirServicoAction(id: number): Promise<ServicoState> {
   const user = await requireAdmin();
   if (!user) return { error: "Acesso negado." };
 
+  const servico = await prisma.servico.findUnique({ where: { id } });
+  if (!servico) return { error: "Serviço não encontrado." };
+
   const inUse = await prisma.chamado.findFirst({ where: { servico_id: id } });
   if (inUse) return { error: "Não é possível excluir: há chamados vinculados a este serviço." };
 
   await prisma.servico.delete({ where: { id } });
   revalidatePath("/admin/servicos");
+  revalidatePath(`/admin/setores/${servico.setor_id}/servicos`);
   return { success: true };
 }

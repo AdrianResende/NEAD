@@ -60,15 +60,6 @@ export function NovoChamadoForm({ servicos }: { servicos: ServicoOption[] }) {
           />
         </Field>
 
-        <Field label="Título" htmlFor="titulo" required>
-          <Input
-            id="titulo"
-            name="titulo"
-            placeholder="Ex: Computador não liga"
-            maxLength={200}
-          />
-        </Field>
-
         <Field label="Serviço" htmlFor="servico_id" required>
           <Select
             id="servico_id"
@@ -84,12 +75,12 @@ export function NovoChamadoForm({ servicos }: { servicos: ServicoOption[] }) {
           />
         </Field>
 
-        <Field label="Prioridade" htmlFor="prioridade">
-          <Select
-            id="prioridade"
-            name="prioridade"
-            options={PRIORIDADE_OPTIONS}
-            defaultValue="normal"
+        <Field label="Título" htmlFor="titulo" required>
+          <Input
+            id="titulo"
+            name="titulo"
+            placeholder="Ex: Computador não liga"
+            maxLength={200}
           />
         </Field>
 
@@ -102,8 +93,26 @@ export function NovoChamadoForm({ servicos }: { servicos: ServicoOption[] }) {
           />
         </Field>
 
+        <Field
+          label="Anexos"
+          htmlFor="anexos"
+          hint="Aceita imagens (PNG, JPG, WEBP) e PDF. Máximo de 5 arquivos com até 5MB cada."
+        >
+          <Input
+            id="anexos"
+            name="anexos"
+            type="file"
+            multiple
+            accept="image/png,image/jpeg,image/jpg,image/webp,application/pdf"
+          />
+        </Field>
+
+        <Button variant="outline" type="reset" disabled={pending} className="mr-2">
+          Limpar
+        </Button>
+
         <Button type="submit" disabled={pending} className="w-full">
-          {pending ? "Enviando..." : "Solicitar Serviço"}
+          {pending ? "Enviando..." : "Solicitar Chamado"}
         </Button>
       </Form>
     </>

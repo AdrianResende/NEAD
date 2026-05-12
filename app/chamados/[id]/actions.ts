@@ -4,7 +4,6 @@ import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
 import { SESSION_COOKIE_NAME, validateSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { hasSetorAccess } from "@/lib/permissions";
 
 export type AtenderChamadoState = {
   error?: string;
@@ -50,11 +49,19 @@ export async function atualizarChamadoAction(
     return { error: "Sem permissão." };
   }
 
-  if (
-    user.role === "atendente" &&
-    !hasSetorAccess(user.setor_id, chamado.servico.setor_id)
-  ) {
-    return { error: "Você só pode atender solicitações do seu setor." };
+  if (user.role === "atendente") {
+    const vinculo = await prisma.atendenteServico.findUnique({
+      where: {
+        user_id_servico_id: {
+          user_id: user.id,
+          servico_id: chamado.servico_id,
+        },
+      },
+    });
+
+    if (!vinculo) {
+      return { error: "Você só pode atender solicitações dos seus serviços vinculados." };
+    }
   }
 
   if (status && !STATUS_VALIDOS.includes(status as (typeof STATUS_VALIDOS)[number])) {
@@ -66,7 +73,33 @@ export async function atualizarChamadoAction(
 
   if (atendente_id !== undefined) {
     if (isNaN(atendente_id)) return { error: "Atendente inválido." };
-    updateData.atendente_id = atendente_id || null;
+    if (!atendente_id) {
+      updateData.atendente_id = null;
+    } else {
+      const atendente = await prisma.user.findUnique({
+        where: { id: atendente_id },
+        select: { role: true },
+      });
+
+      if (!atendente) return { error: "Atendente não encontrado." };
+
+      if (atendente.role === "atendente") {
+        const vinculoAtendente = await prisma.atendenteServico.findUnique({
+          where: {
+            user_id_servico_id: {
+              user_id: atendente_id,
+              servico_id: chamado.servico_id,
+            },
+          },
+        });
+
+        if (!vinculoAtendente) {
+          return { error: "Este atendente não está vinculado ao serviço deste chamado." };
+        }
+      }
+
+      updateData.atendente_id = atendente_id;
+    }
   }
 
   await prisma.chamado.update({ where: { id }, data: updateData });

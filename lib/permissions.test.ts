@@ -1,29 +1,20 @@
 import { describe, expect, it } from "vitest";
 import {
-  hasSetorAccess,
-  getSetorFilter,
+  hasServicoAccess,
 } from "./permissions";
 
-describe("regras de setor para atendente", () => {
-  it("permite acesso quando setor do atendente e do serviço são iguais", () => {
-    expect(hasSetorAccess(3, 3)).toBe(true);
+describe("regras de serviço para atendente", () => {
+  it("permite acesso quando o serviço está vinculado ao atendente", () => {
+    expect(hasServicoAccess([3, 8, 12], 8)).toBe(true);
   });
 
-  it("bloqueia acesso quando setor do atendente e do serviço são diferentes", () => {
-    expect(hasSetorAccess(3, 5)).toBe(false);
+  it("bloqueia acesso quando o serviço não está vinculado ao atendente", () => {
+    expect(hasServicoAccess([3, 8, 12], 5)).toBe(false);
   });
 
-  it("bloqueia acesso quando atendente não tem setor", () => {
-    expect(hasSetorAccess(null, 5)).toBe(false);
-    expect(hasSetorAccess(undefined, 5)).toBe(false);
-  });
-
-  it("resolve filtro inválido quando atendente não tem setor", () => {
-    expect(getSetorFilter(null)).toBe(-1);
-    expect(getSetorFilter(undefined)).toBe(-1);
-  });
-
-  it("resolve filtro com o próprio setor quando atendente tem setor", () => {
-    expect(getSetorFilter(8)).toBe(8);
+  it("bloqueia acesso quando atendente não possui vínculos", () => {
+    expect(hasServicoAccess([], 5)).toBe(false);
+    expect(hasServicoAccess(null, 5)).toBe(false);
+    expect(hasServicoAccess(undefined, 5)).toBe(false);
   });
 });

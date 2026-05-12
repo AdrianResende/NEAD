@@ -29,6 +29,7 @@ model User {
   setor               Setor?    @relation(fields: [setor_id], references: [id])
   chamadosSolicitante Chamado[] @relation("Solicitante")
   chamadosAtendente   Chamado[] @relation("Atendente")
+  servicosAtendidos   AtendenteServico[]
   sessions            Session[]
   accounts            Account[]
 
@@ -78,8 +79,19 @@ model Servico {
   created_at DateTime  @default(now())
   setor      Setor     @relation(fields: [setor_id], references: [id])
   chamados   Chamado[]
+  atendentes AtendenteServico[]
 
   @@map("servicos")
+}
+
+model AtendenteServico {
+  user_id    Int
+  servico_id Int
+  user       User    @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  servico    Servico @relation(fields: [servico_id], references: [id], onDelete: Cascade)
+
+  @@id([user_id, servico_id])
+  @@map("atendente_servicos")
 }
 
 model Chamado {
@@ -96,6 +108,20 @@ model Chamado {
   solicitante    User     @relation("Solicitante", fields: [solicitante_id], references: [id])
   atendente      User?    @relation("Atendente", fields: [atendente_id], references: [id])
   servico        Servico  @relation(fields: [servico_id], references: [id])
+  anexos         ChamadoAnexo[]
 
   @@map("chamados")
+}
+
+model ChamadoAnexo {
+  id            Int      @id @default(autoincrement())
+  chamado_id    Int
+  nome_original String   @db.VarChar(255)
+  mime_type     String   @db.VarChar(100)
+  tamanho_bytes Int
+  url           String   @db.VarChar(500)
+  created_at    DateTime @default(now())
+  chamado       Chamado  @relation(fields: [chamado_id], references: [id], onDelete: Cascade)
+
+  @@map("chamado_anexos")
 }

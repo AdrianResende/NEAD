@@ -16,6 +16,13 @@ type Chamado = {
   updatedAt: string;
   servico: { nome: string; setor: string };
   solicitante: { nome: string; email: string };
+  anexos: Array<{
+    id: number;
+    nomeOriginal: string;
+    url: string;
+    mimeType: string;
+    tamanhoBytes: number;
+  }>;
   atendente: { id: number; nome: string } | null;
 };
 
@@ -65,6 +72,13 @@ function InfoRow({ label, children }: { label: string; children: React.ReactNode
       <span className="text-sm text-zinc-900 dark:text-zinc-100">{children}</span>
     </div>
   );
+}
+
+function formatFileSize(bytes: number) {
+  if (bytes < 1024) return `${bytes} B`;
+  const kb = bytes / 1024;
+  if (kb < 1024) return `${kb.toFixed(1)} KB`;
+  return `${(kb / 1024).toFixed(1)} MB`;
 }
 
 function AtendimentoForm({
@@ -200,6 +214,34 @@ export function ChamadoDetalheClient({ chamado, currentUserRole, atendentes }: P
             <p className="whitespace-pre-wrap text-sm text-zinc-700 dark:text-zinc-300">
               {chamado.descricao}
             </p>
+          </div>
+
+          <div className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
+            <h2 className="mb-3 text-base font-semibold text-zinc-900 dark:text-zinc-50">Anexos</h2>
+            {chamado.anexos.length === 0 ? (
+              <p className="text-sm text-zinc-500 dark:text-zinc-400">Nenhum anexo enviado.</p>
+            ) : (
+              <ul className="space-y-2">
+                {chamado.anexos.map((anexo) => (
+                  <li key={anexo.id} className="flex items-center justify-between rounded-lg border border-zinc-200 px-3 py-2 dark:border-zinc-800">
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-medium text-zinc-800 dark:text-zinc-100">{anexo.nomeOriginal}</p>
+                      <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                        {anexo.mimeType} • {formatFileSize(anexo.tamanhoBytes)}
+                      </p>
+                    </div>
+                    <a
+                      href={anexo.url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-sm font-medium text-primary hover:underline"
+                    >
+                      Abrir
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
         </div>
 

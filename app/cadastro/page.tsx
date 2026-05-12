@@ -15,9 +15,23 @@ export default async function CadastroPage() {
     redirect(ROUTES.LOGIN);
   }
 
-  const [users, setores] = await Promise.all([
-    prisma.user.findMany({ include: { setor: true }, orderBy: { created_at: "desc" } }),
+  const [users, setores, servicos] = await Promise.all([
+    prisma.user.findMany({
+      include: {
+        setor: true,
+        servicosAtendidos: {
+          include: {
+            servico: true,
+          },
+        },
+      },
+      orderBy: { created_at: "desc" },
+    }),
     prisma.setor.findMany({ orderBy: { nome: "asc" } }),
+    prisma.servico.findMany({
+      include: { setor: true },
+      orderBy: [{ setor: { nome: "asc" } }, { nome: "asc" }],
+    }),
   ]);
 
   const roleOptions = getAssignableRoles(currentUser.role).map((role) => ({
@@ -26,6 +40,11 @@ export default async function CadastroPage() {
   }));
 
   const setorOptions = setores.map((s) => ({ value: String(s.id), label: s.nome }));
+  const servicoOptions = servicos.map((s) => ({
+    value: String(s.id),
+    label: `${s.nome} (${s.setor.nome})`,
+    setor_id: s.setor_id,
+  }));
   const canEdit = currentUser.role === "admin" || currentUser.role === "atendente";
 
   return (
@@ -34,6 +53,7 @@ export default async function CadastroPage() {
       canEdit={canEdit}
       roleOptions={roleOptions}
       setorOptions={setorOptions}
+      servicoOptions={servicoOptions}
       users={users.map((u) => ({
         id: u.id,
         nome: u.nome,
@@ -41,6 +61,8 @@ export default async function CadastroPage() {
         role: u.role,
         setor: u.setor?.nome ?? null,
         setor_id: u.setor_id ?? null,
+        servico_ids: u.servicosAtendidos.map((v) => v.servico_id),
+        servicos: u.servicosAtendidos.map((v) => v.servico.nome),
         createdAt: u.created_at.toISOString(),
       }))}
     />

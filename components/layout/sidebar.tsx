@@ -27,7 +27,6 @@ function getMenuItems(role: string | null): MenuItem[] {
     return [
       { label: "Usuários", href: ROUTES.CADASTRO },
       { label: "Setores", href: ROUTES.SETORES },
-      { label: "Serviços", href: ROUTES.SERVICOS },
       { label: "Chamados", href: ROUTES.CHAMADOS },
     ];
   }

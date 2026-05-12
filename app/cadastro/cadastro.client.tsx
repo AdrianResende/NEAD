@@ -26,16 +26,20 @@ type User = {
   role: string;
   setor: string | null;
   setor_id: number | null;
+  servico_ids: number[];
+  servicos: string[];
   createdAt: string;
 };
 
 type RoleOption = { value: string; label: string };
 type SetorOption = { value: string; label: string };
+type ServicoOption = { value: string; label: string; setor_id: number };
 
 type UsuariosClientProps = {
   users: User[];
   roleOptions: RoleOption[];
   setorOptions: SetorOption[];
+  servicoOptions: ServicoOption[];
   canEdit: boolean;
   currentUserId: number;
 };
@@ -90,25 +94,53 @@ export function CadastroClient({
   users,
   roleOptions,
   setorOptions,
+  servicoOptions,
   canEdit,
   currentUserId,
 }: UsuariosClientProps) {
   const router = useRouter();
   const [createOpen, setCreateOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
+  const [createRole, setCreateRole] = useState(roleOptions[0]?.value ?? "solicitante");
+  const [createSetor, setCreateSetor] = useState("");
+  const [createServicoIds, setCreateServicoIds] = useState<string[]>([]);
+  const [editRole, setEditRole] = useState("solicitante");
+  const [editSetor, setEditSetor] = useState("");
+  const [editServicoIds, setEditServicoIds] = useState<string[]>([]);
 
   const [createState, createAction, isCreating] = useActionState(criarUsuarioAction, {});
   const [editState, editAction, isEditing] = useActionState(editarUsuarioAction, {});
 
   function closeCreate() {
     setCreateOpen(false);
+    setCreateRole(roleOptions[0]?.value ?? "solicitante");
+    setCreateSetor("");
+    setCreateServicoIds([]);
     router.refresh();
   }
 
   function closeEdit() {
     setEditingUser(null);
+    setEditRole("solicitante");
+    setEditSetor("");
+    setEditServicoIds([]);
     router.refresh();
   }
+
+  function toggleService(list: string[], serviceId: string) {
+    if (list.includes(serviceId)) {
+      return list.filter((id) => id !== serviceId);
+    }
+    return [...list, serviceId];
+  }
+
+  const createFilteredServicoOptions = servicoOptions.filter((option) =>
+    createSetor ? option.setor_id === Number(createSetor) : true,
+  );
+
+  const editFilteredServicoOptions = servicoOptions.filter((option) =>
+    editSetor ? option.setor_id === Number(editSetor) : true,
+  );
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
@@ -138,13 +170,14 @@ export function CadastroClient({
             <Th>E-mail</Th>
             <Th>Perfil</Th>
             <Th>Setor</Th>
+            <Th>Serviços vinculados</Th>
             <Th>Cadastrado em</Th>
             {canEdit && <Th className="text-right">Ações</Th>}
           </Tr>
         </TableHead>
         <TableBody>
           {users.length === 0 ? (
-            <TableEmpty colSpan={canEdit ? 6 : 5} message="Nenhum usuário cadastrado." />
+            <TableEmpty colSpan={canEdit ? 7 : 6} message="Nenhum usuário cadastrado." />
           ) : (
             users.map((user) => (
               <Tr key={user.id}>
@@ -156,6 +189,7 @@ export function CadastroClient({
                   </Badge>
                 </Td>
                 <Td muted>{user.setor ?? "—"}</Td>
+                <Td muted>{user.servicos.length > 0 ? user.servicos.join(", ") : "—"}</Td>
                 <Td muted>
                   {new Date(user.createdAt).toLocaleDateString("pt-BR")}
                 </Td>
@@ -165,7 +199,12 @@ export function CadastroClient({
                       variant="ghost"
                       size="sm"
                       disabled={user.id === currentUserId}
-                      onClick={() => setEditingUser(user)}
+                      onClick={() => {
+                        setEditingUser(user);
+                        setEditRole(user.role);
+                        setEditSetor(user.setor_id ? String(user.setor_id) : "");
+                        setEditServicoIds(user.servico_ids.map(String));
+                      }}
                     >
                       Editar
                     </Button>
@@ -202,6 +241,7 @@ export function CadastroClient({
                 name="role"
                 defaultValue={roleOptions[0]?.value}
                 options={roleOptions}
+                onChange={(e) => setCreateRole(e.target.value)}
               />
             </Field>
             <Field label="Setor" htmlFor="c-setor">
@@ -210,8 +250,50 @@ export function CadastroClient({
                 name="setor_id"
                 options={setorOptions}
                 placeholder="Sem setor"
+                value={createSetor}
+                onChange={(e) => {
+                  const setorSelecionado = e.target.value;
+                  setCreateSetor(setorSelecionado);
+                  setCreateServicoIds((current) =>
+                    current.filter((id) => {
+                      const servico = servicoOptions.find((option) => option.value === id);
+                      if (!servico) return false;
+                      if (!setorSelecionado) return true;
+                      return servico.setor_id === Number(setorSelecionado);
+                    }),
+                  );
+                }}
               />
             </Field>
+
+            {createRole === "atendente" && (
+              <Field
+                label="Serviços vinculados"
+                hint="Selecione um ou mais serviços que o atendente poderá atender."
+              >
+                <div className="max-h-40 space-y-2 overflow-y-auto rounded-lg border border-zinc-200 p-3 dark:border-zinc-800">
+                  {createFilteredServicoOptions.length === 0 ? (
+                    <p className="text-sm text-zinc-500 dark:text-zinc-400">Nenhum serviço disponível para o setor selecionado.</p>
+                  ) : (
+                    createFilteredServicoOptions.map((option) => (
+                      <label key={option.value} className="flex items-center gap-2 text-sm text-zinc-700 dark:text-zinc-300">
+                        <input
+                          type="checkbox"
+                          name="servico_ids"
+                          value={option.value}
+                          checked={createServicoIds.includes(option.value)}
+                          onChange={() =>
+                            setCreateServicoIds((current) => toggleService(current, option.value))
+                          }
+                          className="h-4 w-4 rounded border-zinc-300 text-primary focus:ring-primary dark:border-zinc-700"
+                        />
+                        <span>{option.label}</span>
+                      </label>
+                    ))
+                  )}
+                </div>
+              </Field>
+            )}
 
             {createState.error && (
               <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600 dark:bg-red-950/40 dark:text-red-400">
@@ -253,8 +335,9 @@ export function CadastroClient({
               <Select
                 id="e-role"
                 name="role"
-                defaultValue={editingUser.role}
+                value={editRole}
                 options={roleOptions}
+                onChange={(e) => setEditRole(e.target.value)}
               />
             </Field>
             <Field label="Setor" htmlFor="e-setor">
@@ -262,10 +345,51 @@ export function CadastroClient({
                 id="e-setor"
                 name="setor_id"
                 options={setorOptions}
-                defaultValue={editingUser.setor_id ? String(editingUser.setor_id) : ""}
+                value={editSetor}
                 placeholder="Sem setor"
+                onChange={(e) => {
+                  const setorSelecionado = e.target.value;
+                  setEditSetor(setorSelecionado);
+                  setEditServicoIds((current) =>
+                    current.filter((id) => {
+                      const servico = servicoOptions.find((option) => option.value === id);
+                      if (!servico) return false;
+                      if (!setorSelecionado) return true;
+                      return servico.setor_id === Number(setorSelecionado);
+                    }),
+                  );
+                }}
               />
             </Field>
+
+            {editRole === "atendente" && (
+              <Field
+                label="Serviços vinculados"
+                hint="Selecione um ou mais serviços que o atendente poderá atender."
+              >
+                <div className="max-h-40 space-y-2 overflow-y-auto rounded-lg border border-zinc-200 p-3 dark:border-zinc-800">
+                  {editFilteredServicoOptions.length === 0 ? (
+                    <p className="text-sm text-zinc-500 dark:text-zinc-400">Nenhum serviço disponível para o setor selecionado.</p>
+                  ) : (
+                    editFilteredServicoOptions.map((option) => (
+                      <label key={option.value} className="flex items-center gap-2 text-sm text-zinc-700 dark:text-zinc-300">
+                        <input
+                          type="checkbox"
+                          name="servico_ids"
+                          value={option.value}
+                          checked={editServicoIds.includes(option.value)}
+                          onChange={() =>
+                            setEditServicoIds((current) => toggleService(current, option.value))
+                          }
+                          className="h-4 w-4 rounded border-zinc-300 text-primary focus:ring-primary dark:border-zinc-700"
+                        />
+                        <span>{option.label}</span>
+                      </label>
+                    ))
+                  )}
+                </div>
+              </Field>
+            )}
 
             {editState.error && (
               <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600 dark:bg-red-950/40 dark:text-red-400">

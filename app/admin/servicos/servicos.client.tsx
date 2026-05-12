@@ -68,6 +68,7 @@ function Modal({
 function ServicoForm({
   defaultValues,
   setores,
+  setorFixo,
   action,
   pending,
   error,
@@ -75,6 +76,7 @@ function ServicoForm({
 }: {
   defaultValues?: { nome: string; descricao: string | null; setor_id: number };
   setores: Setor[];
+  setorFixo?: Setor;
   action: (formData: FormData) => void;
   pending: boolean;
   error?: string;
@@ -87,15 +89,24 @@ function ServicoForm({
       <Field label="Nome" htmlFor="nome" required error={error}>
         <Input id="nome" name="nome" defaultValue={defaultValues?.nome} maxLength={200} placeholder="Ex: Instalação de Software" />
       </Field>
-      <Field label="Setor" htmlFor="setor_id" required>
-        <Select
-          id="setor_id"
-          name="setor_id"
-          options={setorOptions}
-          defaultValue={defaultValues ? String(defaultValues.setor_id) : ""}
-          placeholder="Selecione um setor"
-        />
-      </Field>
+      {setorFixo ? (
+        <>
+          <input type="hidden" name="setor_id" value={setorFixo.id} />
+          <Field label="Setor" htmlFor="setor_nome" required>
+            <Input id="setor_nome" value={setorFixo.nome} disabled />
+          </Field>
+        </>
+      ) : (
+        <Field label="Setor" htmlFor="setor_id" required>
+          <Select
+            id="setor_id"
+            name="setor_id"
+            options={setorOptions}
+            defaultValue={defaultValues ? String(defaultValues.setor_id) : ""}
+            placeholder="Selecione um setor"
+          />
+        </Field>
+      )}
       <Field label="Descrição" htmlFor="descricao">
         <Textarea id="descricao" name="descricao" defaultValue={defaultValues?.descricao ?? ""} rows={3} placeholder="Descrição opcional" />
       </Field>
@@ -109,9 +120,11 @@ function ServicoForm({
 export function ServicosClient({
   servicos,
   setores,
+  setorAtual,
 }: {
   servicos: Servico[];
   setores: Setor[];
+  setorAtual?: Setor;
 }) {
   const [showCriar, setShowCriar] = useState(false);
   const [editando, setEditando] = useState<Servico | null>(null);
@@ -127,15 +140,25 @@ export function ServicosClient({
     <div className="mx-auto max-w-5xl px-4 py-10 sm:px-6 lg:px-8">
       <div className="mb-6 flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-50">Catálogo de Serviços</h1>
+          <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-50">
+            {setorAtual ? `Serviços do Setor: ${setorAtual.nome}` : "Catálogo de Serviços"}
+          </h1>
           <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-            Gerencie os tipos de serviço que podem ser solicitados.
+            {setorAtual
+              ? "Cadastre e mantenha os serviços deste setor."
+              : "Gerencie os tipos de serviço que podem ser solicitados."}
           </p>
         </div>
         <div className="flex gap-2">
-          <Link href={ROUTES.CHAMADOS}>
-            <Button variant="outline">Ver Solicitações</Button>
-          </Link>
+          {setorAtual ? (
+            <Link href={ROUTES.SETORES}>
+              <Button variant="outline">Voltar para Setores</Button>
+            </Link>
+          ) : (
+            <Link href={ROUTES.CHAMADOS}>
+              <Button variant="outline">Ver Solicitações</Button>
+            </Link>
+          )}
           <Button onClick={() => setShowCriar(true)}>+ Novo Serviço</Button>
         </div>
       </div>
@@ -193,19 +216,19 @@ export function ServicosClient({
 
       {showCriar && (
         <Modal title="Novo Serviço" onClose={() => setShowCriar(false)}>
-          <CriarServicoForm setores={setores} onClose={() => setShowCriar(false)} />
+          <CriarServicoForm setores={setores} setorFixo={setorAtual} onClose={() => setShowCriar(false)} />
         </Modal>
       )}
       {editando && (
         <Modal title="Editar Serviço" onClose={() => setEditando(null)}>
-          <EditarServicoForm servico={editando} setores={setores} onClose={() => setEditando(null)} />
+          <EditarServicoForm servico={editando} setores={setores} setorFixo={setorAtual} onClose={() => setEditando(null)} />
         </Modal>
       )}
     </div>
   );
 }
 
-function CriarServicoForm({ setores, onClose }: { setores: Setor[]; onClose: () => void }) {
+function CriarServicoForm({ setores, setorFixo, onClose }: { setores: Setor[]; setorFixo?: Setor; onClose: () => void }) {
   const [state, action, pending] = useActionState(criarServicoAction, {});
 
   useEffect(() => {
@@ -219,6 +242,7 @@ function CriarServicoForm({ setores, onClose }: { setores: Setor[]; onClose: () 
   return (
     <ServicoForm
       setores={setores}
+      setorFixo={setorFixo}
       action={action}
       pending={pending}
       error={state.error}
@@ -227,7 +251,7 @@ function CriarServicoForm({ setores, onClose }: { setores: Setor[]; onClose: () 
   );
 }
 
-function EditarServicoForm({ servico, setores, onClose }: { servico: Servico; setores: Setor[]; onClose: () => void }) {
+function EditarServicoForm({ servico, setores, setorFixo, onClose }: { servico: Servico; setores: Setor[]; setorFixo?: Setor; onClose: () => void }) {
   const [state, action, pending] = useActionState(editarServicoAction, {});
 
   useEffect(() => {
@@ -247,6 +271,7 @@ function EditarServicoForm({ servico, setores, onClose }: { servico: Servico; se
     <ServicoForm
       defaultValues={{ nome: servico.nome, descricao: servico.descricao, setor_id: servico.setor.id }}
       setores={setores}
+      setorFixo={setorFixo}
       action={wrappedAction}
       pending={pending}
       error={state.error}

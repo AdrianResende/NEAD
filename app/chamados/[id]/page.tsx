@@ -3,7 +3,6 @@ import { cookies } from "next/headers";
 import { SESSION_COOKIE_NAME, validateSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { ROUTES } from "@/lib/constants";
-import { hasSetorAccess } from "@/lib/permissions";
 import { ChamadoDetalheClient } from "./chamado.client";
 
 export default async function ChamadoDetalhePage({
@@ -27,6 +26,7 @@ export default async function ChamadoDetalhePage({
       servico: { include: { setor: true } },
       solicitante: true,
       atendente: true,
+      anexos: { orderBy: { created_at: "asc" } },
     },
   });
 
@@ -37,12 +37,20 @@ export default async function ChamadoDetalhePage({
     redirect(ROUTES.CHAMADOS);
   }
 
-  // Atendente só pode ver chamados do seu setor
-  if (
-    user.role === "atendente" &&
-    !hasSetorAccess(user.setor_id, chamado.servico.setor.id)
-  ) {
-    redirect(ROUTES.CHAMADOS);
+  // Atendente só pode ver chamados de serviços vinculados.
+  if (user.role === "atendente") {
+    const vinculo = await prisma.atendenteServico.findUnique({
+      where: {
+        user_id_servico_id: {
+          user_id: user.id,
+          servico_id: chamado.servico_id,
+        },
+      },
+    });
+
+    if (!vinculo) {
+      redirect(ROUTES.CHAMADOS);
+    }
   }
 
   const atendentes =
@@ -51,7 +59,14 @@ export default async function ChamadoDetalhePage({
           where: {
             OR: [
               { role: "admin" },
-              { role: "atendente", setor_id: chamado.servico.setor.id },
+              {
+                role: "atendente",
+                servicosAtendidos: {
+                  some: {
+                    servico_id: chamado.servico_id,
+                  },
+                },
+              },
             ],
           },
           orderBy: { nome: "asc" },
@@ -77,6 +92,13 @@ export default async function ChamadoDetalhePage({
           nome: chamado.solicitante.nome,
           email: chamado.solicitante.email,
         },
+        anexos: chamado.anexos.map((a) => ({
+          id: a.id,
+          nomeOriginal: a.nome_original,
+          url: a.url,
+          mimeType: a.mime_type,
+          tamanhoBytes: a.tamanho_bytes,
+        })),
         atendente: chamado.atendente
           ? { id: chamado.atendente.id, nome: chamado.atendente.nome }
           : null,
