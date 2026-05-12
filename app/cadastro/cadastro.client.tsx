@@ -202,7 +202,7 @@ export function CadastroClient({
                       onClick={() => {
                         setEditingUser(user);
                         setEditRole(user.role);
-                        setEditSetor(user.setor_id ? String(user.setor_id) : "");
+                        setEditSetor(user.role === "solicitante" ? "" : user.setor_id ? String(user.setor_id) : "");
                         setEditServicoIds(user.servico_ids.map(String));
                       }}
                     >
@@ -241,30 +241,39 @@ export function CadastroClient({
                 name="role"
                 defaultValue={roleOptions[0]?.value}
                 options={roleOptions}
-                onChange={(e) => setCreateRole(e.target.value)}
-              />
-            </Field>
-            <Field label="Setor" htmlFor="c-setor">
-              <Select
-                id="c-setor"
-                name="setor_id"
-                options={setorOptions}
-                placeholder="Sem setor"
-                value={createSetor}
                 onChange={(e) => {
-                  const setorSelecionado = e.target.value;
-                  setCreateSetor(setorSelecionado);
-                  setCreateServicoIds((current) =>
-                    current.filter((id) => {
-                      const servico = servicoOptions.find((option) => option.value === id);
-                      if (!servico) return false;
-                      if (!setorSelecionado) return true;
-                      return servico.setor_id === Number(setorSelecionado);
-                    }),
-                  );
+                  const roleSelecionado = e.target.value;
+                  setCreateRole(roleSelecionado);
+                  if (roleSelecionado === "solicitante") {
+                    setCreateSetor("");
+                    setCreateServicoIds([]);
+                  }
                 }}
               />
             </Field>
+            {createRole !== "solicitante" && (
+              <Field label="Setor" htmlFor="c-setor">
+                <Select
+                  id="c-setor"
+                  name="setor_id"
+                  options={setorOptions}
+                  placeholder="Sem setor"
+                  value={createSetor}
+                  onChange={(e) => {
+                    const setorSelecionado = e.target.value;
+                    setCreateSetor(setorSelecionado);
+                    setCreateServicoIds((current) =>
+                      current.filter((id) => {
+                        const servico = servicoOptions.find((option) => option.value === id);
+                        if (!servico) return false;
+                        if (!setorSelecionado) return true;
+                        return servico.setor_id === Number(setorSelecionado);
+                      }),
+                    );
+                  }}
+                />
+              </Field>
+            )}
 
             {createRole === "atendente" && createSetor && (
               <Field
@@ -337,30 +346,39 @@ export function CadastroClient({
                 name="role"
                 value={editRole}
                 options={roleOptions}
-                onChange={(e) => setEditRole(e.target.value)}
-              />
-            </Field>
-            <Field label="Setor" htmlFor="e-setor">
-              <Select
-                id="e-setor"
-                name="setor_id"
-                options={setorOptions}
-                value={editSetor}
-                placeholder="Sem setor"
                 onChange={(e) => {
-                  const setorSelecionado = e.target.value;
-                  setEditSetor(setorSelecionado);
-                  setEditServicoIds((current) =>
-                    current.filter((id) => {
-                      const servico = servicoOptions.find((option) => option.value === id);
-                      if (!servico) return false;
-                      if (!setorSelecionado) return true;
-                      return servico.setor_id === Number(setorSelecionado);
-                    }),
-                  );
+                  const roleSelecionado = e.target.value;
+                  setEditRole(roleSelecionado);
+                  if (roleSelecionado === "solicitante") {
+                    setEditSetor("");
+                    setEditServicoIds([]);
+                  }
                 }}
               />
             </Field>
+            {editRole !== "solicitante" && (
+              <Field label="Setor" htmlFor="e-setor">
+                <Select
+                  id="e-setor"
+                  name="setor_id"
+                  options={setorOptions}
+                  value={editSetor}
+                  placeholder="Sem setor"
+                  onChange={(e) => {
+                    const setorSelecionado = e.target.value;
+                    setEditSetor(setorSelecionado);
+                    setEditServicoIds((current) =>
+                      current.filter((id) => {
+                        const servico = servicoOptions.find((option) => option.value === id);
+                        if (!servico) return false;
+                        if (!setorSelecionado) return true;
+                        return servico.setor_id === Number(setorSelecionado);
+                      }),
+                    );
+                  }}
+                />
+              </Field>
+            )}
 
             {editRole === "atendente" && editSetor && (
               <Field

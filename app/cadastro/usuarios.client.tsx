@@ -19,19 +19,25 @@ import {
 } from "@/components/ui";
 import { criarUsuarioAction, editarUsuarioAction } from "./actions";
 
-type User = {
-  id: number;
+  const [createRole, setCreateRole] = useState(roleOptions[0]?.value ?? "solicitante");
+  const [createSetor, setCreateSetor] = useState("");
+  const [editRole, setEditRole] = useState("solicitante");
+  const [editSetor, setEditSetor] = useState("");
   nome: string;
   email: string;
   role: string;
   setor: string | null;
   setor_id: number | null;
   createdAt: string;
+    setCreateRole(roleOptions[0]?.value ?? "solicitante");
+    setCreateSetor("");
 };
 
 type RoleOption = { value: string; label: string };
 type SetorOption = { value: string; label: string };
 
+    setEditRole("solicitante");
+    setEditSetor("");
 type UsuariosClientProps = {
   users: User[];
   roleOptions: RoleOption[];
@@ -222,16 +228,27 @@ export function CadastroClient({
                   name="setor_id"
                   options={setorOptions}
                   placeholder="Sem setor"
+                  onChange={(e) => {
+                    const roleSelecionado = e.target.value;
+                    setCreateRole(roleSelecionado);
+                    if (roleSelecionado === "solicitante") {
+                      setCreateSetor("");
+                    }
+                  }}
                 />
               </Field>
-            )}
-
-            {createState.error && (
-              <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600 dark:bg-red-950/40 dark:text-red-400">
-                {createState.error}
-              </p>
-            )}
-            {createState.success && (
+              {createRole !== "solicitante" && (
+                <Field label="Setor" htmlFor="c-setor">
+                  <Select
+                    id="c-setor"
+                    name="setor_id"
+                    options={setorOptions}
+                    placeholder="Sem setor"
+                    value={createSetor}
+                    onChange={(e) => setCreateSetor(e.target.value)}
+                  />
+                </Field>
+              )}
               <p className="rounded-lg bg-green-50 px-3 py-2 text-sm text-green-700 dark:bg-green-950/40 dark:text-green-400">
                 Usuário cadastrado com sucesso!
               </p>
@@ -285,17 +302,27 @@ export function CadastroClient({
                   name="setor_id"
                   options={setorOptions}
                   defaultValue={editingUser.setor_id ? String(editingUser.setor_id) : ""}
+                  onChange={(e) => {
+                    const roleSelecionado = e.target.value;
+                    setEditRole(roleSelecionado);
+                    if (roleSelecionado === "solicitante") {
+                      setEditSetor("");
+                    }
+                  }}
                   placeholder="Sem setor"
                 />
-              </Field>
-            )}
-
-            {editState.error && (
-              <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600 dark:bg-red-950/40 dark:text-red-400">
-                {editState.error}
-              </p>
-            )}
-            {editState.success && (
+              {editRole !== "solicitante" && (
+                <Field label="Setor" htmlFor="e-setor">
+                  <Select
+                    id="e-setor"
+                    name="setor_id"
+                    options={setorOptions}
+                    value={editSetor}
+                    placeholder="Sem setor"
+                    onChange={(e) => setEditSetor(e.target.value)}
+                  />
+                </Field>
+              )}
               <p className="rounded-lg bg-green-50 px-3 py-2 text-sm text-green-700 dark:bg-green-950/40 dark:text-green-400">
                 Perfil atualizado com sucesso!
               </p>
