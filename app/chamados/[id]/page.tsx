@@ -85,7 +85,6 @@ export default async function ChamadoDetalhePage({
         titulo: chamado.titulo,
         descricao: chamado.descricao,
         status: chamado.status,
-        prioridade: chamado.prioridade,
         createdAt: chamado.created_at.toISOString(),
         updatedAt: chamado.updated_at.toISOString(),
         servico: {

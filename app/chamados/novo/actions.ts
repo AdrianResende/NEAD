@@ -14,7 +14,6 @@ export type NovoChamadoState = {
   chamadoId?: number;
 };
 
-const PRIORIDADES = ["baixa", "normal", "alta", "urgente"] as const;
 const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024;
 const MAX_FILES = 5;
 const ALLOWED_MIME_TYPES = ["application/pdf", "image/png", "image/jpeg", "image/jpg", "image/webp"];
@@ -38,7 +37,6 @@ export async function abrirChamadoAction(
   const descricao = (formData.get("descricao") as string | null)?.trim();
   const setor_id = Number(formData.get("setor_id"));
   const servico_id = Number(formData.get("servico_id"));
-  const prioridade = (formData.get("prioridade") as string | null) ?? "normal";
   const anexos = formData
     .getAll("anexos")
     .filter((value): value is File => value instanceof File && value.size > 0);
@@ -48,9 +46,6 @@ export async function abrirChamadoAction(
   if (!descricao) return { error: "A descrição é obrigatória." };
   if (!setor_id || isNaN(setor_id)) return { error: "Selecione um setor." };
   if (!servico_id || isNaN(servico_id)) return { error: "Selecione um serviço." };
-  if (!PRIORIDADES.includes(prioridade as (typeof PRIORIDADES)[number])) {
-    return { error: "Prioridade inválida." };
-  }
   if (anexos.length > MAX_FILES) {
     return { error: `Você pode enviar no máximo ${MAX_FILES} arquivos por chamado.` };
   }
@@ -76,7 +71,6 @@ export async function abrirChamadoAction(
       titulo,
       descricao,
       servico_id,
-      prioridade,
       solicitante_id: user.id,
     },
   });

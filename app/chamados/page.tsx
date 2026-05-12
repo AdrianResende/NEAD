@@ -59,7 +59,6 @@ export default async function ChamadosPage() {
         id: c.id,
         titulo: c.titulo,
         status: c.status,
-        prioridade: c.prioridade,
         servico: c.servico.nome,
         solicitante: c.solicitante.nome,
         atendente: c.atendente?.nome ?? null,

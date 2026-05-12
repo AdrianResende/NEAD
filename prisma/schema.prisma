@@ -100,7 +100,6 @@ model Chamado {
   titulo         String   @db.VarChar(200)
   descricao      String
   status         String   @default("aberto")
-  prioridade     String   @default("normal")
   solicitante_id Int
   atendente_id   Int?
   servico_id     Int

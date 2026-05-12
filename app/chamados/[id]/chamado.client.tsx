@@ -11,7 +11,6 @@ type Chamado = {
   titulo: string;
   descricao: string;
   status: string;
-  prioridade: string;
   createdAt: string;
   updatedAt: string;
   servico: { nome: string; setor: string };
@@ -55,13 +54,6 @@ const STATUS_LABEL: Record<string, string> = {
   resolvido: "Resolvido",
   fechado: "Fechado",
   cancelado: "Cancelado",
-};
-
-const PRIORIDADE_BADGE: Record<string, "default" | "warning" | "danger" | "success"> = {
-  baixa: "success",
-  normal: "default",
-  alta: "warning",
-  urgente: "danger",
 };
 
 const STATUS_OPTIONS_ATENDENTE = [
@@ -261,9 +253,6 @@ export function ChamadoDetalheClient({ chamado, currentUserId, currentUserRole, 
           </h1>
           <Badge variant={STATUS_BADGE[chamado.status] ?? "default"}>
             {STATUS_LABEL[chamado.status] ?? chamado.status}
-          </Badge>
-          <Badge variant={PRIORIDADE_BADGE[chamado.prioridade] ?? "default"}>
-            {chamado.prioridade.charAt(0).toUpperCase() + chamado.prioridade.slice(1)}
           </Badge>
         </div>
       </div>

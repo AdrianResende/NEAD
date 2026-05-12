@@ -10,7 +10,6 @@ type Chamado = {
   id: number;
   titulo: string;
   status: string;
-  prioridade: string;
   servico: string;
   solicitante: string;
   atendente: string | null;
@@ -78,13 +77,6 @@ const STATUS_LABEL: Record<string, string> = {
   cancelado: "Cancelado",
 };
 
-const PRIORIDADE_BADGE: Record<string, "default" | "warning" | "danger" | "success"> = {
-  baixa: "success",
-  normal: "default",
-  alta: "warning",
-  urgente: "danger",
-};
-
 export function ChamadosClient({ chamados, role, servicos = [] }: Props) {
   const isSolicitante = role === "solicitante";
   const isAdmin = role === "admin";
@@ -123,7 +115,6 @@ export function ChamadosClient({ chamados, role, servicos = [] }: Props) {
             <Th>Serviço</Th>
             {!isSolicitante && <Th>Solicitante</Th>}
             <Th>Atendente</Th>
-            <Th>Prioridade</Th>
             <Th>Status</Th>
             <Th>Aberto em</Th>
             <Th className="text-right">Ação</Th>
@@ -132,7 +123,7 @@ export function ChamadosClient({ chamados, role, servicos = [] }: Props) {
         <TableBody>
           {chamados.length === 0 ? (
             <TableEmpty
-              colSpan={isSolicitante ? 8 : 9}
+              colSpan={isSolicitante ? 7 : 8}
               message={
                 isSolicitante
                   ? "Você ainda não solicitou nenhum serviço."
@@ -147,11 +138,6 @@ export function ChamadosClient({ chamados, role, servicos = [] }: Props) {
                 <Td className="text-zinc-500 dark:text-zinc-400">{c.servico}</Td>
                 {!isSolicitante && <Td>{c.solicitante}</Td>}
                 <Td>{c.atendente ?? <span className="text-zinc-400">—</span>}</Td>
-                <Td>
-                  <Badge variant={PRIORIDADE_BADGE[c.prioridade] ?? "default"}>
-                    {c.prioridade.charAt(0).toUpperCase() + c.prioridade.slice(1)}
-                  </Badge>
-                </Td>
                 <Td>
                   <Badge variant={STATUS_BADGE[c.status] ?? "default"}>
                     {STATUS_LABEL[c.status] ?? c.status}
