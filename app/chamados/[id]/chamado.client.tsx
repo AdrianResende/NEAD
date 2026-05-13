@@ -16,11 +16,9 @@ import {
   MessageSquareText,
   SendHorizonal,
   Settings2,
-  ShieldCheck,
   Sparkles,
   User,
   UserCheck,
-  Workflow,
 } from "lucide-react";
 import { Badge, Button, Field, Form, Select, Textarea } from "@/components/ui";
 import { atualizarChamadoAction, enviarMensagemChamadoAction } from "./actions";
@@ -428,8 +426,8 @@ export function ChamadoDetalheClient({ chamado, currentUserId, currentUserRole, 
             </div>
           </div>
 
-          {/* Linha 2: Informações principais (4 colunas) */}
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4">
+          {/* Linha 2: Informações principais */}
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
             {/* Solicitante */}
             <div className="rounded-xl border border-zinc-200/80 bg-zinc-50/70 p-3 dark:border-zinc-800 dark:bg-zinc-900/50">
               <p className="text-[10px] font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Solicitante</p>
@@ -460,16 +458,6 @@ export function ChamadoDetalheClient({ chamado, currentUserId, currentUserRole, 
               </div>
             </div>
 
-            {/* Data */}
-            <div className="rounded-xl border border-zinc-200/80 bg-zinc-50/70 p-3 dark:border-zinc-800 dark:bg-zinc-900/50">
-              <p className="text-[10px] font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Aberto em</p>
-              <div className="mt-1.5 flex items-center gap-2">
-                <CalendarClock className="h-3.5 w-3.5 shrink-0 text-zinc-600 dark:text-zinc-400" aria-hidden="true" />
-                <div className="min-w-0">
-                  <p className="truncate text-xs font-medium text-zinc-900 dark:text-zinc-50">{formatDateTime(chamado.createdAt)}</p>
-                </div>
-              </div>
-            </div>
           </div>
         </div>
       </div>
@@ -528,27 +516,13 @@ export function ChamadoDetalheClient({ chamado, currentUserId, currentUserRole, 
 
         <aside className="space-y-4 xl:sticky xl:top-20 xl:self-start">
           <SurfaceCard
-            title="Resumo do chamado"
+            title="Informações do chamado"
             subtitle="Informações essenciais para triagem e priorização"
             icon={<LifeBuoy className="h-4 w-4" />}
           >
             <div className="space-y-2.5">
-              <InfoRow label="Serviço" value={chamado.servico.nome} icon={<Workflow className="h-4 w-4" />} />
-              <InfoRow label="Setor" value={chamado.servico.setor} icon={<ShieldCheck className="h-4 w-4" />} />
-              <InfoRow
-                label="Solicitante"
-                value={`${chamado.solicitante.nome} (${chamado.solicitante.email})`}
-                icon={<User className="h-4 w-4" />}
-              />
-              <InfoRow
-                label="Atendente"
-                value={chamado.atendente?.nome ?? "Não atribuído"}
-                icon={<UserCheck className="h-4 w-4" />}
-              />
               <InfoRow label="Criado em" value={formatDateTime(chamado.createdAt)} icon={<CalendarClock className="h-4 w-4" />} />
               <InfoRow label="Atualizado" value={formatDateTime(chamado.updatedAt)} icon={<Clock3 className="h-4 w-4" />} />
-              <InfoRow label="Mensagens" value={`${chamado.mensagens.length} interações`} icon={<MessageCircle className="h-4 w-4" />} />
-              <InfoRow label="Anexos" value={`${chamado.anexos.length} arquivo(s)`} icon={<FileText className="h-4 w-4" />} />
             </div>
           </SurfaceCard>
 
