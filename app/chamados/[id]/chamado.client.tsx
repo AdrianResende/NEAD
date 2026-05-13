@@ -20,6 +20,7 @@ import {
   Sparkles,
   User,
   UserCheck,
+  Workflow,
 } from "lucide-react";
 import { Badge, Button, Field, Form, Select, Textarea } from "@/components/ui";
 import { atualizarChamadoAction, enviarMensagemChamadoAction } from "./actions";
