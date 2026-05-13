@@ -16,6 +16,7 @@ import {
   MessageSquareText,
   SendHorizonal,
   Settings2,
+  ShieldCheck,
   Sparkles,
   User,
   UserCheck,
