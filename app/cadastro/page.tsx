@@ -15,8 +15,21 @@ export default async function CadastroPage() {
     redirect(ROUTES.LOGIN);
   }
 
-  const [users, setores, servicos] = await Promise.all([
+  const [usersAtivos, usersDesativados, setores, servicos] = await Promise.all([
     prisma.user.findMany({
+      where: { ativo: true },
+      include: {
+        setor: true,
+        servicosAtendidos: {
+          include: {
+            servico: true,
+          },
+        },
+      },
+      orderBy: { created_at: "desc" },
+    }),
+    prisma.user.findMany({
+      where: { ativo: false },
       include: {
         setor: true,
         servicosAtendidos: {
@@ -47,6 +60,19 @@ export default async function CadastroPage() {
   }));
   const canEdit = currentUser.role === "admin" || currentUser.role === "atendente";
 
+  const mapUsers = (users: typeof usersAtivos) => users.map((u) => ({
+    id: u.id,
+    nome: u.nome,
+    email: u.email,
+    role: u.role,
+    setor: u.role === "solicitante" ? null : u.setor?.nome ?? null,
+    setor_id: u.role === "solicitante" ? null : u.setor_id ?? null,
+    servico_ids: u.servicosAtendidos.map((v) => v.servico_id),
+    servicos: u.servicosAtendidos.map((v) => v.servico.nome),
+    createdAt: u.created_at.toISOString(),
+    ativo: u.ativo,
+  }));
+
   return (
     <CadastroClient
       currentUserId={currentUser.id}
@@ -54,17 +80,8 @@ export default async function CadastroPage() {
       roleOptions={roleOptions}
       setorOptions={setorOptions}
       servicoOptions={servicoOptions}
-      users={users.map((u) => ({
-        id: u.id,
-        nome: u.nome,
-        email: u.email,
-        role: u.role,
-        setor: u.role === "solicitante" ? null : u.setor?.nome ?? null,
-        setor_id: u.role === "solicitante" ? null : u.setor_id ?? null,
-        servico_ids: u.servicosAtendidos.map((v) => v.servico_id),
-        servicos: u.servicosAtendidos.map((v) => v.servico.nome),
-        createdAt: u.created_at.toISOString(),
-      }))}
+      usersAtivos={mapUsers(usersAtivos)}
+      usersDesativados={mapUsers(usersDesativados)}
     />
   );
 }

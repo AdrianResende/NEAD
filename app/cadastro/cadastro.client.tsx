@@ -17,7 +17,7 @@ import {
   Th,
   Tr,
 } from "@/components/ui";
-import { criarUsuarioAction, editarUsuarioAction } from "./actions";
+import { criarUsuarioAction, editarUsuarioAction, toggleActivoUsuarioAction } from "./actions";
 
 type User = {
   id: number;
@@ -29,6 +29,7 @@ type User = {
   servico_ids: number[];
   servicos: string[];
   createdAt: string;
+  ativo: boolean;
 };
 
 type RoleOption = { value: string; label: string };
@@ -36,7 +37,8 @@ type SetorOption = { value: string; label: string };
 type ServicoOption = { value: string; label: string; setor_id: number };
 
 type UsuariosClientProps = {
-  users: User[];
+  usersAtivos: User[];
+  usersDesativados: User[];
   roleOptions: RoleOption[];
   setorOptions: SetorOption[];
   servicoOptions: ServicoOption[];
@@ -92,7 +94,8 @@ function Modal({
 
 
 export function CadastroClient({
-  users,
+  usersAtivos,
+  usersDesativados,
   roleOptions,
   setorOptions,
   servicoOptions,
@@ -100,8 +103,10 @@ export function CadastroClient({
   currentUserId,
 }: UsuariosClientProps) {
   const router = useRouter();
+  const [aba, setAba] = useState<"ativos" | "desativados">("ativos");
   const [createOpen, setCreateOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
+  const [toggleConfirm, setToggleConfirm] = useState<User | null>(null);
   const [createRole, setCreateRole] = useState(roleOptions[0]?.value ?? "solicitante");
   const [createSetor, setCreateSetor] = useState("");
   const [createServicoIds, setCreateServicoIds] = useState<string[]>([]);
@@ -111,6 +116,7 @@ export function CadastroClient({
 
   const [createState, createAction, isCreating] = useActionState(criarUsuarioAction, {});
   const [editState, editAction, isEditing] = useActionState(editarUsuarioAction, {});
+  const [toggleState, toggleAction, isToggling] = useActionState(toggleActivoUsuarioAction, {});
 
   function closeCreate() {
     setCreateOpen(false);
@@ -143,6 +149,8 @@ export function CadastroClient({
     editSetor ? option.setor_id === Number(editSetor) : true,
   );
 
+  const users = aba === "ativos" ? usersAtivos : usersDesativados;
+
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
       <div className="mb-6 rounded-2xl border border-zinc-200/80 bg-white/95 p-5 shadow-sm ring-1 ring-zinc-100/60 backdrop-blur-sm dark:border-zinc-800 dark:bg-zinc-950 dark:ring-zinc-900 sm:p-6">
@@ -163,6 +171,36 @@ export function CadastroClient({
               Novo usuário
             </Button>
           )}
+        </div>
+
+        {/* Abas */}
+        <div className="mt-4 flex gap-2 border-b border-zinc-200/80 dark:border-zinc-800">
+          <button
+            onClick={() => setAba("ativos")}
+            className={`px-4 py-2 font-medium text-sm transition-colors ${
+              aba === "ativos"
+                ? "border-b-2 border-primary text-primary dark:text-primary"
+                : "text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-300"
+            }`}
+          >
+            Usuários Ativos
+            <span className="ml-2 inline-block rounded-full bg-zinc-100 px-2 py-0.5 text-xs dark:bg-zinc-800">
+              {usersAtivos.length}
+            </span>
+          </button>
+          <button
+            onClick={() => setAba("desativados")}
+            className={`px-4 py-2 font-medium text-sm transition-colors ${
+              aba === "desativados"
+                ? "border-b-2 border-primary text-primary dark:text-primary"
+                : "text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-300"
+            }`}
+          >
+            Usuários Desativados
+            <span className="ml-2 inline-block rounded-full bg-zinc-100 px-2 py-0.5 text-xs dark:bg-zinc-800">
+              {usersDesativados.length}
+            </span>
+          </button>
         </div>
       </div>
 
@@ -198,7 +236,7 @@ export function CadastroClient({
                   <p className="mt-0.5 text-zinc-700 dark:text-zinc-300">{new Date(user.createdAt).toLocaleDateString("pt-BR")}</p>
                 </div>
                 {canEdit && (
-                  <div className="flex items-end justify-end">
+                  <div className="flex items-end justify-end gap-1">
                     <Button
                       variant="ghost"
                       size="sm"
@@ -214,6 +252,18 @@ export function CadastroClient({
                     >
                       <span className="material-symbols-outlined" aria-hidden="true">
                         edit
+                      </span>
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      disabled={user.id === currentUserId}
+                      aria-label={aba === "ativos" ? `Desativar usuário ${user.nome}` : `Reativar usuário ${user.nome}`}
+                      title={aba === "ativos" ? `Desativar usuário ${user.nome}` : `Reativar usuário ${user.nome}`}
+                      onClick={() => setToggleConfirm(user)}
+                    >
+                      <span className="material-symbols-outlined text-red-500" aria-hidden="true">
+                        {aba === "ativos" ? "person_off" : "person_add"}
                       </span>
                     </Button>
                   </div>
@@ -238,7 +288,7 @@ export function CadastroClient({
         </TableHead>
         <TableBody>
           {users.length === 0 ? (
-            <TableEmpty colSpan={canEdit ? 6 : 5} message="Nenhum usuário cadastrado." />
+            <TableEmpty colSpan={canEdit ? 6 : 5} message={aba === "ativos" ? "Nenhum usuário cadastrado." : "Nenhum usuário desativado."} />
           ) : (
             users.map((user) => (
               <Tr key={user.id}>
@@ -286,23 +336,37 @@ export function CadastroClient({
                 </Td>
                 {canEdit && (
                   <Td className="text-right">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      disabled={user.id === currentUserId}
-                      aria-label={`Editar usuário ${user.nome}`}
-                      title={`Editar usuário ${user.nome}`}
-                      onClick={() => {
-                        setEditingUser(user);
-                        setEditRole(user.role);
-                        setEditSetor(user.role === "solicitante" ? "" : user.setor_id ? String(user.setor_id) : "");
-                        setEditServicoIds(user.servico_ids.map(String));
-                      }}
-                    >
-                      <span className="material-symbols-outlined" title={`Editar usuário ${user.nome}`} aria-hidden="true">
-                        edit
-                      </span>
-                    </Button>
+                    <div className="flex items-center justify-end gap-1">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        disabled={user.id === currentUserId}
+                        aria-label={`Editar usuário ${user.nome}`}
+                        title={`Editar usuário ${user.nome}`}
+                        onClick={() => {
+                          setEditingUser(user);
+                          setEditRole(user.role);
+                          setEditSetor(user.role === "solicitante" ? "" : user.setor_id ? String(user.setor_id) : "");
+                          setEditServicoIds(user.servico_ids.map(String));
+                        }}
+                      >
+                        <span className="material-symbols-outlined" title={`Editar usuário ${user.nome}`} aria-hidden="true">
+                          edit
+                        </span>
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        disabled={user.id === currentUserId}
+                        aria-label={aba === "ativos" ? `Desativar usuário ${user.nome}` : `Reativar usuário ${user.nome}`}
+                        title={aba === "ativos" ? `Desativar usuário ${user.nome}` : `Reativar usuário ${user.nome}`}
+                        onClick={() => setToggleConfirm(user)}
+                      >
+                        <span className="material-symbols-outlined text-red-500" aria-hidden="true">
+                          {aba === "ativos" ? "person_off" : "person_add"}
+                        </span>
+                      </Button>
+                    </div>
                   </Td>
                 )}
               </Tr>
@@ -537,6 +601,50 @@ export function CadastroClient({
                   Salvar
                 </Button>
               )}
+            </div>
+          </Form>
+        </Modal>
+      )}
+
+      {/* Modal: Confirmar Desativar/Reativar */}
+      {toggleConfirm && (
+        <Modal title={toggleConfirm.ativo ? "Desativar usuário" : "Reativar usuário"} onClose={() => setToggleConfirm(null)}>
+          <p className="mb-4 text-sm text-zinc-600 dark:text-zinc-400">
+            Tem certeza que deseja {toggleConfirm.ativo ? "desativar" : "reativar"} o usuário{" "}
+            <span className="font-medium text-zinc-900 dark:text-zinc-50">{toggleConfirm.nome}</span>?
+          </p>
+          {toggleConfirm.ativo && (
+            <p className="mb-4 text-sm text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/40 rounded-lg p-3">
+              ⚠️ Usuários desativados não poderão acessar o sistema.
+            </p>
+          )}
+          
+          <Form action={toggleAction}>
+            <input type="hidden" name="userId" value={toggleConfirm.id} />
+            
+            {toggleState.error && (
+              <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600 dark:bg-red-950/40 dark:text-red-400 mb-3">
+                {toggleState.error}
+              </p>
+            )}
+
+            <div className="flex justify-end gap-2 pt-1">
+              <Button type="button" variant="outline" onClick={() => setToggleConfirm(null)}>
+                <span className="material-symbols-outlined text-[18px]" title="Cancelar" aria-hidden="true">
+                  cancel
+                </span>
+                Cancelar
+              </Button>
+              <Button 
+                type="submit" 
+                loading={isToggling}
+                className={toggleConfirm.ativo ? "bg-red-600 hover:bg-red-700" : ""}
+              >
+                <span className="material-symbols-outlined text-[18px]" title={toggleConfirm.ativo ? "Desativar" : "Reativar"} aria-hidden="true">
+                  {toggleConfirm.ativo ? "person_off" : "person_add"}
+                </span>
+                {toggleConfirm.ativo ? "Desativar" : "Reativar"}
+              </Button>
             </div>
           </Form>
         </Modal>
