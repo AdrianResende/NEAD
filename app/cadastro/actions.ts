@@ -175,3 +175,50 @@ export async function editarUsuarioAction(
   revalidatePath("/cadastro");
   return { success: true };
 }
+
+export type ToggleActivoState = {
+  error?: string;
+  success?: boolean;
+};
+
+export async function toggleActivoUsuarioAction(
+  _prevState: ToggleActivoState,
+  formData: FormData
+): Promise<ToggleActivoState> {
+  const cookieStore = await cookies();
+  const sessionToken = cookieStore.get(SESSION_COOKIE_NAME)?.value;
+  const currentUser = sessionToken ? await validateSession(sessionToken) : null;
+
+  if (!currentUser) {
+    return { error: "Não autenticado." };
+  }
+
+  const targetId = Number(formData.get("userId"));
+
+  if (!targetId || Number.isNaN(targetId)) {
+    return { error: "Usuário inválido." };
+  }
+
+  const target = await prisma.user.findUnique({ where: { id: targetId } });
+  if (!target) {
+    return { error: "Usuário não encontrado." };
+  }
+
+  if (target.role === "admin" && currentUser.role !== "admin") {
+    return { error: "Sem permissão para alterar administradores." };
+  }
+
+  if (target.id === currentUser.id) {
+    return { error: "Você não pode desativar/ativar sua própria conta." };
+  }
+
+  await prisma.user.update({
+    where: { id: targetId },
+    data: {
+      ativo: !target.ativo,
+    },
+  });
+
+  revalidatePath("/cadastro");
+  return { success: true };
+}

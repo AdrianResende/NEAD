@@ -35,8 +35,20 @@ export default async function SetorServicosPage({
     orderBy: { nome: "asc" },
     include: {
       setor: true,
+      atendentes: {
+        include: { user: true },
+      },
       _count: { select: { chamados: true } },
     },
+  });
+
+  const atendentesDisponiveis = await prisma.user.findMany({
+    where: {
+      role: "atendente",
+      setor_id: setorId,
+      ativo: true,
+    },
+    orderBy: { nome: "asc" },
   });
 
   return (
@@ -47,6 +59,16 @@ export default async function SetorServicosPage({
         descricao: s.descricao ?? null,
         setor: { id: s.setor.id, nome: s.setor.nome },
         _count: s._count,
+        atendentes: s.atendentes.map((a) => ({
+          id: a.user.id,
+          nome: a.user.nome,
+          email: a.user.email,
+        })),
+      }))}
+      atendentesDisponiveis={atendentesDisponiveis.map((u) => ({
+        id: u.id,
+        nome: u.nome,
+        email: u.email,
       }))}
       setores={[{ id: setor.id, nome: setor.nome }]}
       setorAtual={{ id: setor.id, nome: setor.nome }}
