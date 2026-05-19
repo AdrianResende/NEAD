@@ -25,6 +25,7 @@ model User {
   password            String    @map("senha")
   role                String    @db.VarChar(20)
   setor_id            Int?
+  ativo               Boolean   @default(true)
   created_at          DateTime  @default(now())
   setor               Setor?    @relation(fields: [setor_id], references: [id])
   chamadosSolicitante Chamado[] @relation("Solicitante")

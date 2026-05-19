@@ -1,6 +1,5 @@
 "use server";
 
-import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
@@ -163,5 +162,8 @@ export async function abrirChamadoAction(
     await prisma.chamadoAnexo.createMany({ data: anexosData });
   }
 
-  redirect(`${ROUTES.CHAMADOS}/${chamado.id}`);
+  return { 
+    success: true, 
+    chamadoId: chamado.id 
+  };
 }
