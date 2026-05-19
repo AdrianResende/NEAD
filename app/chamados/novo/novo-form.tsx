@@ -1,10 +1,12 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState, useEffect } from "react";
 import { useActionState } from "react";
+import { useRouter } from "next/navigation";
 import { Button, Field, Form, Input, Select } from "@/components/ui";
 import { Textarea } from "@/components/ui/textarea";
 import { abrirChamadoAction } from "./actions";
+import { ROUTES } from "@/lib/constants";
 
 export type ServicoOption = {
   id: number;
@@ -14,10 +16,20 @@ export type ServicoOption = {
 };
 
 export function NovoChamadoForm({ servicos }: { servicos: ServicoOption[] }) {
+  const router = useRouter();
   const [state, action, pending] = useActionState(abrirChamadoAction, {});
   const [setorSelecionado, setSetorSelecionado] = useState<string>("");
   const [arquivosSelecionados, setArquivosSelecionados] = useState<File[]>([]);
   const anexosInputRef = useRef<HTMLInputElement>(null);
+  const formRef = useRef<HTMLFormElement>(null);
+
+  useEffect(() => {
+    if (state.success) {
+      setTimeout(() => {
+        router.push(`${ROUTES.CHAMADOS}/${state.chamadoId}`);
+      }, 1500);
+    }
+  }, [state.success, state.chamadoId, router]);
 
   const setorOptions = useMemo(
     () =>
@@ -56,13 +68,19 @@ export function NovoChamadoForm({ servicos }: { servicos: ServicoOption[] }) {
 
   return (
     <>
+      {state.success && (
+        <div className="mb-5 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700 dark:border-green-900 dark:bg-green-950 dark:text-green-400">
+          ✓ Chamado criado com sucesso!
+        </div>
+      )}
+
       {state.error && (
         <div className="mb-5 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900 dark:bg-red-950 dark:text-red-400">
           {state.error}
         </div>
       )}
 
-      <Form action={action}>
+      <form action={action} ref={formRef}>
         <Field label="Setor" htmlFor="setor_id" required>
           <Select
             id="setor_id"
@@ -164,7 +182,8 @@ export function NovoChamadoForm({ servicos }: { servicos: ServicoOption[] }) {
         <Button type="submit" disabled={pending} className="w-full">
           {pending ? "Enviando..." : "Solicitar Chamado"}
         </Button>
-      </Form>
+      </form>
     </>
   );
 }
+

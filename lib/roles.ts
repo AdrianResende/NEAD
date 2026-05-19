@@ -22,7 +22,7 @@ export function getAssignableRoles(currentUserRole: string | null | undefined): 
   }
 
   if (role === "atendente") {
-    return ["atendente", "solicitante"];
+    return ["solicitante"];
   }
 
   return ["solicitante"];

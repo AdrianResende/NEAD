@@ -1,5 +1,6 @@
 "use server";
 
+import type { PrismaPromise } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
 import { SESSION_COOKIE_NAME, validateSession } from "@/lib/auth";
@@ -135,7 +136,7 @@ export async function atualizarChamadoAction(
   const novoStatus = updateData.status;
 
   if (Object.keys(updateData).length > 0) {
-    const operations = [
+      const operations: PrismaPromise<any>[] = [
       prisma.chamado.update({ where: { id }, data: updateData }),
     ];
 
