@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useActionState, useEffect, useState } from "react";
 import { SquarePlus, Edit2, Trash2, ArrowLeft, Users } from "lucide-react";
 import { ROUTES } from "@/lib/constants";
@@ -21,6 +22,7 @@ import {
 } from "@/components/ui";
 import { Textarea } from "@/components/ui/textarea";
 import { criarServicoAction, editarServicoAction, excluirServicoAction, adicionarAtendenteAction, removerAtendenteAction } from "./actions";
+import { notifyError, notifySuccess } from "@/lib/toast";
 
 type Setor = { id: number; nome: string };
 
@@ -133,17 +135,49 @@ export function ServicosClient({
   setorAtual?: Setor;
   atendentesDisponiveis?: Atendente[];
 }) {
+  const router = useRouter();
   const [showCriar, setShowCriar] = useState(false);
   const [editando, setEditando] = useState<Servico | null>(null);
-  const [gerenciandoAtendentes, setGerenciandoAtendentes] = useState<Servico | null>(null);
-  const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [gerenciandoAtendentesId, setGerenciandoAtendentesId] = useState<number | null>(null);
   const [addAtendenteState, addAtendenteAction, isAddingAtendente] = useActionState(adicionarAtendenteAction, {});
   const [removeAtendenteState, removeAtendenteAction, isRemovingAtendente] = useActionState(removerAtendenteAction, {});
 
+  const gerenciandoAtendentes =
+    gerenciandoAtendentesId !== null
+      ? servicos.find((servico) => servico.id === gerenciandoAtendentesId) ?? null
+      : null;
+
+  useEffect(() => {
+    if (addAtendenteState.success || removeAtendenteState.success) {
+      router.refresh();
+    }
+  }, [addAtendenteState.success, removeAtendenteState.success, router]);
+
+  useEffect(() => {
+    if (addAtendenteState.success) {
+      notifySuccess("Atendente vinculado com sucesso.");
+    }
+    if (addAtendenteState.error) {
+      notifyError(addAtendenteState.error);
+    }
+  }, [addAtendenteState.success, addAtendenteState.error]);
+
+  useEffect(() => {
+    if (removeAtendenteState.success) {
+      notifySuccess("Atendente removido com sucesso.");
+    }
+    if (removeAtendenteState.error) {
+      notifyError(removeAtendenteState.error);
+    }
+  }, [removeAtendenteState.success, removeAtendenteState.error]);
+
   async function handleExcluir(id: number) {
-    setDeleteError(null);
     const result = await excluirServicoAction(id);
-    if (result.error) setDeleteError(result.error);
+    if (result.error) {
+      notifyError(result.error);
+      return;
+    }
+    notifySuccess("Serviço excluído com sucesso.");
   }
 
   const atendentesSemVinculo = gerenciandoAtendentes
@@ -189,12 +223,6 @@ export function ServicosClient({
         </div>
       </div>
 
-      {deleteError && (
-        <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900 dark:bg-red-950 dark:text-red-400">
-          {deleteError}
-        </div>
-      )}
-
       <div className="space-y-3 md:hidden">
         {servicos.length === 0 ? (
           <div className="rounded-2xl border border-zinc-200/80 bg-white p-4 text-sm text-zinc-500 shadow-sm dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-400">
@@ -214,7 +242,7 @@ export function ServicosClient({
               <div className="mt-3 flex items-center justify-between border-t border-zinc-200/80 pt-3 dark:border-zinc-800">
                 <Badge variant="info">{s.setor.nome}</Badge>
                 <div className="flex items-center gap-2">
-                  <Button variant="ghost" size="sm" onClick={() => setGerenciandoAtendentes(s)} aria-label={`Gerenciar atendentes de ${s.nome}`} title={`Gerenciar atendentes de ${s.nome}`}>
+                  <Button variant="ghost" size="sm" onClick={() => setGerenciandoAtendentesId(s.id)} aria-label={`Gerenciar atendentes de ${s.nome}`} title={`Gerenciar atendentes de ${s.nome}`}>
                     <Users className="h-4 w-4" aria-hidden="true" />
                   </Button>
                   <Button variant="ghost" size="sm" onClick={() => setEditando(s)} aria-label={`Editar serviço ${s.nome}`} title={`Editar serviço ${s.nome}`}>
@@ -260,7 +288,7 @@ export function ServicosClient({
                   </Td>
                   <Td className="text-right">
                     <div className="flex justify-end gap-2">
-                      <Button variant="ghost" size="sm" onClick={() => setGerenciandoAtendentes(s)} aria-label={`Gerenciar atendentes de ${s.nome}`} title={`Gerenciar atendentes de ${s.nome}`}>
+                      <Button variant="ghost" size="sm" onClick={() => setGerenciandoAtendentesId(s.id)} aria-label={`Gerenciar atendentes de ${s.nome}`} title={`Gerenciar atendentes de ${s.nome}`}>
                         <Users className="h-4 w-4" aria-hidden="true" />
                       </Button>
                       <Button variant="ghost" size="sm" onClick={() => setEditando(s)} aria-label={`Editar serviço ${s.nome}`} title={`Editar serviço ${s.nome}`}>
@@ -297,7 +325,7 @@ export function ServicosClient({
       )}
 
       {gerenciandoAtendentes && (
-        <Modal title={`Atendentes: ${gerenciandoAtendentes.nome}`} onClose={() => setGerenciandoAtendentes(null)}>
+        <Modal title={`Atendentes: ${gerenciandoAtendentes.nome}`} onClose={() => setGerenciandoAtendentesId(null)}>
           <div className="space-y-4">
             <div>
               <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-50 mb-2">Atendentes Vinculados ({gerenciandoAtendentes.atendentes.length})</h3>
@@ -339,9 +367,6 @@ export function ServicosClient({
                       <SquarePlus className="h-4 w-4" aria-hidden="true" />
                     </Button>
                   </div>
-                  {addAtendenteState.error && (
-                    <p className="mt-2 text-sm text-red-600 dark:text-red-400">{addAtendenteState.error}</p>
-                  )}
                 </Form>
               </div>
             )}
@@ -357,9 +382,16 @@ function CriarServicoForm({ setores, setorFixo, onClose }: { setores: Setor[]; s
 
   useEffect(() => {
     if (state.success) {
+      notifySuccess("Serviço criado com sucesso.");
       onClose();
     }
   }, [onClose, state.success]);
+
+  useEffect(() => {
+    if (state.error) {
+      notifyError(state.error);
+    }
+  }, [state.error]);
 
   if (state.success) return null;
 
@@ -380,9 +412,16 @@ function EditarServicoForm({ servico, setores, setorFixo, onClose }: { servico: 
 
   useEffect(() => {
     if (state.success) {
+      notifySuccess("Serviço atualizado com sucesso.");
       onClose();
     }
   }, [onClose, state.success]);
+
+  useEffect(() => {
+    if (state.error) {
+      notifyError(state.error);
+    }
+  }, [state.error]);
 
   if (state.success) return null;
 

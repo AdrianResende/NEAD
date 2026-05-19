@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useEffect } from "react";
 import Link from "next/link";
 import {
   ArrowLeft,
@@ -15,7 +15,6 @@ import {
   MessageCircle,
   MessageSquareText,
   SendHorizonal,
-  Settings2,
   ShieldCheck,
   Sparkles,
   User,
@@ -25,6 +24,7 @@ import {
 import { Badge, Button, Field, Form, Select, Textarea } from "@/components/ui";
 import { atualizarChamadoAction, enviarMensagemChamadoAction } from "./actions";
 import { ROUTES } from "@/lib/constants";
+import { notifyError, notifySuccess } from "@/lib/toast";
 
 type Chamado = {
   id: number;
@@ -137,26 +137,6 @@ function SurfaceCard({
   );
 }
 
-function InfoRow({
-  label,
-  value,
-  icon,
-}: {
-  label: string;
-  value: React.ReactNode;
-  icon?: React.ReactNode;
-}) {
-  return (
-    <div className="flex items-start gap-3 rounded-xl border border-zinc-200/80 bg-zinc-50/70 px-3 py-2.5 dark:border-zinc-800 dark:bg-zinc-900/50">
-      {icon && <span className="mt-0.5 text-zinc-500 dark:text-zinc-400">{icon}</span>}
-      <div className="min-w-0">
-        <p className="text-[11px] font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">{label}</p>
-        <p className="mt-0.5 break-words text-sm font-medium text-zinc-900 dark:text-zinc-100">{value}</p>
-      </div>
-    </div>
-  );
-}
-
 function formatFileSize(bytes: number) {
   if (bytes < 1024) return `${bytes} B`;
   const kb = bytes / 1024;
@@ -171,68 +151,17 @@ function formatDateTime(dateIso: string) {
   });
 }
 
-function AtendimentoForm({
-  chamado,
-  atendentes,
-  role,
-}: {
-  chamado: Chamado;
-  atendentes: Atendente[];
-  role: string;
-}) {
-  const [state, action, pending] = useActionState(atualizarChamadoAction, {});
-
-  const atendenteOptions = [
-    { value: "", label: "Sem atendente" },
-    ...atendentes.map((a) => ({ value: String(a.id), label: a.nome })),
-  ];
-
-  return (
-    <SurfaceCard
-      title="Atendimento"
-      subtitle="Atualize status e responsável do chamado"
-      icon={<Settings2 className="h-4 w-4" />}
-    >
-      {state.error && (
-        <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900 dark:bg-red-950 dark:text-red-400">
-          {state.error}
-        </div>
-      )}
-      {state.success && (
-        <div className="mb-4 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700 dark:border-green-900 dark:bg-green-950 dark:text-green-400">
-          Chamado atualizado com sucesso.
-        </div>
-      )}
-
-      <Form action={action}>
-        <input type="hidden" name="id" value={chamado.id} />
-
-        <Field label="Status" htmlFor="status">
-          <Select id="status" name="status" options={STATUS_OPTIONS_ATENDENTE} defaultValue={chamado.status} />
-        </Field>
-
-        {role === "admin" && (
-          <Field label="Atendente" htmlFor="atendente_id" hint="Você pode trocar o atendente deste chamado a qualquer momento.">
-            <Select
-              id="atendente_id"
-              name="atendente_id"
-              options={atendenteOptions}
-              defaultValue={chamado.atendente ? String(chamado.atendente.id) : ""}
-            />
-          </Field>
-        )}
-
-        <Button type="submit" disabled={pending} title="Salvar alterações do atendimento">
-          <CheckCircle2 className="h-4 w-4" aria-hidden="true" />
-          {pending ? "Salvando..." : "Salvar mudanças"}
-        </Button>
-      </Form>
-    </SurfaceCard>
-  );
-}
-
 function AcoesSolicitanteForm({ chamadoId }: { chamadoId: number }) {
   const [state, action, pending] = useActionState(atualizarChamadoAction, {});
+
+  useEffect(() => {
+    if (state.error) {
+      notifyError(state.error);
+    }
+    if (state.success) {
+      notifySuccess("Ação executada com sucesso.");
+    }
+  }, [state.error, state.success]);
 
   return (
     <SurfaceCard
@@ -245,7 +174,6 @@ function AcoesSolicitanteForm({ chamadoId }: { chamadoId: number }) {
         <Field label="Escolha a ação" htmlFor="status">
           <Select id="status" name="status" options={STATUS_OPTIONS_SOLICITANTE} placeholder="Selecione uma ação" />
         </Field>
-        {state.error && <p className="text-sm text-red-600 dark:text-red-400">{state.error}</p>}
         <Button type="submit" variant="outline" disabled={pending} title="Executar ação selecionada">
           <Sparkles className="h-4 w-4" aria-hidden="true" />
           {pending ? "Processando..." : "Executar ação"}
@@ -263,6 +191,15 @@ function MensagensPanel({
   currentUserId: number;
 }) {
   const [state, action, pending] = useActionState(enviarMensagemChamadoAction, {});
+
+  useEffect(() => {
+    if (state.error) {
+      notifyError(state.error);
+    }
+    if (state.success) {
+      notifySuccess("Mensagem enviada.");
+    }
+  }, [state.error, state.success]);
 
   return (
     <SurfaceCard
@@ -302,17 +239,6 @@ function MensagensPanel({
           })
         )}
       </div>
-
-      {state.error && (
-        <div className="mb-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700 dark:border-red-900 dark:bg-red-950 dark:text-red-400">
-          {state.error}
-        </div>
-      )}
-      {state.success && (
-        <div className="mb-3 rounded-lg border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-700 dark:border-green-900 dark:bg-green-950 dark:text-green-400">
-          Mensagem enviada.
-        </div>
-      )}
 
       <Form action={action} className="gap-3">
         <input type="hidden" name="chamado_id" value={chamado.id} />
@@ -390,6 +316,22 @@ export function ChamadoDetalheClient({ chamado, currentUserId, currentUserRole, 
   const canAtend = isAdmin || isAtendente;
   const canSolicitanteAction = isSolicitante;
   const StatusIcon = STATUS_ICON[chamado.status] ?? CircleDashed;
+  const [atendimentoState, atendimentoAction, atendimentoPending] = useActionState(atualizarChamadoAction, {});
+
+  const atendenteOptions = [
+    { value: "", label: "Sem atendente" },
+    ...atendentes.map((a) => ({ value: String(a.id), label: a.nome })),
+  ];
+
+  useEffect(() => {
+    if (!atendimentoState.error) return;
+    notifyError(atendimentoState.error);
+  }, [atendimentoState.error]);
+
+  useEffect(() => {
+    if (!atendimentoState.success) return;
+    notifySuccess("Chamado atualizado com sucesso.");
+  }, [atendimentoState.success]);
 
   return (
     <div className="relative mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
@@ -421,47 +363,117 @@ export function ChamadoDetalheClient({ chamado, currentUserId, currentUserRole, 
               <h1 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">{chamado.titulo}</h1>
             </div>
 
-            <div className="flex items-center gap-2 self-start rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-2 dark:border-zinc-800 dark:bg-zinc-900">
-              <StatusIcon className="h-4 w-4 text-zinc-600 dark:text-zinc-300" aria-hidden="true" />
-              <Badge variant={STATUS_BADGE[chamado.status] ?? "default"}>
-                {STATUS_LABEL[chamado.status] ?? chamado.status}
-              </Badge>
+            <div className="grid w-full max-w-md gap-2 self-start rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-2.5 dark:border-zinc-800 dark:bg-zinc-900 sm:w-auto">
+              <p className="text-[10px] font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Datas</p>
+              <p className="text-xs text-zinc-600 dark:text-zinc-300">Criado: {formatDateTime(chamado.createdAt)}</p>
+              <p className="text-xs text-zinc-600 dark:text-zinc-300">Atualizado: {formatDateTime(chamado.updatedAt)}</p>
             </div>
           </div>
 
           {/* Linha 2: Informações principais */}
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
-            {/* Solicitante */}
-            <div className="rounded-xl border border-zinc-200/80 bg-zinc-50/70 p-3 dark:border-zinc-800 dark:bg-zinc-900/50">
-              <p className="text-[10px] font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Solicitante</p>
-              <div className="mt-1.5 flex items-center gap-2">
-                <User className="h-3.5 w-3.5 shrink-0 text-zinc-600 dark:text-zinc-400" aria-hidden="true" />
-                <div className="min-w-0">
-                  <p className="truncate text-sm font-semibold text-zinc-900 dark:text-zinc-50">{chamado.solicitante.nome}</p>
-                  <p className="truncate text-xs text-zinc-500 dark:text-zinc-400">{chamado.solicitante.email}</p>
+          {canAtend ? (
+            <Form action={atendimentoAction} className="gap-3">
+              <input type="hidden" name="id" value={chamado.id} />
+
+              <div className="flex flex-col gap-2.5 rounded-xl border border-zinc-200 bg-zinc-50/80 px-3 py-3 dark:border-zinc-800 dark:bg-zinc-900/50 sm:flex-row sm:items-center sm:justify-between">
+                <p className="text-sm text-zinc-600 dark:text-zinc-300">
+                  Atualize o status e o responsável e salve para aplicar as mudanças.
+                </p>
+                <Button
+                  type="submit"
+                  size="sm"
+                  disabled={atendimentoPending}
+                  title="Salvar alterações do atendimento"
+                  className="w-full sm:w-auto"
+                >
+                  <CheckCircle2 className="h-4 w-4" aria-hidden="true" />
+                  {atendimentoPending ? "Salvando..." : "Salvar alterações"}
+                </Button>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4">
+                <div className="rounded-xl border border-zinc-200/80 bg-zinc-50/70 p-3 dark:border-zinc-800 dark:bg-zinc-900/50">
+                  <p className="text-[10px] font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Solicitante</p>
+                  <div className="mt-1.5 flex items-center gap-2">
+                    <User className="h-3.5 w-3.5 shrink-0 text-zinc-600 dark:text-zinc-400" aria-hidden="true" />
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-semibold text-zinc-900 dark:text-zinc-50">{chamado.solicitante.nome}</p>
+                      <p className="truncate text-xs text-zinc-500 dark:text-zinc-400">{chamado.solicitante.email}</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="rounded-xl border border-zinc-200/80 bg-zinc-50/70 p-3 dark:border-zinc-800 dark:bg-zinc-900/50">
+                  <p className="text-[10px] font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Serviço</p>
+                  <p className="mt-1.5 text-sm font-semibold text-zinc-900 dark:text-zinc-50">{chamado.servico.nome}</p>
+                  <p className="text-xs text-zinc-500 dark:text-zinc-400">{chamado.servico.setor}</p>
+                </div>
+
+                <div className="rounded-xl border border-zinc-200/80 bg-zinc-50/70 p-3 dark:border-zinc-800 dark:bg-zinc-900/50">
+                  <p className="text-[10px] font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Status</p>
+                  <div className="mt-1.5">
+                    <Select id="status" name="status" options={STATUS_OPTIONS_ATENDENTE} defaultValue={chamado.status} />
+                  </div>
+                </div>
+
+                <div className="rounded-xl border border-zinc-200/80 bg-zinc-50/70 p-3 dark:border-zinc-800 dark:bg-zinc-900/50">
+                  <p className="text-[10px] font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Atendente</p>
+                  <div className="mt-1.5">
+                    {isAdmin ? (
+                      <Select
+                        id="atendente_id"
+                        name="atendente_id"
+                        options={atendenteOptions}
+                        defaultValue={chamado.atendente ? String(chamado.atendente.id) : ""}
+                      />
+                    ) : (
+                      <div className="flex items-center gap-2 rounded-lg border border-zinc-200 bg-white px-3 py-2 dark:border-zinc-700 dark:bg-zinc-950">
+                        <UserCheck className="h-3.5 w-3.5 shrink-0 text-zinc-600 dark:text-zinc-400" aria-hidden="true" />
+                        <p className="truncate text-sm font-medium text-zinc-900 dark:text-zinc-100">{chamado.atendente?.nome ?? "Não atribuído"}</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </Form>
+          ) : (
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4">
+              <div className="rounded-xl border border-zinc-200/80 bg-zinc-50/70 p-3 dark:border-zinc-800 dark:bg-zinc-900/50">
+                <p className="text-[10px] font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Solicitante</p>
+                <div className="mt-1.5 flex items-center gap-2">
+                  <User className="h-3.5 w-3.5 shrink-0 text-zinc-600 dark:text-zinc-400" aria-hidden="true" />
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-semibold text-zinc-900 dark:text-zinc-50">{chamado.solicitante.nome}</p>
+                    <p className="truncate text-xs text-zinc-500 dark:text-zinc-400">{chamado.solicitante.email}</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="rounded-xl border border-zinc-200/80 bg-zinc-50/70 p-3 dark:border-zinc-800 dark:bg-zinc-900/50">
+                <p className="text-[10px] font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Serviço</p>
+                <p className="mt-1.5 text-sm font-semibold text-zinc-900 dark:text-zinc-50">{chamado.servico.nome}</p>
+                <p className="text-xs text-zinc-500 dark:text-zinc-400">{chamado.servico.setor}</p>
+              </div>
+
+              <div className="rounded-xl border border-zinc-200/80 bg-zinc-50/70 p-3 dark:border-zinc-800 dark:bg-zinc-900/50">
+                <p className="text-[10px] font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Status</p>
+                <div className="mt-1.5 flex items-center gap-2">
+                  <StatusIcon className="h-4 w-4 text-zinc-600 dark:text-zinc-300" aria-hidden="true" />
+                  <Badge variant={STATUS_BADGE[chamado.status] ?? "default"}>
+                    {STATUS_LABEL[chamado.status] ?? chamado.status}
+                  </Badge>
+                </div>
+              </div>
+
+              <div className="rounded-xl border border-zinc-200/80 bg-zinc-50/70 p-3 dark:border-zinc-800 dark:bg-zinc-900/50">
+                <p className="text-[10px] font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Atendente</p>
+                <div className="mt-1.5 flex items-center gap-2">
+                  <UserCheck className="h-3.5 w-3.5 shrink-0 text-zinc-600 dark:text-zinc-400" aria-hidden="true" />
+                  <p className="truncate text-sm font-medium text-zinc-900 dark:text-zinc-100">{chamado.atendente?.nome ?? "Não atribuído"}</p>
                 </div>
               </div>
             </div>
-
-            {/* Serviço */}
-            <div className="rounded-xl border border-zinc-200/80 bg-zinc-50/70 p-3 dark:border-zinc-800 dark:bg-zinc-900/50">
-              <p className="text-[10px] font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Serviço</p>
-              <p className="mt-1.5 text-sm font-semibold text-zinc-900 dark:text-zinc-50">{chamado.servico.nome}</p>
-              <p className="text-xs text-zinc-500 dark:text-zinc-400">{chamado.servico.setor}</p>
-            </div>
-
-            {/* Atendente */}
-            <div className="rounded-xl border border-zinc-200/80 bg-zinc-50/70 p-3 dark:border-zinc-800 dark:bg-zinc-900/50">
-              <p className="text-[10px] font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Atendente</p>
-              <div className="mt-1.5 flex items-center gap-2">
-                <UserCheck className="h-3.5 w-3.5 shrink-0 text-zinc-600 dark:text-zinc-400" aria-hidden="true" />
-                <p className="truncate text-sm font-semibold text-zinc-900 dark:text-zinc-50">
-                  {chamado.atendente?.nome ?? "Não atribuído"}
-                </p>
-              </div>
-            </div>
-
-          </div>
+          )}
         </div>
       </div>
 
@@ -518,18 +530,6 @@ export function ChamadoDetalheClient({ chamado, currentUserId, currentUserRole, 
         </main>
 
         <aside className="space-y-4 xl:sticky xl:top-20 xl:self-start">
-          <SurfaceCard
-            title="Informações do chamado"
-            subtitle="Informações essenciais para triagem e priorização"
-            icon={<LifeBuoy className="h-4 w-4" />}
-          >
-            <div className="space-y-2.5">
-              <InfoRow label="Criado em" value={formatDateTime(chamado.createdAt)} icon={<CalendarClock className="h-4 w-4" />} />
-              <InfoRow label="Atualizado" value={formatDateTime(chamado.updatedAt)} icon={<Clock3 className="h-4 w-4" />} />
-            </div>
-          </SurfaceCard>
-
-          {canAtend && <AtendimentoForm chamado={chamado} atendentes={atendentes} role={currentUserRole} />}
           {canSolicitanteAction && <AcoesSolicitanteForm chamadoId={chamado.id} />}
 
           {!canAtend && !canSolicitanteAction && (

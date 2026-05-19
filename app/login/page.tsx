@@ -5,15 +5,14 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ROUTES } from "@/lib/constants";
 import { Button, Field, Form, Input } from "@/components/ui";
+import { notifyError } from "@/lib/toast";
 
 export default function LoginPage() {
   const router = useRouter();
-  const [error, setError] = useState<string | null>(null);
   const [isPending, setIsPending] = useState(false);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setError(null);
     setIsPending(true);
 
     const formData = new FormData(event.currentTarget);
@@ -21,7 +20,8 @@ export default function LoginPage() {
     const password = (formData.get("password") as string | null) ?? "";
 
     if (!email || !password) {
-      setError("Preencha e-mail e senha.");
+      const message = "Preencha e-mail e senha.";
+      notifyError(message);
       setIsPending(false);
       return;
     }
@@ -34,7 +34,8 @@ export default function LoginPage() {
 
     if (!response.ok) {
       const payload = (await response.json().catch(() => null)) as { error?: string } | null;
-      setError(payload?.error ?? "E-mail ou senha inválidos.");
+      const message = payload?.error ?? "E-mail ou senha inválidos.";
+      notifyError(message);
       setIsPending(false);
       return;
     }
@@ -63,12 +64,6 @@ export default function LoginPage() {
           <Field label="Senha" htmlFor="password">
             <Input id="password" name="password" type="password" placeholder="••••••••" required />
           </Field>
-
-          {error && (
-            <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600 dark:bg-red-950/40 dark:text-red-400">
-              {error}
-            </p>
-          )}
 
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <Button type="submit" className="w-full" disabled={isPending}>

@@ -7,6 +7,7 @@ import { Button, Field, Form, Input, Select } from "@/components/ui";
 import { Textarea } from "@/components/ui/textarea";
 import { abrirChamadoAction } from "./actions";
 import { ROUTES } from "@/lib/constants";
+import { notifyError, notifySuccess } from "@/lib/toast";
 
 export type ServicoOption = {
   id: number;
@@ -25,11 +26,18 @@ export function NovoChamadoForm({ servicos }: { servicos: ServicoOption[] }) {
 
   useEffect(() => {
     if (state.success) {
+      notifySuccess("Chamado criado com sucesso!");
       setTimeout(() => {
         router.push(`${ROUTES.CHAMADOS}/${state.chamadoId}`);
       }, 1500);
     }
   }, [state.success, state.chamadoId, router]);
+
+  useEffect(() => {
+    if (state.error) {
+      notifyError(state.error);
+    }
+  }, [state.error]);
 
   const setorOptions = useMemo(
     () =>
@@ -68,18 +76,6 @@ export function NovoChamadoForm({ servicos }: { servicos: ServicoOption[] }) {
 
   return (
     <>
-      {state.success && (
-        <div className="mb-5 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700 dark:border-green-900 dark:bg-green-950 dark:text-green-400">
-          ✓ Chamado criado com sucesso!
-        </div>
-      )}
-
-      {state.error && (
-        <div className="mb-5 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900 dark:bg-red-950 dark:text-red-400">
-          {state.error}
-        </div>
-      )}
-
       <form action={action} ref={formRef}>
         <Field label="Setor" htmlFor="setor_id" required>
           <Select

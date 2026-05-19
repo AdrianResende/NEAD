@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   Badge,
@@ -18,6 +18,7 @@ import {
   Tr,
 } from "@/components/ui";
 import { criarUsuarioAction, editarUsuarioAction, toggleActivoUsuarioAction } from "./actions";
+import { notifyError, notifySuccess } from "@/lib/toast";
 
 type User = {
   id: number;
@@ -113,6 +114,35 @@ export function CadastroClient({
   const [createState, createAction, isCreating] = useActionState(criarUsuarioAction, {});
   const [editState, editAction, isEditing] = useActionState(editarUsuarioAction, {});
   const [toggleState, toggleAction, isToggling] = useActionState(toggleActivoUsuarioAction, {});
+
+  useEffect(() => {
+    if (createState.error) {
+      notifyError(createState.error);
+    }
+    if (createState.success) {
+      notifySuccess("Usuário cadastrado com sucesso.");
+    }
+  }, [createState.error, createState.success]);
+
+  useEffect(() => {
+    if (editState.error) {
+      notifyError(editState.error);
+    }
+    if (editState.success) {
+      notifySuccess("Perfil atualizado com sucesso.");
+    }
+  }, [editState.error, editState.success]);
+
+  useEffect(() => {
+    if (toggleState.error) {
+      notifyError(toggleState.error);
+    }
+    if (toggleState.success) {
+      notifySuccess(toggleConfirm?.ativo ? "Usuário desativado com sucesso." : "Usuário reativado com sucesso.");
+      setToggleConfirm(null);
+      router.refresh();
+    }
+  }, [toggleState.error, toggleState.success, toggleConfirm, router]);
 
   function closeCreate() {
     setCreateOpen(false);
@@ -380,17 +410,6 @@ export function CadastroClient({
               />
             </Field>
 
-            {createState.error && (
-              <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600 dark:bg-red-950/40 dark:text-red-400">
-                {createState.error}
-              </p>
-            )}
-            {createState.success && (
-              <p className="rounded-lg bg-green-50 px-3 py-2 text-sm text-green-700 dark:bg-green-950/40 dark:text-green-400">
-                Usuário cadastrado com sucesso!
-              </p>
-            )}
-
             <div className="flex justify-end gap-2 pt-1">
               <Button type="button" variant="outline" onClick={closeCreate}>
                 <span className="material-symbols-outlined text-[18px]" title={createState.success ? "Fechar" : "Cancelar"} aria-hidden="true">
@@ -434,17 +453,6 @@ export function CadastroClient({
               />
             </Field>
 
-            {editState.error && (
-              <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600 dark:bg-red-950/40 dark:text-red-400">
-                {editState.error}
-              </p>
-            )}
-            {editState.success && (
-              <p className="rounded-lg bg-green-50 px-3 py-2 text-sm text-green-700 dark:bg-green-950/40 dark:text-green-400">
-                Perfil atualizado com sucesso!
-              </p>
-            )}
-
             <div className="flex justify-end gap-2 pt-1">
               <Button type="button" variant="outline" onClick={closeEdit}>
                 <span className="material-symbols-outlined text-[18px]" title={editState.success ? "Fechar" : "Cancelar"} aria-hidden="true">
@@ -481,12 +489,6 @@ export function CadastroClient({
           <Form action={toggleAction}>
             <input type="hidden" name="userId" value={toggleConfirm.id} />
             
-            {toggleState.error && (
-              <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600 dark:bg-red-950/40 dark:text-red-400 mb-3">
-                {toggleState.error}
-              </p>
-            )}
-
             <div className="flex justify-end gap-2 pt-1">
               <Button type="button" variant="outline" onClick={() => setToggleConfirm(null)}>
                 <span className="material-symbols-outlined text-[18px]" title="Cancelar" aria-hidden="true">

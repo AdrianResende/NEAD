@@ -20,6 +20,7 @@ import {
 } from "@/components/ui";
 import { Textarea } from "@/components/ui/textarea";
 import { criarSetorAction, editarSetorAction, excluirSetorAction } from "./actions";
+import { notifyError, notifySuccess } from "@/lib/toast";
 
 type Setor = {
   id: number;
@@ -68,9 +69,16 @@ function CriarSetorModal({ onClose }: { onClose: () => void }) {
 
   useEffect(() => {
     if (state.success) {
+      notifySuccess("Setor criado com sucesso.");
       onClose();
     }
   }, [onClose, state.success]);
+
+  useEffect(() => {
+    if (state.error) {
+      notifyError(state.error);
+    }
+  }, [state.error]);
 
   if (state.success) {
     return null;
@@ -98,9 +106,16 @@ function EditarSetorModal({ setor, onClose }: { setor: Setor; onClose: () => voi
 
   useEffect(() => {
     if (state.success) {
+      notifySuccess("Setor atualizado com sucesso.");
       onClose();
     }
   }, [onClose, state.success]);
+
+  useEffect(() => {
+    if (state.error) {
+      notifyError(state.error);
+    }
+  }, [state.error]);
 
   if (state.success) {
     return null;
@@ -127,12 +142,14 @@ function EditarSetorModal({ setor, onClose }: { setor: Setor; onClose: () => voi
 export function SetoresClient({ setores }: { setores: Setor[] }) {
   const [showCriar, setShowCriar] = useState(false);
   const [editando, setEditando] = useState<Setor | null>(null);
-  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   async function handleExcluir(id: number) {
-    setDeleteError(null);
     const result = await excluirSetorAction(id);
-    if (result.error) setDeleteError(result.error);
+    if (result.error) {
+      notifyError(result.error);
+      return;
+    }
+    notifySuccess("Setor excluído com sucesso.");
   }
 
   return (
@@ -151,12 +168,6 @@ export function SetoresClient({ setores }: { setores: Setor[] }) {
           </Button>
         </div>
       </div>
-
-      {deleteError && (
-        <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900 dark:bg-red-950 dark:text-red-400">
-          {deleteError}
-        </div>
-      )}
 
       <div className="space-y-3 md:hidden">
         {setores.length === 0 ? (
