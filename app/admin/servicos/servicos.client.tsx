@@ -168,20 +168,20 @@ export function ServicosClient({
           </div>
           <div className="flex flex-wrap items-center gap-2">
             {setorAtual ? (
-              <Link href={ROUTES.SETORES} className="w-full sm:w-auto">
-                <Button variant="outline" size="sm" title="Voltar para setores" className="w-full justify-center sm:w-auto">
+              <Link href={ROUTES.SETORES} className="w-full sm:w-40">
+                <Button variant="outline" size="sm" title="Voltar para setores" className="w-full justify-center">
                   <ArrowLeft className="h-4 w-4" aria-hidden="true" />
                   Voltar
                 </Button>
               </Link>
             ) : (
-              <Link href={ROUTES.CHAMADOS} className="w-full sm:w-auto">
-                <Button variant="outline" size="sm" className="w-full justify-center sm:w-auto">
+              <Link href={ROUTES.CHAMADOS} className="w-full sm:w-40">
+                <Button variant="outline" size="sm" className="w-full justify-center">
                   Ver Solicitações
                 </Button>
               </Link>
             )}
-            <Button onClick={() => setShowCriar(true)} title="Novo serviço" className="w-full justify-center sm:w-auto">
+            <Button onClick={() => setShowCriar(true)} title="Novo serviço" size="sm" className="w-full justify-center sm:w-40">
               <SquarePlus className="h-4 w-4" aria-hidden="true" />
               Novo Serviço
             </Button>
@@ -242,7 +242,6 @@ export function ServicosClient({
           <TableHead>
             <tr>
               <Th>Nome</Th>
-              <Th>Setor</Th>
               <Th>Descrição</Th>
               <Th className="text-center">Chamados</Th>
               <Th className="text-right">Ações</Th>
@@ -250,14 +249,11 @@ export function ServicosClient({
           </TableHead>
           <TableBody>
             {servicos.length === 0 ? (
-              <TableEmpty colSpan={5} message="Nenhum serviço cadastrado." />
+              <TableEmpty colSpan={4} message="Nenhum serviço cadastrado." />
             ) : (
               servicos.map((s) => (
                 <Tr key={s.id}>
                   <Td className="font-semibold">{s.nome}</Td>
-                  <Td>
-                    <Badge variant="info">{s.setor.nome}</Badge>
-                  </Td>
                   <Td className="text-zinc-500 dark:text-zinc-400">{s.descricao ?? "—"}</Td>
                   <Td className="text-center">
                     <Badge variant="default">{s._count.chamados}</Badge>
