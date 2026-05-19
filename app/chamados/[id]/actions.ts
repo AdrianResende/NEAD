@@ -44,12 +44,8 @@ export async function atualizarChamadoAction(
   // Solicitante só pode cancelar/fechar o próprio chamado.
   if (user.role === "solicitante") {
     if (chamado.solicitante_id !== user.id) return { error: "Sem permissão." };
-    if (!status || (status !== "cancelado" && status !== "fechado")) {
-      return { error: "Solicitantes só podem cancelar ou fechar chamados." };
-    }
-
-    if (chamado.status !== "resolvido") {
-      return { error: "Somente chamados resolvidos podem ser cancelados ou fechados pelo solicitante." };
+    if (!status || (status !== "cancelado" && status !== "fechado" && status !== "aberto")) {
+      return { error: "Solicitantes só podem cancelar, fechar ou reabrir chamados." };
     }
 
     if (status !== chamado.status) {

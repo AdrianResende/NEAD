@@ -96,6 +96,7 @@ const STATUS_OPTIONS_ATENDENTE = [
 const STATUS_OPTIONS_SOLICITANTE = [
   { value: "cancelado", label: "Cancelar chamado" },
   { value: "fechado", label: "Fechar chamado" },
+  { value: "aberto", label: "Reabrir chamado" },
 ];
 
 const STATUS_ICON: Record<string, React.ComponentType<{ className?: string }>> = {
@@ -236,7 +237,7 @@ function AcoesSolicitanteForm({ chamadoId }: { chamadoId: number }) {
   return (
     <SurfaceCard
       title="Ações do solicitante"
-      subtitle="Disponível quando o chamado estiver resolvido"
+      subtitle="Cancelar, fechar ou reabrir o chamado"
       icon={<Workflow className="h-4 w-4" />}
     >
       <Form action={action} className="gap-3">
@@ -387,7 +388,7 @@ export function ChamadoDetalheClient({ chamado, currentUserId, currentUserRole, 
   const isAtendente = currentUserRole === "atendente";
   const isAdmin = currentUserRole === "admin";
   const canAtend = isAdmin || isAtendente;
-  const canSolicitanteAction = isSolicitante && chamado.status === "resolvido";
+  const canSolicitanteAction = isSolicitante;
   const StatusIcon = STATUS_ICON[chamado.status] ?? CircleDashed;
 
   return (
