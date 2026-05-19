@@ -23,11 +23,6 @@ export async function criarUsuarioAction(
   const email = (formData.get("email") as string | null)?.trim().toLowerCase();
   const password = formData.get("password") as string | null;
   const requestedRole = normalizeRole(formData.get("role") as string | null);
-  const setor_id = formData.get("setor_id") ? Number(formData.get("setor_id")) : null;
-  const servicoIds = formData
-    .getAll("servico_ids")
-    .map((value) => Number(value))
-    .filter((value) => Number.isInteger(value) && value > 0);
 
   const assignableRoles = getAssignableRoles(currentUser?.role);
 
@@ -48,25 +43,6 @@ export async function criarUsuarioAction(
     return { error: "Este e-mail já está em uso." };
   }
 
-  if (requestedRole === "atendente" && servicoIds.length === 0) {
-    return { error: "Selecione ao menos um serviço para o atendente." };
-  }
-
-  if (requestedRole === "atendente") {
-    const servicosVinculados = await prisma.servico.findMany({
-      where: { id: { in: servicoIds } },
-      select: { id: true, setor_id: true },
-    });
-
-    if (servicosVinculados.length !== servicoIds.length) {
-      return { error: "Um ou mais serviços selecionados são inválidos." };
-    }
-
-    if (setor_id && servicosVinculados.some((s) => s.setor_id !== setor_id)) {
-      return { error: "Todos os serviços selecionados devem pertencer ao setor escolhido." };
-    }
-  }
-
   const passwordHash = await hashPassword(password);
 
   await prisma.user.create({
@@ -75,13 +51,6 @@ export async function criarUsuarioAction(
       email,
       password: passwordHash,
       role: requestedRole,
-      setor_id: requestedRole === "solicitante" ? null : setor_id || null,
-      servicosAtendidos:
-        requestedRole === "atendente"
-          ? {
-              create: servicoIds.map((servico_id) => ({ servico_id })),
-            }
-          : undefined,
     },
   });
 
@@ -108,11 +77,6 @@ export async function editarUsuarioAction(
 
   const targetId = Number(formData.get("userId"));
   const newRole = normalizeRole(formData.get("role") as string | null);
-  const setor_id = formData.get("setor_id") ? Number(formData.get("setor_id")) : null;
-  const servicoIds = formData
-    .getAll("servico_ids")
-    .map((value) => Number(value))
-    .filter((value) => Number.isInteger(value) && value > 0);
 
   if (!targetId || Number.isNaN(targetId)) {
     return { error: "Usuário inválido." };
@@ -136,39 +100,10 @@ export async function editarUsuarioAction(
     return { error: "Você não pode alterar o seu próprio perfil." };
   }
 
-  if (newRole === "atendente" && servicoIds.length === 0) {
-    return { error: "Selecione ao menos um serviço para o atendente." };
-  }
-
-  if (newRole === "atendente") {
-    const servicosVinculados = await prisma.servico.findMany({
-      where: { id: { in: servicoIds } },
-      select: { id: true, setor_id: true },
-    });
-
-    if (servicosVinculados.length !== servicoIds.length) {
-      return { error: "Um ou mais serviços selecionados são inválidos." };
-    }
-
-    if (setor_id && servicosVinculados.some((s) => s.setor_id !== setor_id)) {
-      return { error: "Todos os serviços selecionados devem pertencer ao setor escolhido." };
-    }
-  }
-
   await prisma.user.update({
     where: { id: targetId },
     data: {
       role: newRole,
-      setor_id: newRole === "solicitante" ? null : setor_id || null,
-      servicosAtendidos:
-        newRole === "atendente"
-          ? {
-              deleteMany: {},
-              create: servicoIds.map((servico_id) => ({ servico_id })),
-            }
-          : {
-              deleteMany: {},
-            },
     },
   });
 
