@@ -45,7 +45,6 @@ export default async function SetorServicosPage({
   const atendentesDisponiveis = await prisma.user.findMany({
     where: {
       role: "atendente",
-      setor_id: setorId,
       ativo: true,
     },
     orderBy: { nome: "asc" },

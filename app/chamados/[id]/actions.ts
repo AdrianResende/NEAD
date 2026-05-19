@@ -127,10 +127,17 @@ export async function atualizarChamadoAction(
 
       updateData.atendente_id = atendente_id;
 
-      if (!status && chamado.status === "aberto") {
-        updateData.status = "atribuido";
-      }
+      // Toda atribuição manual força o chamado para "atribuido".
+      updateData.status = "atribuido";
     }
+  }
+
+  const proximoAtendenteId =
+    updateData.atendente_id !== undefined ? updateData.atendente_id : chamado.atendente_id;
+  const proximoStatus = updateData.status ?? chamado.status;
+
+  if (!proximoAtendenteId && proximoStatus !== "aberto") {
+    return { error: "Não é possível avançar o atendimento sem um atendente atribuído." };
   }
 
   const novoStatus = updateData.status;
