@@ -87,3 +87,59 @@ export async function excluirServicoAction(id: number): Promise<ServicoState> {
   revalidatePath(`/admin/setores/${servico.setor_id}/servicos`);
   return { success: true };
 }
+
+export async function adicionarAtendenteAction(
+  _prevState: ServicoState,
+  formData: FormData
+): Promise<ServicoState> {
+  const user = await requireAdmin();
+  if (!user) return { error: "Acesso negado." };
+
+  const servico_id = Number(formData.get("servico_id"));
+  const user_id = Number(formData.get("user_id"));
+
+  if (!servico_id || isNaN(servico_id)) return { error: "Serviço inválido." };
+  if (!user_id || isNaN(user_id)) return { error: "Usuário inválido." };
+
+  const servico = await prisma.servico.findUnique({ where: { id: servico_id } });
+  if (!servico) return { error: "Serviço não encontrado." };
+
+  const targetUser = await prisma.user.findUnique({ where: { id: user_id } });
+  if (!targetUser) return { error: "Usuário não encontrado." };
+
+  if (targetUser.role !== "atendente") return { error: "Apenas atendentes podem ser vinculados." };
+
+  const existing = await prisma.atendenteServico.findUnique({
+    where: { user_id_servico_id: { user_id, servico_id } },
+  });
+
+  if (existing) return { error: "Este atendente já está vinculado a este serviço." };
+
+  await prisma.atendenteServico.create({ data: { user_id, servico_id } });
+  revalidatePath(`/admin/setores/${servico.setor_id}/servicos`);
+  return { success: true };
+}
+
+export async function removerAtendenteAction(
+  _prevState: ServicoState,
+  formData: FormData
+): Promise<ServicoState> {
+  const user = await requireAdmin();
+  if (!user) return { error: "Acesso negado." };
+
+  const servico_id = Number(formData.get("servico_id"));
+  const user_id = Number(formData.get("user_id"));
+
+  if (!servico_id || isNaN(servico_id)) return { error: "Serviço inválido." };
+  if (!user_id || isNaN(user_id)) return { error: "Usuário inválido." };
+
+  const servico = await prisma.servico.findUnique({ where: { id: servico_id } });
+  if (!servico) return { error: "Serviço não encontrado." };
+
+  await prisma.atendenteServico.delete({
+    where: { user_id_servico_id: { user_id, servico_id } },
+  });
+
+  revalidatePath(`/admin/setores/${servico.setor_id}/servicos`);
+  return { success: true };
+}

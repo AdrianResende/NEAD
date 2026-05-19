@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useActionState, useEffect, useState } from "react";
-import { Plus, Edit2, Trash2, ArrowLeft } from "lucide-react";
+import { SquarePlus, Edit2, Trash2, ArrowLeft, Users } from "lucide-react";
 import { ROUTES } from "@/lib/constants";
 import {
   Badge,
@@ -20,9 +20,11 @@ import {
   Tr,
 } from "@/components/ui";
 import { Textarea } from "@/components/ui/textarea";
-import { criarServicoAction, editarServicoAction, excluirServicoAction } from "./actions";
+import { criarServicoAction, editarServicoAction, excluirServicoAction, adicionarAtendenteAction, removerAtendenteAction } from "./actions";
 
 type Setor = { id: number; nome: string };
+
+type Atendente = { id: number; nome: string; email: string };
 
 type Servico = {
   id: number;
@@ -30,6 +32,7 @@ type Servico = {
   descricao: string | null;
   setor: Setor;
   _count: { chamados: number };
+  atendentes: Atendente[];
 };
 
 function Modal({
@@ -123,20 +126,31 @@ export function ServicosClient({
   servicos,
   setores,
   setorAtual,
+  atendentesDisponiveis = [],
 }: {
   servicos: Servico[];
   setores: Setor[];
   setorAtual?: Setor;
+  atendentesDisponiveis?: Atendente[];
 }) {
   const [showCriar, setShowCriar] = useState(false);
   const [editando, setEditando] = useState<Servico | null>(null);
+  const [gerenciandoAtendentes, setGerenciandoAtendentes] = useState<Servico | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [addAtendenteState, addAtendenteAction, isAddingAtendente] = useActionState(adicionarAtendenteAction, {});
+  const [removeAtendenteState, removeAtendenteAction, isRemovingAtendente] = useActionState(removerAtendenteAction, {});
 
   async function handleExcluir(id: number) {
     setDeleteError(null);
     const result = await excluirServicoAction(id);
     if (result.error) setDeleteError(result.error);
   }
+
+  const atendentesSemVinculo = gerenciandoAtendentes
+    ? atendentesDisponiveis.filter(
+        (a) => !gerenciandoAtendentes.atendentes.some((at) => at.id === a.id)
+      )
+    : [];
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
@@ -168,7 +182,7 @@ export function ServicosClient({
               </Link>
             )}
             <Button onClick={() => setShowCriar(true)} title="Novo serviço" className="w-full justify-center sm:w-auto">
-              <Plus className="h-4 w-4" aria-hidden="true" />
+              <SquarePlus className="h-4 w-4" aria-hidden="true" />
               Novo Serviço
             </Button>
           </div>
@@ -200,6 +214,9 @@ export function ServicosClient({
               <div className="mt-3 flex items-center justify-between border-t border-zinc-200/80 pt-3 dark:border-zinc-800">
                 <Badge variant="info">{s.setor.nome}</Badge>
                 <div className="flex items-center gap-2">
+                  <Button variant="ghost" size="sm" onClick={() => setGerenciandoAtendentes(s)} aria-label={`Gerenciar atendentes de ${s.nome}`} title={`Gerenciar atendentes de ${s.nome}`}>
+                    <Users className="h-4 w-4" aria-hidden="true" />
+                  </Button>
                   <Button variant="ghost" size="sm" onClick={() => setEditando(s)} aria-label={`Editar serviço ${s.nome}`} title={`Editar serviço ${s.nome}`}>
                     <Edit2 className="h-4 w-4" aria-hidden="true" />
                   </Button>
@@ -247,6 +264,9 @@ export function ServicosClient({
                   </Td>
                   <Td className="text-right">
                     <div className="flex justify-end gap-2">
+                      <Button variant="ghost" size="sm" onClick={() => setGerenciandoAtendentes(s)} aria-label={`Gerenciar atendentes de ${s.nome}`} title={`Gerenciar atendentes de ${s.nome}`}>
+                        <Users className="h-4 w-4" aria-hidden="true" />
+                      </Button>
                       <Button variant="ghost" size="sm" onClick={() => setEditando(s)} aria-label={`Editar serviço ${s.nome}`} title={`Editar serviço ${s.nome}`}>
                         <Edit2 className="h-4 w-4" aria-hidden="true" />
                       </Button>
@@ -277,6 +297,59 @@ export function ServicosClient({
       {editando && (
         <Modal title="Editar Serviço" onClose={() => setEditando(null)}>
           <EditarServicoForm servico={editando} setores={setores} setorFixo={setorAtual} onClose={() => setEditando(null)} />
+        </Modal>
+      )}
+
+      {gerenciandoAtendentes && (
+        <Modal title={`Atendentes: ${gerenciandoAtendentes.nome}`} onClose={() => setGerenciandoAtendentes(null)}>
+          <div className="space-y-4">
+            <div>
+              <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-50 mb-2">Atendentes Vinculados ({gerenciandoAtendentes.atendentes.length})</h3>
+              {gerenciandoAtendentes.atendentes.length === 0 ? (
+                <p className="text-sm text-zinc-500 dark:text-zinc-400">Nenhum atendente vinculado.</p>
+              ) : (
+                <div className="space-y-2 mb-4">
+                  {gerenciandoAtendentes.atendentes.map((atendente) => (
+                    <div key={atendente.id} className="flex items-center justify-between rounded-lg border border-zinc-200 bg-zinc-50 p-3 dark:border-zinc-800 dark:bg-zinc-900/50">
+                      <div>
+                        <p className="text-sm font-medium text-zinc-900 dark:text-zinc-50">{atendente.nome}</p>
+                        <p className="text-xs text-zinc-500 dark:text-zinc-400">{atendente.email}</p>
+                      </div>
+                      <Form action={removeAtendenteAction}>
+                        <input type="hidden" name="servico_id" value={gerenciandoAtendentes.id} />
+                        <input type="hidden" name="user_id" value={atendente.id} />
+                        <Button type="submit" variant="danger" size="sm" loading={isRemovingAtendente} aria-label={`Remover ${atendente.nome}`} title={`Remover ${atendente.nome}`}>
+                          <Trash2 className="h-4 w-4" aria-hidden="true" />
+                        </Button>
+                      </Form>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {atendentesSemVinculo.length > 0 && (
+              <div>
+                <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-50 mb-2">Adicionar Atendente</h3>
+                <Form action={addAtendenteAction}>
+                  <input type="hidden" name="servico_id" value={gerenciandoAtendentes.id} />
+                  <div className="flex gap-2">
+                    <Select
+                      name="user_id"
+                      options={atendentesSemVinculo.map((a) => ({ value: String(a.id), label: a.nome }))}
+                      placeholder="Selecionar atendente"
+                    />
+                    <Button type="submit" loading={isAddingAtendente} title="Adicionar atendente">
+                      <SquarePlus className="h-4 w-4" aria-hidden="true" />
+                    </Button>
+                  </div>
+                  {addAtendenteState.error && (
+                    <p className="mt-2 text-sm text-red-600 dark:text-red-400">{addAtendenteState.error}</p>
+                  )}
+                </Form>
+              </div>
+            )}
+          </div>
         </Modal>
       )}
     </div>
