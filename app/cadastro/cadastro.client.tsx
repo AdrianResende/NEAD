@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect, useState } from "react";
+import { useActionState, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   Badge,
@@ -34,7 +34,7 @@ type User = {
 };
 
 type RoleOption = { value: string; label: string };
-type SetorOption = { id: number; name: string };
+type SetorOption = { value: string; label: string };
 type ServicoOption = { value: string; label: string; setor_id: number };
 
 type UsuariosClientProps = {
@@ -42,6 +42,7 @@ type UsuariosClientProps = {
   usersDesativados: User[];
   roleOptions: RoleOption[];
   setorOptions: SetorOption[];
+  servicoOptions: ServicoOption[];
   canEdit: boolean;
   currentUserId: number;
 };
@@ -92,22 +93,26 @@ function Modal({
   );
 }
 
-
-export function CadastroClient({
+export const CadastroClient = ({
   usersAtivos,
   usersDesativados,
   roleOptions,
   setorOptions,
+  servicoOptions,
   canEdit,
   currentUserId,
-}: UsuariosClientProps & { setorOptions: SetorOption[] }) {
+}: UsuariosClientProps) => {
   const router = useRouter();
   const [aba, setAba] = useState<"ativos" | "desativados">("ativos");
   const [createOpen, setCreateOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [toggleConfirm, setToggleConfirm] = useState<User | null>(null);
-  const [createRole, setCreateRole] = useState(roleOptions[0]?.value ?? "solicitante");
+  const [createRole, setCreateRole] = useState("");
   const [editRole, setEditRole] = useState("solicitante");
+  const [createSetorIds, setCreateSetorIds] = useState<string[]>([]);
+  const [createServicoIds, setCreateServicoIds] = useState<string[]>([]);
+  const [editSetorIds, setEditSetorIds] = useState<string[]>([]);
+  const [editServicoIds, setEditServicoIds] = useState<string[]>([]);
 
   const [createState, createAction, isCreating] = useActionState(criarUsuarioAction, {});
   const [editState, editAction, isEditing] = useActionState(editarUsuarioAction, {});
@@ -144,15 +149,88 @@ export function CadastroClient({
     }
   }, [toggleState.error, toggleState.success, toggleConfirm, router]);
 
+  const createFilteredServicoOptions = useMemo(() => {
+    if (createSetorIds.length === 0) {
+      return [];
+    }
+
+    const setorSet = new Set(createSetorIds.map((id) => Number(id)));
+    return servicoOptions.filter((servico) => setorSet.has(servico.setor_id));
+  }, [createSetorIds, servicoOptions]);
+
+  const editFilteredServicoOptions = useMemo(() => {
+    if (editSetorIds.length === 0) {
+      return [];
+    }
+
+    const setorSet = new Set(editSetorIds.map((id) => Number(id)));
+    return servicoOptions.filter((servico) => setorSet.has(servico.setor_id));
+  }, [editSetorIds, servicoOptions]);
+
+  function filterServicoIdsBySetores(selectedSetores: string[], currentServicoIds: string[]) {
+    if (selectedSetores.length === 0) {
+      return [];
+    }
+
+    const allowedSetores = new Set(selectedSetores.map((id) => Number(id)));
+    const allowedServicos = new Set(
+      servicoOptions
+        .filter((servico) => allowedSetores.has(servico.setor_id))
+        .map((servico) => servico.value),
+    );
+
+    return currentServicoIds.filter((id) => allowedServicos.has(id));
+  }
+
+  function deriveSetoresFromServicos(servicosIds: number[]) {
+    const setorSet = new Set<string>();
+    for (const servicoId of servicosIds) {
+      const match = servicoOptions.find((opt) => Number(opt.value) === servicoId);
+      if (match) {
+        setorSet.add(String(match.setor_id));
+      }
+    }
+
+    return Array.from(setorSet);
+  }
+
+  function toggleIdInList(current: string[], value: string, checked: boolean) {
+    if (checked) {
+      return current.includes(value) ? current : [...current, value];
+    }
+
+    return current.filter((id) => id !== value);
+  }
+
+  function handleCreateSetorToggle(value: string, checked: boolean) {
+    setCreateSetorIds((prev) => {
+      const next = toggleIdInList(prev, value, checked);
+      setCreateServicoIds((servicosPrev) => filterServicoIdsBySetores(next, servicosPrev));
+      return next;
+    });
+  }
+
+  function handleEditSetorToggle(value: string, checked: boolean) {
+    setEditSetorIds((prev) => {
+      const next = toggleIdInList(prev, value, checked);
+      setEditServicoIds((servicosPrev) => filterServicoIdsBySetores(next, servicosPrev));
+      return next;
+    });
+  }
+
   function closeCreate() {
     setCreateOpen(false);
-    setCreateRole(roleOptions[0]?.value ?? "solicitante");
+    setCreateRole("");
+    setCreateSetorIds([]);
+    setCreateServicoIds([]);
     router.refresh();
   }
 
   function closeEdit() {
     setEditingUser(null);
     setEditRole("solicitante");
+    setEditSetorIds([]);
+    setEditServicoIds([]);
     router.refresh();
   }
 
@@ -253,6 +331,10 @@ export function CadastroClient({
                       onClick={() => {
                         setEditingUser(user);
                         setEditRole(user.role);
+                        const setoresFromServicos = deriveSetoresFromServicos(user.servico_ids);
+                        const baseSetores = user.setor_id ? [String(user.setor_id)] : [];
+                        setEditSetorIds(Array.from(new Set([...baseSetores, ...setoresFromServicos])));
+                        setEditServicoIds(user.servico_ids.map((id) => String(id)));
                       }}
                     >
                       <span className="material-symbols-outlined" aria-hidden="true">
@@ -351,6 +433,10 @@ export function CadastroClient({
                         onClick={() => {
                           setEditingUser(user);
                           setEditRole(user.role);
+                          const setoresFromServicos = deriveSetoresFromServicos(user.servico_ids);
+                          const baseSetores = user.setor_id ? [String(user.setor_id)] : [];
+                          setEditSetorIds(Array.from(new Set([...baseSetores, ...setoresFromServicos])));
+                          setEditServicoIds(user.servico_ids.map((id) => String(id)));
                         }}
                       >
                         <span className="material-symbols-outlined" title={`Editar usuário ${user.nome}`} aria-hidden="true">
@@ -402,33 +488,73 @@ export function CadastroClient({
               <Select
                 id="c-role"
                 name="role"
-                defaultValue={roleOptions[0]?.value}
+                value={createRole}
                 options={roleOptions}
+                placeholder="Selecione o perfil"
+                required
                 onChange={(e) => {
                   setCreateRole(e.target.value);
+                  if (e.target.value === "solicitante" || e.target.value === "") {
+                    setCreateSetorIds([]);
+                    setCreateServicoIds([]);
+                  }
                 }}
               />
             </Field>
+            {createRole !== "" && createRole !== "solicitante" && (
             <Field label="Setor" htmlFor="c-setor">
-              <Select
-                id="c-setor"
-                name="setor_id"
-                options={setorOptions.map((setor) => ({ value: String(setor.id), label: setor.name }))}
-                placeholder="Selecione um setor"
-                required
-                onChange={(e) => handleSetorChange(e.target.value)}
-              />
+              <div id="c-setor" className="max-h-36 space-y-2 overflow-y-auto rounded-lg border border-zinc-200 p-3 dark:border-zinc-700">
+                {setorOptions.map((setor) => (
+                  <label key={setor.value} className="flex items-center gap-2 text-sm text-zinc-700 dark:text-zinc-200">
+                    <input
+                      type="checkbox"
+                      name="setor_ids"
+                      value={setor.value}
+                      checked={createSetorIds.includes(setor.value)}
+                      required={createSetorIds.length === 0}
+                      onChange={(e) => handleCreateSetorToggle(setor.value, e.target.checked)}
+                    />
+                    <span>{setor.label}</span>
+                  </label>
+                ))}
+              </div>
             </Field>
+            )}
+            {createRole !== "" && createRole !== "solicitante" && (
             <Field label="Serviços" htmlFor="c-servicos">
-              <Select
+              <div
                 id="c-servicos"
-                name="servico_ids"
-                options={filteredServicoOptions}
-                placeholder="Selecione os serviços"
-                multiple
-                required
-              />
+                className={`space-y-2 overflow-y-auto rounded-lg border border-zinc-200 p-3 transition-all duration-300 ease-out dark:border-zinc-700 ${
+                  createFilteredServicoOptions.length === 0 ? "max-h-16 opacity-80" : "max-h-44 opacity-100"
+                }`}
+              >
+                {createFilteredServicoOptions.length === 0 ? (
+                  <p className="text-sm text-zinc-500 dark:text-zinc-400">Selecione setor(es) para habilitar os serviços.</p>
+                ) : (
+                  createFilteredServicoOptions.map((servico, index) => (
+                    <label
+                      key={servico.value}
+                      className="flex items-center gap-2 text-sm text-zinc-700 transition-all duration-300 ease-out dark:text-zinc-200"
+                      style={{ transitionDelay: `${Math.min(index * 20, 180)}ms` }}
+                    >
+                      <input
+                        type="checkbox"
+                        name="servico_ids"
+                        value={servico.value}
+                        checked={createServicoIds.includes(servico.value)}
+                        disabled={createSetorIds.length === 0}
+                        required={createServicoIds.length === 0}
+                        onChange={(e) => {
+                          setCreateServicoIds((prev) => toggleIdInList(prev, servico.value, e.target.checked));
+                        }}
+                      />
+                      <span>{servico.label}</span>
+                    </label>
+                  ))
+                )}
+              </div>
             </Field>
+            )}
 
             <div className="flex justify-end gap-2 pt-1">
               <Button type="button" variant="outline" onClick={closeCreate}>
@@ -469,9 +595,67 @@ export function CadastroClient({
                 options={roleOptions}
                 onChange={(e) => {
                   setEditRole(e.target.value);
+                  if (e.target.value === "solicitante") {
+                    setEditSetorIds([]);
+                    setEditServicoIds([]);
+                  }
                 }}
               />
             </Field>
+            {editRole !== "solicitante" && (
+            <Field label="Setor" htmlFor="e-setor">
+              <div id="e-setor" className="max-h-36 space-y-2 overflow-y-auto rounded-lg border border-zinc-200 p-3 dark:border-zinc-700">
+                {setorOptions.map((setor) => (
+                  <label key={setor.value} className="flex items-center gap-2 text-sm text-zinc-700 dark:text-zinc-200">
+                    <input
+                      type="checkbox"
+                      name="setor_ids"
+                      value={setor.value}
+                      checked={editSetorIds.includes(setor.value)}
+                      required={editSetorIds.length === 0}
+                      onChange={(e) => handleEditSetorToggle(setor.value, e.target.checked)}
+                    />
+                    <span>{setor.label}</span>
+                  </label>
+                ))}
+              </div>
+            </Field>
+            )}
+            {editRole !== "solicitante" && (
+            <Field label="Serviços" htmlFor="e-servicos">
+              <div
+                id="e-servicos"
+                className={`space-y-2 overflow-y-auto rounded-lg border border-zinc-200 p-3 transition-all duration-300 ease-out dark:border-zinc-700 ${
+                  editFilteredServicoOptions.length === 0 ? "max-h-16 opacity-80" : "max-h-44 opacity-100"
+                }`}
+              >
+                {editFilteredServicoOptions.length === 0 ? (
+                  <p className="text-sm text-zinc-500 dark:text-zinc-400">Selecione setor(es) para habilitar os serviços.</p>
+                ) : (
+                  editFilteredServicoOptions.map((servico, index) => (
+                    <label
+                      key={servico.value}
+                      className="flex items-center gap-2 text-sm text-zinc-700 transition-all duration-300 ease-out dark:text-zinc-200"
+                      style={{ transitionDelay: `${Math.min(index * 20, 180)}ms` }}
+                    >
+                      <input
+                        type="checkbox"
+                        name="servico_ids"
+                        value={servico.value}
+                        checked={editServicoIds.includes(servico.value)}
+                        disabled={editSetorIds.length === 0}
+                        required={editServicoIds.length === 0}
+                        onChange={(e) => {
+                          setEditServicoIds((prev) => toggleIdInList(prev, servico.value, e.target.checked));
+                        }}
+                      />
+                      <span>{servico.label}</span>
+                    </label>
+                  ))
+                )}
+              </div>
+            </Field>
+            )}
 
             <div className="flex justify-end gap-2 pt-1">
               <Button type="button" variant="outline" onClick={closeEdit}>
@@ -532,9 +716,4 @@ export function CadastroClient({
       )}
     </div>
   );
-}
-
-function handleSetorChange(setorId: string) {
-  const filtered = setorOptions.filter((setor) => setor.id === Number(setorId));
-  setFilteredServicoOptions(filtered.map((setor) => ({ value: String(setor.id), label: setor.name, setor_id: setor.id })));
 }

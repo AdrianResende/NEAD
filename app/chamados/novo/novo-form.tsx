@@ -3,7 +3,7 @@
 import { useMemo, useRef, useState, useEffect } from "react";
 import { useActionState } from "react";
 import { useRouter } from "next/navigation";
-import { Button, Field, Form, Input, Select } from "@/components/ui";
+import { Button, Field, Input, Select } from "@/components/ui";
 import { Textarea } from "@/components/ui/textarea";
 import { abrirChamadoAction } from "./actions";
 import { ROUTES } from "@/lib/constants";
@@ -88,7 +88,11 @@ export function NovoChamadoForm({ servicos }: { servicos: ServicoOption[] }) {
             name="setor_id"
             options={setorOptions}
             placeholder="Selecione o setor"
-            onChange={(event) => setSetorSelecionado(event.target.value)}
+            onChange={(event) => {
+              const setorId = event.target.value;
+              setSetorSelecionado(setorId);
+              setSetoresSelecionados(setorId ? [setorId] : []);
+            }}
             value={setorSelecionado}
           />
         </Field>
