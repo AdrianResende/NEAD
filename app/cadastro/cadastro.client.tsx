@@ -34,7 +34,7 @@ type User = {
 };
 
 type RoleOption = { value: string; label: string };
-type SetorOption = { value: string; label: string };
+type SetorOption = { id: number; name: string };
 type ServicoOption = { value: string; label: string; setor_id: number };
 
 type UsuariosClientProps = {
@@ -42,7 +42,6 @@ type UsuariosClientProps = {
   usersDesativados: User[];
   roleOptions: RoleOption[];
   setorOptions: SetorOption[];
-  servicoOptions: ServicoOption[];
   canEdit: boolean;
   currentUserId: number;
 };
@@ -99,10 +98,9 @@ export function CadastroClient({
   usersDesativados,
   roleOptions,
   setorOptions,
-  servicoOptions,
   canEdit,
   currentUserId,
-}: UsuariosClientProps) {
+}: UsuariosClientProps & { setorOptions: SetorOption[] }) {
   const router = useRouter();
   const [aba, setAba] = useState<"ativos" | "desativados">("ativos");
   const [createOpen, setCreateOpen] = useState(false);
@@ -139,8 +137,10 @@ export function CadastroClient({
     }
     if (toggleState.success) {
       notifySuccess(toggleConfirm?.ativo ? "Usuário desativado com sucesso." : "Usuário reativado com sucesso.");
-      setToggleConfirm(null);
-      router.refresh();
+      setTimeout(() => {
+        setToggleConfirm(null);
+        router.refresh();
+      }, 0); // Usa um timeout para evitar renderizações em cascata
     }
   }, [toggleState.error, toggleState.success, toggleConfirm, router]);
 
@@ -409,6 +409,26 @@ export function CadastroClient({
                 }}
               />
             </Field>
+            <Field label="Setor" htmlFor="c-setor">
+              <Select
+                id="c-setor"
+                name="setor_id"
+                options={setorOptions.map((setor) => ({ value: String(setor.id), label: setor.name }))}
+                placeholder="Selecione um setor"
+                required
+                onChange={(e) => handleSetorChange(e.target.value)}
+              />
+            </Field>
+            <Field label="Serviços" htmlFor="c-servicos">
+              <Select
+                id="c-servicos"
+                name="servico_ids"
+                options={filteredServicoOptions}
+                placeholder="Selecione os serviços"
+                multiple
+                required
+              />
+            </Field>
 
             <div className="flex justify-end gap-2 pt-1">
               <Button type="button" variant="outline" onClick={closeCreate}>
@@ -512,4 +532,9 @@ export function CadastroClient({
       )}
     </div>
   );
+}
+
+function handleSetorChange(setorId: string) {
+  const filtered = setorOptions.filter((setor) => setor.id === Number(setorId));
+  setFilteredServicoOptions(filtered.map((setor) => ({ value: String(setor.id), label: setor.name, setor_id: setor.id })));
 }

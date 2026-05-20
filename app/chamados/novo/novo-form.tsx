@@ -21,6 +21,7 @@ export function NovoChamadoForm({ servicos }: { servicos: ServicoOption[] }) {
   const [state, action, pending] = useActionState(abrirChamadoAction, {});
   const [setorSelecionado, setSetorSelecionado] = useState<string>("");
   const [arquivosSelecionados, setArquivosSelecionados] = useState<File[]>([]);
+  const [setoresSelecionados, setSetoresSelecionados] = useState<string[]>([]);
   const anexosInputRef = useRef<HTMLInputElement>(null);
   const formRef = useRef<HTMLFormElement>(null);
 
@@ -50,9 +51,13 @@ export function NovoChamadoForm({ servicos }: { servicos: ServicoOption[] }) {
   const servicoOptions = useMemo(
     () =>
       servicos
-        .filter((s) => (setorSelecionado ? String(s.setor_id) === setorSelecionado : false))
+        .filter((s) =>
+          setoresSelecionados.length > 0
+            ? setoresSelecionados.includes(String(s.setor_id))
+            : false
+        )
         .map((s) => ({ value: String(s.id), label: s.nome })),
-    [servicos, setorSelecionado],
+    [servicos, setoresSelecionados],
   );
 
   function handleSelecionarArquivos(event: React.ChangeEvent<HTMLInputElement>) {
@@ -88,18 +93,18 @@ export function NovoChamadoForm({ servicos }: { servicos: ServicoOption[] }) {
           />
         </Field>
 
-        <Field label="Serviço" htmlFor="servico_id" required>
+        <Field label="Serviços" htmlFor="servicos_id" required>
           <Select
-            id="servico_id"
-            name="servico_id"
+            id="servicos_id"
+            name="servicos_id"
             options={servicoOptions}
             placeholder={
-              setorSelecionado
-                ? "Selecione o tipo de serviço"
-                : "Selecione primeiro o setor"
+              setoresSelecionados.length > 0
+                ? "Selecione os serviços"
+                : "Selecione primeiro os setores"
             }
-            disabled={!setorSelecionado}
-            key={setorSelecionado || "sem-setor"}
+            disabled={setoresSelecionados.length === 0}
+            multiple
           />
         </Field>
 

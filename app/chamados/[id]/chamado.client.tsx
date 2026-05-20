@@ -2,6 +2,7 @@
 
 import { useActionState, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   ArrowLeft,
   CalendarClock,
@@ -112,15 +113,19 @@ function SurfaceCard({
   title,
   subtitle,
   icon,
+  className,
   children,
 }: {
   title: string;
   subtitle?: string;
   icon?: React.ReactNode;
+  className?: string;
   children: React.ReactNode;
 }) {
   return (
-    <section className="rounded-2xl border border-zinc-200/80 bg-white/95 p-5 shadow-sm ring-1 ring-zinc-100/60 backdrop-blur-sm dark:border-zinc-800 dark:bg-zinc-950 dark:ring-zinc-900 sm:p-6">
+    <section
+      className={`rounded-2xl border border-zinc-200/80 bg-white/95 p-5 shadow-sm ring-1 ring-zinc-100/60 backdrop-blur-sm dark:border-zinc-800 dark:bg-zinc-950 dark:ring-zinc-900 sm:p-6 ${className ?? ""}`}
+    >
       <div className="mb-5 flex items-start justify-between gap-3">
         <div>
           <h2 className="text-base font-semibold tracking-tight text-zinc-900 dark:text-zinc-50">{title}</h2>
@@ -206,6 +211,7 @@ function MensagensPanel({
       title="Conversa do chamado"
       subtitle="Centralize alinhamentos entre solicitante e equipe"
       icon={<MessageSquareText className="h-4 w-4" />}
+      className="h-full"
     >
       <div className="mb-4 max-h-[28rem] space-y-3 overflow-y-auto rounded-2xl border border-zinc-200/80 bg-zinc-50/60 p-3.5 dark:border-zinc-800 dark:bg-zinc-900/40 sm:p-4">
         {chamado.mensagens.length === 0 ? (
@@ -310,6 +316,7 @@ function HistoricoStatusPanel({ chamado }: { chamado: Chamado }) {
 }
 
 export function ChamadoDetalheClient({ chamado, currentUserId, currentUserRole, atendentes }: Props) {
+  const router = useRouter();
   const isSolicitante = currentUserRole === "solicitante";
   const isAtendente = currentUserRole === "atendente";
   const isAdmin = currentUserRole === "admin";
@@ -324,14 +331,16 @@ export function ChamadoDetalheClient({ chamado, currentUserId, currentUserRole, 
   ];
 
   useEffect(() => {
-    if (!atendimentoState.error) return;
-    notifyError(atendimentoState.error);
-  }, [atendimentoState.error]);
+    if (atendimentoState.error) {
+      notifyError(atendimentoState.error);
+    }
+  }, [atendimentoState]);
 
   useEffect(() => {
     if (!atendimentoState.success) return;
     notifySuccess("Chamado atualizado com sucesso.");
-  }, [atendimentoState.success]);
+    router.refresh();
+  }, [atendimentoState, router]);
 
   return (
     <div className="relative mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
@@ -479,15 +488,18 @@ export function ChamadoDetalheClient({ chamado, currentUserId, currentUserRole, 
 
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_340px]">
         <main className="space-y-6">
-          <MensagensPanel chamado={chamado} currentUserId={currentUserId} />
+          <div className="grid gap-6 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] lg:items-start">
+            <MensagensPanel chamado={chamado} currentUserId={currentUserId} />
 
-          <SurfaceCard
-            title="Descrição"
-            subtitle="Contexto inicial informado na abertura do chamado"
-            icon={<FileText className="h-4 w-4" />}
-          >
-            <p className="whitespace-pre-wrap text-sm leading-relaxed text-zinc-700 dark:text-zinc-300">{chamado.descricao}</p>
-          </SurfaceCard>
+            <SurfaceCard
+              title="Descrição"
+              subtitle="Contexto inicial informado na abertura do chamado"
+              icon={<FileText className="h-4 w-4" />}
+              className="lg:self-start"
+            >
+              <p className="whitespace-pre-wrap text-sm leading-relaxed text-zinc-700 dark:text-zinc-300">{chamado.descricao}</p>
+            </SurfaceCard>
+          </div>
 
           <SurfaceCard
             title="Anexos"
