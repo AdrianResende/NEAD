@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect } from "react";
+import { useActionState, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -31,6 +31,8 @@ type Chamado = {
   id: number;
   titulo: string;
   descricao: string;
+  urgente: boolean;
+  urgenciaDescricao: string | null;
   status: string;
   createdAt: string;
   updatedAt: string;
@@ -324,6 +326,8 @@ export function ChamadoDetalheClient({ chamado, currentUserId, currentUserRole, 
   const canSolicitanteAction = isSolicitante;
   const StatusIcon = STATUS_ICON[chamado.status] ?? CircleDashed;
   const [atendimentoState, atendimentoAction, atendimentoPending] = useActionState(atualizarChamadoAction, {});
+  const [urgenteAtendimento, setUrgenteAtendimento] = useState<"sim" | "nao">(chamado.urgente ? "sim" : "nao");
+  const [motivoAtendimento, setMotivoAtendimento] = useState(chamado.urgenciaDescricao ?? "");
 
   const atendenteOptions = [
     { value: "", label: "Sem atendente" },
@@ -443,6 +447,54 @@ export function ChamadoDetalheClient({ chamado, currentUserId, currentUserRole, 
                     )}
                   </div>
                 </div>
+
+                <div className="rounded-xl border border-zinc-200/80 bg-zinc-50/70 p-3 dark:border-zinc-800 dark:bg-zinc-900/50">
+                  <p className="text-[10px] font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Prioridade</p>
+                  <div className="mt-1.5">
+                    <Select
+                      id="urgente_atendimento"
+                      name="urgente_atendimento"
+                      options={[
+                        { value: "nao", label: "Não urgente" },
+                        { value: "sim", label: "Urgente" },
+                      ]}
+                      value={urgenteAtendimento}
+                      onChange={(event) => {
+                        const value = event.target.value as "sim" | "nao";
+                        setUrgenteAtendimento(value);
+                        if (value === "nao") {
+                          setMotivoAtendimento("");
+                        }
+                      }}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="rounded-xl border border-zinc-200/80 bg-zinc-50/70 p-3 dark:border-zinc-800 dark:bg-zinc-900/50">
+                <Field
+                  label={urgenteAtendimento === "sim" ? "Motivo da urgência" : "Motivo da alteração (opcional)"}
+                  htmlFor="urgencia_descricao_atendimento"
+                  required={urgenteAtendimento === "sim"}
+                >
+                  <Textarea
+                    id="urgencia_descricao_atendimento"
+                    name="urgencia_descricao_atendimento"
+                    rows={3}
+                    maxLength={800}
+                    required={urgenteAtendimento === "sim"}
+                    value={motivoAtendimento}
+                    onChange={(event) => setMotivoAtendimento(event.target.value)}
+                    placeholder={
+                      urgenteAtendimento === "sim"
+                        ? "Descreva o impacto e por que este chamado precisa de prioridade..."
+                        : "Se desejar, informe por que a prioridade foi alterada..."
+                    }
+                  />
+                </Field>
+                <p className="mt-2 text-xs text-zinc-500 dark:text-zinc-400">
+                  Ao salvar, essa atualização de prioridade será registrada automaticamente no chat do chamado.
+                </p>
               </div>
             </Form>
           ) : (
@@ -497,6 +549,17 @@ export function ChamadoDetalheClient({ chamado, currentUserId, currentUserRole, 
               icon={<FileText className="h-4 w-4" />}
               className="lg:self-start"
             >
+              <div className="mb-3 flex flex-wrap items-center gap-2">
+                <Badge variant={chamado.urgente ? "danger" : "default"}>
+                  {chamado.urgente ? "Urgente" : "Não urgente"}
+                </Badge>
+              </div>
+              {chamado.urgente && chamado.urgenciaDescricao && (
+                <div className="mb-3 rounded-xl border border-red-200/80 bg-red-50/70 p-3 text-sm text-red-800 dark:border-red-900 dark:bg-red-950/30 dark:text-red-200">
+                  <p className="text-[10px] font-semibold uppercase tracking-wide">Motivo da urgência</p>
+                  <p className="mt-1 whitespace-pre-wrap leading-relaxed">{chamado.urgenciaDescricao}</p>
+                </div>
+              )}
               <p className="whitespace-pre-wrap text-sm leading-relaxed text-zinc-700 dark:text-zinc-300">{chamado.descricao}</p>
             </SurfaceCard>
           </div>

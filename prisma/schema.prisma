@@ -101,6 +101,8 @@ model Chamado {
   id             Int      @id @default(autoincrement())
   titulo         String   @db.VarChar(200)
   descricao      String
+  urgente        Boolean  @default(false)
+  urgencia_descricao String?
   status         String   @default("aberto")
   solicitante_id Int
   atendente_id   Int?

@@ -393,8 +393,6 @@ function CriarServicoForm({ setores, setorFixo, onClose }: { setores: Setor[]; s
     }
   }, [state.error]);
 
-  if (state.success) return null;
-
   return (
     <ServicoForm
       setores={setores}
@@ -422,8 +420,6 @@ function EditarServicoForm({ servico, setores, setorFixo, onClose }: { servico: 
       notifyError(state.error);
     }
   }, [state.error]);
-
-  if (state.success) return null;
 
   const wrappedAction = (formData: FormData) => {
     formData.set("id", String(servico.id));

@@ -30,6 +30,8 @@ export async function atualizarChamadoAction(
 
   const id = Number(formData.get("id"));
   const status = formData.get("status") as string | null;
+  const urgenteAtendimento = (formData.get("urgente_atendimento") as string | null)?.trim();
+  const urgenciaDescricaoAtendimento = (formData.get("urgencia_descricao_atendimento") as string | null)?.trim();
   const atendente_id = formData.get("atendente_id")
     ? Number(formData.get("atendente_id"))
     : undefined;
@@ -95,8 +97,41 @@ export async function atualizarChamadoAction(
     return { error: "Apenas o solicitante pode cancelar ou fechar chamados." };
   }
 
-  const updateData: { status?: string; atendente_id?: number | null } = {};
+  if (
+    urgenteAtendimento !== undefined &&
+    urgenteAtendimento !== null &&
+    urgenteAtendimento !== "" &&
+    urgenteAtendimento !== "sim" &&
+    urgenteAtendimento !== "nao"
+  ) {
+    return { error: "Valor de prioridade inválido." };
+  }
+
+  const urgenteDefinido = urgenteAtendimento === "sim" || urgenteAtendimento === "nao";
+  const novoUrgente = urgenteAtendimento === "sim";
+
+  if (urgenteDefinido && novoUrgente && !urgenciaDescricaoAtendimento) {
+    return { error: "Descreva o motivo da urgência." };
+  }
+
+  if (urgenciaDescricaoAtendimento && urgenciaDescricaoAtendimento.length > 800) {
+    return { error: "A justificativa de urgência deve ter no máximo 800 caracteres." };
+  }
+
+  const updateData: {
+    status?: string;
+    atendente_id?: number | null;
+    urgente?: boolean;
+    urgencia_descricao?: string | null;
+  } = {};
   if (status) updateData.status = status;
+
+  if (urgenteDefinido) {
+    updateData.urgente = novoUrgente;
+    updateData.urgencia_descricao = novoUrgente
+      ? urgenciaDescricaoAtendimento ?? chamado.urgencia_descricao ?? null
+      : null;
+  }
 
   if (atendente_id !== undefined) {
     if (isNaN(atendente_id)) return { error: "Atendente inválido." };
@@ -141,9 +176,12 @@ export async function atualizarChamadoAction(
   }
 
   const novoStatus = updateData.status;
+  const mudouUrgencia =
+    urgenteDefinido &&
+    (novoUrgente !== chamado.urgente || (novoUrgente && urgenciaDescricaoAtendimento !== chamado.urgencia_descricao));
 
   if (Object.keys(updateData).length > 0) {
-      const operations: PrismaPromise<any>[] = [
+    const operations: PrismaPromise<any>[] = [
       prisma.chamado.update({ where: { id }, data: updateData }),
     ];
 
@@ -155,6 +193,25 @@ export async function atualizarChamadoAction(
             de_status: chamado.status,
             para_status: novoStatus,
             autor_id: user.id,
+          },
+        }),
+      );
+    }
+
+    if (mudouUrgencia) {
+      const prioridadeTexto = novoUrgente ? "Urgente" : "Não urgente";
+      const motivoTexto = novoUrgente
+        ? `\nMotivo: ${updateData.urgencia_descricao ?? "Não informado."}`
+        : urgenciaDescricaoAtendimento
+          ? `\nMotivo: ${urgenciaDescricaoAtendimento}`
+          : "";
+
+      operations.push(
+        prisma.chamadoMensagem.create({
+          data: {
+            chamado_id: id,
+            autor_id: user.id,
+            mensagem: `Prioridade atualizada para ${prioridadeTexto}.${motivoTexto}`,
           },
         }),
       );

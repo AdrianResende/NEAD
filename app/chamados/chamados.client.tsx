@@ -11,6 +11,7 @@ type Chamado = {
   id: number;
   titulo: string;
   status: string;
+  urgente: boolean;
   servico: string;
   solicitante: string;
   atendente: string | null;
@@ -134,6 +135,11 @@ export function ChamadosClient({ chamados, role, servicos = [] }: Props) {
                   <p className="text-xs font-medium text-zinc-500 dark:text-zinc-400">#{c.id}</p>
                   <h3 className="truncate text-sm font-semibold text-zinc-900 dark:text-zinc-50">{c.titulo}</h3>
                   <p className="mt-1 truncate text-xs text-zinc-500 dark:text-zinc-400">{c.servico}</p>
+                  <div className="mt-2">
+                    <Badge variant={c.urgente ? "danger" : "default"}>
+                      {c.urgente ? "Urgente" : "Não urgente"}
+                    </Badge>
+                  </div>
                 </div>
                 <Badge variant={STATUS_BADGE[c.status] ?? "default"}>
                   {STATUS_LABEL[c.status] ?? c.status}
@@ -175,6 +181,7 @@ export function ChamadosClient({ chamados, role, servicos = [] }: Props) {
               <Th>#</Th>
               <Th>Título</Th>
               <Th>Serviço</Th>
+              <Th>Prioridade</Th>
               {!isSolicitante && <Th>Solicitante</Th>}
               <Th>Atendente</Th>
               <Th>Status</Th>
@@ -185,7 +192,7 @@ export function ChamadosClient({ chamados, role, servicos = [] }: Props) {
           <TableBody>
             {chamados.length === 0 ? (
               <TableEmpty
-                colSpan={isSolicitante ? 7 : 8}
+                colSpan={isSolicitante ? 8 : 9}
                 message={
                   isSolicitante
                     ? "Você ainda não solicitou nenhum serviço."
@@ -198,6 +205,11 @@ export function ChamadosClient({ chamados, role, servicos = [] }: Props) {
                   <Td className="text-zinc-500">#{c.id}</Td>
                   <Td className="font-semibold">{c.titulo}</Td>
                   <Td className="text-zinc-500 dark:text-zinc-400">{c.servico}</Td>
+                  <Td>
+                    <Badge variant={c.urgente ? "danger" : "default"}>
+                      {c.urgente ? "Urgente" : "Não urgente"}
+                    </Badge>
+                  </Td>
                   {!isSolicitante && <Td className="text-zinc-600 dark:text-zinc-300">{c.solicitante}</Td>}
                   <Td>{c.atendente ?? <span className="text-zinc-400">—</span>}</Td>
                   <Td>

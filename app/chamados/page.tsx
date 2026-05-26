@@ -34,7 +34,7 @@ export default async function ChamadosPage() {
   const [chamados, servicos] = await Promise.all([
     prisma.chamado.findMany({
       where,
-      orderBy: { created_at: "desc" },
+      orderBy: [{ urgente: "desc" }, { created_at: "desc" }],
       include: {
         servico: true,
         solicitante: true,
@@ -62,6 +62,7 @@ export default async function ChamadosPage() {
         id: c.id,
         titulo: c.titulo,
         status: c.status,
+        urgente: c.urgente,
         servico: c.servico.nome,
         solicitante: c.solicitante.nome,
         atendente: c.atendente?.nome ?? null,

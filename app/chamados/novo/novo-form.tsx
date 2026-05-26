@@ -19,11 +19,11 @@ export type ServicoOption = {
 export function NovoChamadoForm({ servicos }: { servicos: ServicoOption[] }) {
   const router = useRouter();
   const [state, action, pending] = useActionState(abrirChamadoAction, {});
-  const [setorSelecionado, setSetorSelecionado] = useState<string>("");
+  const [urgente, setUrgente] = useState<string>("nao");
   const [arquivosSelecionados, setArquivosSelecionados] = useState<File[]>([]);
-  const [setoresSelecionados, setSetoresSelecionados] = useState<string[]>([]);
+  const [servicoSelecionado, setServicoSelecionado] = useState<string>("");
+  const [filtroServico, setFiltroServico] = useState<string>("");
   const anexosInputRef = useRef<HTMLInputElement>(null);
-  const formRef = useRef<HTMLFormElement>(null);
 
   useEffect(() => {
     if (state.success) {
@@ -40,24 +40,26 @@ export function NovoChamadoForm({ servicos }: { servicos: ServicoOption[] }) {
     }
   }, [state.error]);
 
-  const setorOptions = useMemo(
+  const servicoOptions = useMemo(
     () =>
-      Array.from(new Map(servicos.map((s) => [s.setor_id, s.setor])).entries())
-        .map(([id, nome]) => ({ value: String(id), label: nome }))
-        .sort((a, b) => a.label.localeCompare(b.label, "pt-BR")),
+      [...servicos]
+        .sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR"))
+        .map((s) => ({ value: String(s.id), label: `${s.nome} · ${s.setor}` })),
     [servicos],
   );
 
-  const servicoOptions = useMemo(
-    () =>
-      servicos
-        .filter((s) =>
-          setoresSelecionados.length > 0
-            ? setoresSelecionados.includes(String(s.setor_id))
-            : false
-        )
-        .map((s) => ({ value: String(s.id), label: s.nome })),
-    [servicos, setoresSelecionados],
+  const servicoOptionsFiltrados = useMemo(() => {
+    const termo = filtroServico.trim().toLowerCase();
+    if (!termo) {
+      return servicoOptions;
+    }
+
+    return servicoOptions.filter((s) => s.label.toLowerCase().includes(termo));
+  }, [filtroServico, servicoOptions]);
+
+  const servicoSelecionadoLabel = useMemo(
+    () => servicoOptions.find((s) => s.value === servicoSelecionado)?.label,
+    [servicoOptions, servicoSelecionado],
   );
 
   function handleSelecionarArquivos(event: React.ChangeEvent<HTMLInputElement>) {
@@ -81,35 +83,38 @@ export function NovoChamadoForm({ servicos }: { servicos: ServicoOption[] }) {
 
   return (
     <>
-      <form action={action} ref={formRef}>
-        <Field label="Setor" htmlFor="setor_id" required>
-          <Select
-            id="setor_id"
-            name="setor_id"
-            options={setorOptions}
-            placeholder="Selecione o setor"
-            onChange={(event) => {
-              const setorId = event.target.value;
-              setSetorSelecionado(setorId);
-              setSetoresSelecionados(setorId ? [setorId] : []);
-            }}
-            value={setorSelecionado}
+      <form action={action}>
+        <Field label="Serviço" htmlFor="servico_id" required>
+          <Input
+            id="filtro_servico"
+            type="text"
+            placeholder="Filtrar serviço por nome"
+            value={filtroServico}
+            onChange={(event) => setFiltroServico(event.target.value)}
+            className="mb-2"
           />
-        </Field>
 
-        <Field label="Serviços" htmlFor="servicos_id" required>
           <Select
-            id="servicos_id"
-            name="servicos_id"
-            options={servicoOptions}
-            placeholder={
-              setoresSelecionados.length > 0
-                ? "Selecione os serviços"
-                : "Selecione primeiro os setores"
-            }
-            disabled={setoresSelecionados.length === 0}
-            multiple
+            id="servico_id"
+            name="servico_id"
+            options={servicoOptionsFiltrados}
+            placeholder="Selecione um serviço"
+            value={servicoSelecionado}
+            onChange={(event) => setServicoSelecionado(event.target.value)}
+            required
           />
+
+          {servicoOptionsFiltrados.length === 0 && (
+            <p className="mt-2 text-sm text-zinc-500 dark:text-zinc-400">
+              Nenhum serviço encontrado para o filtro informado.
+            </p>
+          )}
+
+          {servicoSelecionadoLabel && (
+            <p className="mt-2 text-xs text-zinc-500 dark:text-zinc-400">
+              Serviço selecionado: <span className="font-medium text-zinc-700 dark:text-zinc-200">{servicoSelecionadoLabel}</span>
+            </p>
+          )}
         </Field>
 
         <Field label="Título" htmlFor="titulo" required>
@@ -129,6 +134,32 @@ export function NovoChamadoForm({ servicos }: { servicos: ServicoOption[] }) {
             placeholder="Descreva detalhadamente o problema ou solicitação..."
           />
         </Field>
+
+        <Field label="Prioridade" htmlFor="urgente" required>
+          <Select
+            id="urgente"
+            name="urgente"
+            options={[
+              { value: "nao", label: "Não urgente" },
+              { value: "sim", label: "Urgente" },
+            ]}
+            value={urgente}
+            onChange={(event) => setUrgente(event.target.value)}
+          />
+        </Field>
+
+        {urgente === "sim" && (
+          <Field label="Por que é urgente?" htmlFor="urgencia_descricao" required>
+            <Textarea
+              id="urgencia_descricao"
+              name="urgencia_descricao"
+              rows={3}
+              maxLength={800}
+              required
+              placeholder="Descreva o impacto e o motivo da urgência..."
+            />
+          </Field>
+        )}
 
         <Field
           label="Anexos"
@@ -184,7 +215,7 @@ export function NovoChamadoForm({ servicos }: { servicos: ServicoOption[] }) {
           </div>
         </Field>
 
-        <Button type="submit" disabled={pending} className="w-full">
+        <Button type="submit" disabled={pending || !servicoSelecionado} className="w-full">
           {pending ? "Enviando..." : "Solicitar Chamado"}
         </Button>
       </form>

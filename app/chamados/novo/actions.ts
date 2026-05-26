@@ -5,7 +5,6 @@ import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { SESSION_COOKIE_NAME, validateSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { ROUTES } from "@/lib/constants";
 
 export type NovoChamadoState = {
   error?: string;
@@ -70,16 +69,29 @@ export async function abrirChamadoAction(
 
   const titulo = (formData.get("titulo") as string | null)?.trim();
   const descricao = (formData.get("descricao") as string | null)?.trim();
-  const setor_id = Number(formData.get("setor_id"));
+  const urgenteRaw = (formData.get("urgente") as string | null)?.trim();
+  const urgenciaDescricaoRaw = (formData.get("urgencia_descricao") as string | null)?.trim();
   const servico_id = Number(formData.get("servico_id"));
   const anexos = formData
     .getAll("anexos")
     .filter((value): value is File => value instanceof File && value.size > 0);
 
+  if (urgenteRaw !== "sim" && urgenteRaw !== "nao") {
+    return { error: "Informe se o chamado é urgente." };
+  }
+
+  const urgente = urgenteRaw === "sim";
+  const urgenciaDescricao = urgente ? urgenciaDescricaoRaw : null;
+
   if (!titulo) return { error: "O título é obrigatório." };
   if (titulo.length > 200) return { error: "Título deve ter no máximo 200 caracteres." };
   if (!descricao) return { error: "A descrição é obrigatória." };
-  if (!setor_id || isNaN(setor_id)) return { error: "Selecione um setor." };
+  if (urgente && !urgenciaDescricao) {
+    return { error: "Descreva por que o chamado é urgente." };
+  }
+  if (urgenciaDescricao && urgenciaDescricao.length > 800) {
+    return { error: "A justificativa de urgência deve ter no máximo 800 caracteres." };
+  }
   if (!servico_id || isNaN(servico_id)) return { error: "Selecione um serviço." };
   if (anexos.length > MAX_FILES) {
     return { error: `Você pode enviar no máximo ${MAX_FILES} arquivos por chamado.` };
@@ -97,9 +109,6 @@ export async function abrirChamadoAction(
 
   const servico = await prisma.servico.findUnique({ where: { id: servico_id } });
   if (!servico) return { error: "Serviço não encontrado." };
-  if (servico.setor_id !== setor_id) {
-    return { error: "O serviço selecionado não pertence ao setor informado." };
-  }
 
   const atendenteId = await selecionarAtendentePorFila(servico_id);
 
@@ -108,6 +117,8 @@ export async function abrirChamadoAction(
       data: {
         titulo,
         descricao,
+        urgente,
+        urgencia_descricao: urgenciaDescricao,
         servico_id,
         solicitante_id: user.id,
         atendente_id: atendenteId,

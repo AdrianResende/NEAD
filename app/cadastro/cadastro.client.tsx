@@ -107,6 +107,7 @@ export const CadastroClient = ({
   const [createOpen, setCreateOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [toggleConfirm, setToggleConfirm] = useState<User | null>(null);
+  const [toggleIntentAtivo, setToggleIntentAtivo] = useState<boolean | null>(null);
   const [createRole, setCreateRole] = useState("");
   const [editRole, setEditRole] = useState("solicitante");
   const [createSetorIds, setCreateSetorIds] = useState<string[]>([]);
@@ -124,8 +125,15 @@ export const CadastroClient = ({
     }
     if (createState.success) {
       notifySuccess("Usuário cadastrado com sucesso.");
+      setTimeout(() => {
+        setCreateOpen(false);
+        setCreateRole("");
+        setCreateSetorIds([]);
+        setCreateServicoIds([]);
+        router.refresh();
+      }, 0);
     }
-  }, [createState.error, createState.success]);
+  }, [createState.error, createState.success, router]);
 
   useEffect(() => {
     if (editState.error) {
@@ -133,21 +141,39 @@ export const CadastroClient = ({
     }
     if (editState.success) {
       notifySuccess("Perfil atualizado com sucesso.");
+      setTimeout(() => {
+        setEditingUser(null);
+        setEditRole("solicitante");
+        setEditSetorIds([]);
+        setEditServicoIds([]);
+        router.refresh();
+      }, 0);
     }
-  }, [editState.error, editState.success]);
+  }, [editState.error, editState.success, router]);
 
   useEffect(() => {
+    if (!toggleState) {
+      return;
+    }
+
     if (toggleState.error) {
       notifyError(toggleState.error);
+      return;
     }
+
     if (toggleState.success) {
-      notifySuccess(toggleConfirm?.ativo ? "Usuário desativado com sucesso." : "Usuário reativado com sucesso.");
+      notifySuccess(
+        toggleIntentAtivo
+          ? "Usuário desativado com sucesso."
+          : "Usuário reativado com sucesso.",
+      );
       setTimeout(() => {
         setToggleConfirm(null);
+        setToggleIntentAtivo(null);
         router.refresh();
-      }, 0); // Usa um timeout para evitar renderizações em cascata
+      }, 0);
     }
-  }, [toggleState.error, toggleState.success, toggleConfirm, router]);
+  }, [toggleState, toggleIntentAtivo, router]);
 
   const createFilteredServicoOptions = useMemo(() => {
     if (createSetorIds.length === 0) {
@@ -558,19 +584,17 @@ export const CadastroClient = ({
 
             <div className="flex justify-end gap-2 pt-1">
               <Button type="button" variant="outline" onClick={closeCreate}>
-                <span className="material-symbols-outlined text-[18px]" title={createState.success ? "Fechar" : "Cancelar"} aria-hidden="true">
-                  {createState.success ? "close" : "cancel"}
+                <span className="material-symbols-outlined text-[18px]" title="Cancelar" aria-hidden="true">
+                  cancel
                 </span>
-                {createState.success ? "Fechar" : "Cancelar"}
+                Cancelar
               </Button>
-              {!createState.success && (
-                <Button type="submit" loading={isCreating}>
-                  <span className="material-symbols-outlined text-[18px]" title="Cadastrar usuário" aria-hidden="true">
-                    person_add
-                  </span>
-                  Cadastrar
-                </Button>
-              )}
+              <Button type="submit" loading={isCreating}>
+                <span className="material-symbols-outlined text-[18px]" title="Cadastrar usuário" aria-hidden="true">
+                  person_add
+                </span>
+                Cadastrar
+              </Button>
             </div>
           </Form>
         </Modal>
@@ -659,19 +683,17 @@ export const CadastroClient = ({
 
             <div className="flex justify-end gap-2 pt-1">
               <Button type="button" variant="outline" onClick={closeEdit}>
-                <span className="material-symbols-outlined text-[18px]" title={editState.success ? "Fechar" : "Cancelar"} aria-hidden="true">
-                  {editState.success ? "close" : "cancel"}
+                <span className="material-symbols-outlined text-[18px]" title="Cancelar" aria-hidden="true">
+                  cancel
                 </span>
-                {editState.success ? "Fechar" : "Cancelar"}
+                Cancelar
               </Button>
-              {!editState.success && (
-                <Button type="submit" loading={isEditing}>
-                  <span className="material-symbols-outlined text-[18px]" title="Salvar alterações" aria-hidden="true">
-                    save
-                  </span>
-                  Salvar
-                </Button>
-              )}
+              <Button type="submit" loading={isEditing}>
+                <span className="material-symbols-outlined text-[18px]" title="Salvar alterações" aria-hidden="true">
+                  save
+                </span>
+                Salvar
+              </Button>
             </div>
           </Form>
         </Modal>
@@ -704,6 +726,7 @@ export const CadastroClient = ({
                 type="submit" 
                 loading={isToggling}
                 className={toggleConfirm.ativo ? "bg-red-600 hover:bg-red-700" : ""}
+                onClick={() => setToggleIntentAtivo(toggleConfirm.ativo)}
               >
                 <span className="material-symbols-outlined text-[18px]" title={toggleConfirm.ativo ? "Desativar" : "Reativar"} aria-hidden="true">
                   {toggleConfirm.ativo ? "person_off" : "person_add"}

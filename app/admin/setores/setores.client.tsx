@@ -80,10 +80,6 @@ function CriarSetorModal({ onClose }: { onClose: () => void }) {
     }
   }, [state.error]);
 
-  if (state.success) {
-    return null;
-  }
-
   return (
     <Modal title="Novo Setor" onClose={onClose}>
       <Form action={action}>
@@ -116,10 +112,6 @@ function EditarSetorModal({ setor, onClose }: { setor: Setor; onClose: () => voi
       notifyError(state.error);
     }
   }, [state.error]);
-
-  if (state.success) {
-    return null;
-  }
 
   return (
     <Modal title="Editar Setor" onClose={onClose}>
