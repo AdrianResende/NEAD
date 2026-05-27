@@ -13,7 +13,6 @@ import {
   Download,
   FileText,
   LifeBuoy,
-  MessageCircle,
   MessageSquareText,
   SendHorizonal,
   ShieldCheck,
@@ -284,24 +283,32 @@ function HistoricoStatusPanel({ chamado }: { chamado: Chamado }) {
             return (
               <li
                 key={item.id}
-                className="relative rounded-xl border border-zinc-200/80 bg-zinc-50/60 px-3.5 py-3 dark:border-zinc-800 dark:bg-zinc-900/50 sm:px-4"
+                className="relative rounded-xl border border-zinc-200/80 bg-zinc-50/60 p-3.5 dark:border-zinc-800 dark:bg-zinc-900/50 sm:p-4"
               >
-                <div className="flex items-start gap-3">
-                  <span className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-zinc-200 bg-white text-zinc-600 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-300">
-                    <ToIcon className="h-4 w-4" aria-hidden="true" />
-                  </span>
-                  <div className="min-w-0">
-                    <p className="text-sm font-semibold text-zinc-800 dark:text-zinc-100">
-                      {STATUS_LABEL[item.deStatus] ?? item.deStatus} {"→"} {STATUS_LABEL[item.paraStatus] ?? item.paraStatus}
-                    </p>
-                    <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
-                      {item.autorNome} em {formatDateTime(item.createdAt)}
-                    </p>
+                <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-start sm:gap-4">
+                  <div className="flex items-start gap-3">
+                    <span className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-zinc-200 bg-white text-zinc-600 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-300">
+                      <ToIcon className="h-4 w-4" aria-hidden="true" />
+                    </span>
+                    <div className="min-w-0">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <Badge variant="default">{STATUS_LABEL[item.deStatus] ?? item.deStatus}</Badge>
+                        <span className="text-xs text-zinc-400 dark:text-zinc-500">→</span>
+                        <Badge variant={STATUS_BADGE[item.paraStatus] ?? "default"}>
+                          {STATUS_LABEL[item.paraStatus] ?? item.paraStatus}
+                        </Badge>
+                      </div>
+                      {item.observacao && (
+                        <p className="mt-2 text-xs leading-relaxed text-zinc-600 dark:text-zinc-300">{item.observacao}</p>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="rounded-lg border border-zinc-200/80 bg-white px-2.5 py-1.5 text-right dark:border-zinc-800 dark:bg-zinc-950">
+                    <p className="text-[11px] font-medium text-zinc-700 dark:text-zinc-200">{item.autorNome}</p>
+                    <p className="mt-0.5 text-[11px] text-zinc-500 dark:text-zinc-400">{formatDateTime(item.createdAt)}</p>
                   </div>
                 </div>
-                {item.observacao && (
-                  <p className="mt-2 text-xs leading-relaxed text-zinc-600 dark:text-zinc-300">{item.observacao}</p>
-                )}
                 {index < chamado.historicoStatus.length - 1 && (
                   <span
                     className="pointer-events-none absolute left-[1.08rem] top-[2.6rem] h-4 w-px bg-zinc-300/70 dark:bg-zinc-700"
@@ -328,6 +335,7 @@ export function ChamadoDetalheClient({ chamado, currentUserId, currentUserRole, 
   const [atendimentoState, atendimentoAction, atendimentoPending] = useActionState(atualizarChamadoAction, {});
   const [urgenteAtendimento, setUrgenteAtendimento] = useState<"sim" | "nao">(chamado.urgente ? "sim" : "nao");
   const [motivoAtendimento, setMotivoAtendimento] = useState(chamado.urgenciaDescricao ?? "");
+  const urgenciaJaRegistrada = Boolean(chamado.urgenciaDescricao?.trim());
 
   const atendenteOptions = [
     { value: "", label: "Sem atendente" },
@@ -347,7 +355,7 @@ export function ChamadoDetalheClient({ chamado, currentUserId, currentUserRole, 
   }, [atendimentoState, router]);
 
   return (
-    <div className="relative mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+    <div className="relative w-full px-4 py-8 sm:px-6 lg:px-8">
       <div
         className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-56 bg-gradient-to-b from-zinc-100/80 to-transparent dark:from-zinc-900/40"
         aria-hidden="true"
@@ -363,7 +371,7 @@ export function ChamadoDetalheClient({ chamado, currentUserId, currentUserRole, 
           <span>Voltar</span>
         </Link>
 
-        <div className="mt-5 grid gap-4 sm:gap-5">
+        <div className="mt-2 grid gap-4 sm:gap-5">
           {/* Linha 1: Título e Status */}
           <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
             <div className="space-y-1.5">
@@ -372,11 +380,29 @@ export function ChamadoDetalheClient({ chamado, currentUserId, currentUserRole, 
                   <LifeBuoy className="h-4 w-4" aria-hidden="true" />
                 </span>
                 <span className="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Chamado #{chamado.id}</span>
+                <Badge variant={chamado.urgente ? "danger" : "default"}>
+                  {chamado.urgente ? "Urgente" : "Não urgente"}
+                </Badge>
               </div>
               <h1 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">{chamado.titulo}</h1>
             </div>
 
             <div className="grid w-full max-w-md gap-2 self-start rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-2.5 dark:border-zinc-800 dark:bg-zinc-900 sm:w-auto">
+              {canAtend && (
+                <div className="flex justify-end">
+                  <Button
+                    type="submit"
+                    size="sm"
+                    disabled={atendimentoPending}
+                    title="Salvar alterações do atendimento"
+                    className="h-9 rounded-lg border border-primary/20 bg-primary px-3.5 text-xs font-semibold text-white shadow-sm transition-colors hover:bg-primary-dark"
+                    form="atendimento-form"
+                  >
+                    <CheckCircle2 className="h-3.5 w-3.5" aria-hidden="true" />
+                    {atendimentoPending ? "Salvando..." : "Salvar alterações"}
+                  </Button>
+                </div>
+              )}
               <p className="text-[10px] font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Datas</p>
               <p className="text-xs text-zinc-600 dark:text-zinc-300">Criado: {formatDateTime(chamado.createdAt)}</p>
               <p className="text-xs text-zinc-600 dark:text-zinc-300">Atualizado: {formatDateTime(chamado.updatedAt)}</p>
@@ -385,53 +411,37 @@ export function ChamadoDetalheClient({ chamado, currentUserId, currentUserRole, 
 
           {/* Linha 2: Informações principais */}
           {canAtend ? (
-            <Form action={atendimentoAction} className="gap-3">
+            <Form action={atendimentoAction} className="gap-3" id="atendimento-form">
               <input type="hidden" name="id" value={chamado.id} />
 
-              <div className="flex flex-col gap-2.5 rounded-xl border border-zinc-200 bg-zinc-50/80 px-3 py-3 dark:border-zinc-800 dark:bg-zinc-900/50 sm:flex-row sm:items-center sm:justify-between">
-                <p className="text-sm text-zinc-600 dark:text-zinc-300">
-                  Atualize o status e o responsável e salve para aplicar as mudanças.
-                </p>
-                <Button
-                  type="submit"
-                  size="sm"
-                  disabled={atendimentoPending}
-                  title="Salvar alterações do atendimento"
-                  className="w-full sm:w-auto"
-                >
-                  <CheckCircle2 className="h-4 w-4" aria-hidden="true" />
-                  {atendimentoPending ? "Salvando..." : "Salvar alterações"}
-                </Button>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4">
-                <div className="rounded-xl border border-zinc-200/80 bg-zinc-50/70 p-3 dark:border-zinc-800 dark:bg-zinc-900/50">
+              <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 sm:gap-3 lg:grid-cols-5">
+                <div className="rounded-xl border border-zinc-200/80 bg-zinc-50/70 p-2.5 dark:border-zinc-800 dark:bg-zinc-900/50">
                   <p className="text-[10px] font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Solicitante</p>
-                  <div className="mt-1.5 flex items-center gap-2">
+                  <div className="mt-1 flex items-center gap-1.5">
                     <User className="h-3.5 w-3.5 shrink-0 text-zinc-600 dark:text-zinc-400" aria-hidden="true" />
                     <div className="min-w-0">
-                      <p className="truncate text-sm font-semibold text-zinc-900 dark:text-zinc-50">{chamado.solicitante.nome}</p>
+                      <p className="truncate text-xs font-semibold text-zinc-900 dark:text-zinc-50">{chamado.solicitante.nome}</p>
                       <p className="truncate text-xs text-zinc-500 dark:text-zinc-400">{chamado.solicitante.email}</p>
                     </div>
                   </div>
                 </div>
 
-                <div className="rounded-xl border border-zinc-200/80 bg-zinc-50/70 p-3 dark:border-zinc-800 dark:bg-zinc-900/50">
+                <div className="rounded-xl border border-zinc-200/80 bg-zinc-50/70 p-2.5 dark:border-zinc-800 dark:bg-zinc-900/50">
                   <p className="text-[10px] font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Serviço</p>
-                  <p className="mt-1.5 text-sm font-semibold text-zinc-900 dark:text-zinc-50">{chamado.servico.nome}</p>
+                  <p className="mt-1 text-xs font-semibold text-zinc-900 dark:text-zinc-50">{chamado.servico.nome}</p>
                   <p className="text-xs text-zinc-500 dark:text-zinc-400">{chamado.servico.setor}</p>
                 </div>
 
-                <div className="rounded-xl border border-zinc-200/80 bg-zinc-50/70 p-3 dark:border-zinc-800 dark:bg-zinc-900/50">
+                <div className="rounded-xl border border-zinc-200/80 bg-zinc-50/70 p-2.5 dark:border-zinc-800 dark:bg-zinc-900/50">
                   <p className="text-[10px] font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Status</p>
-                  <div className="mt-1.5">
+                  <div className="mt-1">
                     <Select id="status" name="status" options={STATUS_OPTIONS_ATENDENTE} defaultValue={chamado.status} />
                   </div>
                 </div>
 
-                <div className="rounded-xl border border-zinc-200/80 bg-zinc-50/70 p-3 dark:border-zinc-800 dark:bg-zinc-900/50">
+                <div className="rounded-xl border border-zinc-200/80 bg-zinc-50/70 p-2.5 dark:border-zinc-800 dark:bg-zinc-900/50">
                   <p className="text-[10px] font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Atendente</p>
-                  <div className="mt-1.5">
+                  <div className="mt-1">
                     {isAdmin ? (
                       <Select
                         id="atendente_id"
@@ -440,17 +450,17 @@ export function ChamadoDetalheClient({ chamado, currentUserId, currentUserRole, 
                         defaultValue={chamado.atendente ? String(chamado.atendente.id) : ""}
                       />
                     ) : (
-                      <div className="flex items-center gap-2 rounded-lg border border-zinc-200 bg-white px-3 py-2 dark:border-zinc-700 dark:bg-zinc-950">
+                      <div className="flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-2.5 py-1.5 dark:border-zinc-700 dark:bg-zinc-950">
                         <UserCheck className="h-3.5 w-3.5 shrink-0 text-zinc-600 dark:text-zinc-400" aria-hidden="true" />
-                        <p className="truncate text-sm font-medium text-zinc-900 dark:text-zinc-100">{chamado.atendente?.nome ?? "Não atribuído"}</p>
+                        <p className="truncate text-xs font-medium text-zinc-900 dark:text-zinc-100">{chamado.atendente?.nome ?? "Não atribuído"}</p>
                       </div>
                     )}
                   </div>
                 </div>
 
-                <div className="rounded-xl border border-zinc-200/80 bg-zinc-50/70 p-3 dark:border-zinc-800 dark:bg-zinc-900/50">
+                <div className="rounded-xl border border-zinc-200/80 bg-zinc-50/70 p-2.5 dark:border-zinc-800 dark:bg-zinc-900/50">
                   <p className="text-[10px] font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Prioridade</p>
-                  <div className="mt-1.5">
+                  <div className="mt-1">
                     <Select
                       id="urgente_atendimento"
                       name="urgente_atendimento"
@@ -459,6 +469,7 @@ export function ChamadoDetalheClient({ chamado, currentUserId, currentUserRole, 
                         { value: "sim", label: "Urgente" },
                       ]}
                       value={urgenteAtendimento}
+                      disabled={urgenciaJaRegistrada}
                       onChange={(event) => {
                         const value = event.target.value as "sim" | "nao";
                         setUrgenteAtendimento(value);
@@ -468,57 +479,64 @@ export function ChamadoDetalheClient({ chamado, currentUserId, currentUserRole, 
                       }}
                     />
                   </div>
+                  {urgenciaJaRegistrada && (
+                    <p className="mt-1.5 text-[11px] text-zinc-500 dark:text-zinc-400">
+                      Prioridade travada após registro da justificativa.
+                    </p>
+                  )}
                 </div>
               </div>
 
-              <div className="rounded-xl border border-zinc-200/80 bg-zinc-50/70 p-3 dark:border-zinc-800 dark:bg-zinc-900/50">
-                <Field
-                  label={urgenteAtendimento === "sim" ? "Motivo da urgência" : "Motivo da alteração (opcional)"}
-                  htmlFor="urgencia_descricao_atendimento"
-                  required={urgenteAtendimento === "sim"}
-                >
-                  <Textarea
-                    id="urgencia_descricao_atendimento"
-                    name="urgencia_descricao_atendimento"
-                    rows={3}
-                    maxLength={800}
+              {!urgenciaJaRegistrada && (
+                <div className="rounded-xl border border-zinc-200/80 bg-zinc-50/70 p-3 dark:border-zinc-800 dark:bg-zinc-900/50">
+                  <Field
+                    label={urgenteAtendimento === "sim" ? "Motivo da urgência" : "Motivo da alteração (opcional)"}
+                    htmlFor="urgencia_descricao_atendimento"
                     required={urgenteAtendimento === "sim"}
-                    value={motivoAtendimento}
-                    onChange={(event) => setMotivoAtendimento(event.target.value)}
-                    placeholder={
-                      urgenteAtendimento === "sim"
-                        ? "Descreva o impacto e por que este chamado precisa de prioridade..."
-                        : "Se desejar, informe por que a prioridade foi alterada..."
-                    }
-                  />
-                </Field>
-                <p className="mt-2 text-xs text-zinc-500 dark:text-zinc-400">
-                  Ao salvar, essa atualização de prioridade será registrada automaticamente no chat do chamado.
-                </p>
-              </div>
+                  >
+                    <Textarea
+                      id="urgencia_descricao_atendimento"
+                      name="urgencia_descricao_atendimento"
+                      rows={3}
+                      maxLength={800}
+                      required={urgenteAtendimento === "sim"}
+                      value={motivoAtendimento}
+                      onChange={(event) => setMotivoAtendimento(event.target.value)}
+                      placeholder={
+                        urgenteAtendimento === "sim"
+                          ? "Descreva o impacto e por que este chamado precisa de prioridade..."
+                          : "Se desejar, informe por que a prioridade foi alterada..."
+                      }
+                    />
+                  </Field>
+                  <p className="mt-2 text-xs text-zinc-500 dark:text-zinc-400">
+                    Ao salvar, essa atualização de prioridade será registrada automaticamente no chat do chamado.
+                  </p>
+                </div>
+              )}
             </Form>
           ) : (
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4">
-              <div className="rounded-xl border border-zinc-200/80 bg-zinc-50/70 p-3 dark:border-zinc-800 dark:bg-zinc-900/50">
+            <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 sm:gap-3 lg:grid-cols-5">
+              <div className="rounded-xl border border-zinc-200/80 bg-zinc-50/70 p-2.5 dark:border-zinc-800 dark:bg-zinc-900/50">
                 <p className="text-[10px] font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Solicitante</p>
-                <div className="mt-1.5 flex items-center gap-2">
+                <div className="mt-1 flex items-center gap-1.5">
                   <User className="h-3.5 w-3.5 shrink-0 text-zinc-600 dark:text-zinc-400" aria-hidden="true" />
                   <div className="min-w-0">
-                    <p className="truncate text-sm font-semibold text-zinc-900 dark:text-zinc-50">{chamado.solicitante.nome}</p>
+                    <p className="truncate text-xs font-semibold text-zinc-900 dark:text-zinc-50">{chamado.solicitante.nome}</p>
                     <p className="truncate text-xs text-zinc-500 dark:text-zinc-400">{chamado.solicitante.email}</p>
                   </div>
                 </div>
               </div>
 
-              <div className="rounded-xl border border-zinc-200/80 bg-zinc-50/70 p-3 dark:border-zinc-800 dark:bg-zinc-900/50">
+              <div className="rounded-xl border border-zinc-200/80 bg-zinc-50/70 p-2.5 dark:border-zinc-800 dark:bg-zinc-900/50">
                 <p className="text-[10px] font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Serviço</p>
-                <p className="mt-1.5 text-sm font-semibold text-zinc-900 dark:text-zinc-50">{chamado.servico.nome}</p>
+                <p className="mt-1 text-xs font-semibold text-zinc-900 dark:text-zinc-50">{chamado.servico.nome}</p>
                 <p className="text-xs text-zinc-500 dark:text-zinc-400">{chamado.servico.setor}</p>
               </div>
 
-              <div className="rounded-xl border border-zinc-200/80 bg-zinc-50/70 p-3 dark:border-zinc-800 dark:bg-zinc-900/50">
+              <div className="rounded-xl border border-zinc-200/80 bg-zinc-50/70 p-2.5 dark:border-zinc-800 dark:bg-zinc-900/50">
                 <p className="text-[10px] font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Status</p>
-                <div className="mt-1.5 flex items-center gap-2">
+                <div className="mt-1 flex items-center gap-1.5">
                   <StatusIcon className="h-4 w-4 text-zinc-600 dark:text-zinc-300" aria-hidden="true" />
                   <Badge variant={STATUS_BADGE[chamado.status] ?? "default"}>
                     {STATUS_LABEL[chamado.status] ?? chamado.status}
@@ -526,11 +544,20 @@ export function ChamadoDetalheClient({ chamado, currentUserId, currentUserRole, 
                 </div>
               </div>
 
-              <div className="rounded-xl border border-zinc-200/80 bg-zinc-50/70 p-3 dark:border-zinc-800 dark:bg-zinc-900/50">
+              <div className="rounded-xl border border-zinc-200/80 bg-zinc-50/70 p-2.5 dark:border-zinc-800 dark:bg-zinc-900/50">
                 <p className="text-[10px] font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Atendente</p>
-                <div className="mt-1.5 flex items-center gap-2">
+                <div className="mt-1 flex items-center gap-1.5">
                   <UserCheck className="h-3.5 w-3.5 shrink-0 text-zinc-600 dark:text-zinc-400" aria-hidden="true" />
-                  <p className="truncate text-sm font-medium text-zinc-900 dark:text-zinc-100">{chamado.atendente?.nome ?? "Não atribuído"}</p>
+                  <p className="truncate text-xs font-medium text-zinc-900 dark:text-zinc-100">{chamado.atendente?.nome ?? "Não atribuído"}</p>
+                </div>
+              </div>
+
+              <div className="rounded-xl border border-zinc-200/80 bg-zinc-50/70 p-2.5 dark:border-zinc-800 dark:bg-zinc-900/50">
+                <p className="text-[10px] font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Prioridade</p>
+                <div className="mt-1">
+                  <Badge variant={chamado.urgente ? "danger" : "default"}>
+                    {chamado.urgente ? "Urgente" : "Não urgente"}
+                  </Badge>
                 </div>
               </div>
             </div>
@@ -538,73 +565,62 @@ export function ChamadoDetalheClient({ chamado, currentUserId, currentUserRole, 
         </div>
       </div>
 
-      <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_340px]">
+      <div className="grid gap-6">
         <main className="space-y-6">
-          <div className="grid gap-6 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] lg:items-start">
+          <div className="grid gap-6 lg:grid-cols-[minmax(0,7fr)_minmax(0,3fr)] lg:items-start">
             <MensagensPanel chamado={chamado} currentUserId={currentUserId} />
+            <div className="space-y-6 lg:self-start">
+              <SurfaceCard
+                title="Descrição"
+                subtitle="Contexto inicial informado na abertura do chamado"
+                icon={<FileText className="h-4 w-4" />}
+              >
+                <p className="whitespace-pre-wrap text-sm leading-relaxed text-zinc-700 dark:text-zinc-300">{chamado.descricao}</p>
+              </SurfaceCard>
 
-            <SurfaceCard
-              title="Descrição"
-              subtitle="Contexto inicial informado na abertura do chamado"
-              icon={<FileText className="h-4 w-4" />}
-              className="lg:self-start"
-            >
-              <div className="mb-3 flex flex-wrap items-center gap-2">
-                <Badge variant={chamado.urgente ? "danger" : "default"}>
-                  {chamado.urgente ? "Urgente" : "Não urgente"}
-                </Badge>
-              </div>
-              {chamado.urgente && chamado.urgenciaDescricao && (
-                <div className="mb-3 rounded-xl border border-red-200/80 bg-red-50/70 p-3 text-sm text-red-800 dark:border-red-900 dark:bg-red-950/30 dark:text-red-200">
-                  <p className="text-[10px] font-semibold uppercase tracking-wide">Motivo da urgência</p>
-                  <p className="mt-1 whitespace-pre-wrap leading-relaxed">{chamado.urgenciaDescricao}</p>
-                </div>
-              )}
-              <p className="whitespace-pre-wrap text-sm leading-relaxed text-zinc-700 dark:text-zinc-300">{chamado.descricao}</p>
-            </SurfaceCard>
+              <SurfaceCard
+                title="Anexos"
+                subtitle="Arquivos compartilhados para apoiar análise e resolução"
+                icon={<Download className="h-4 w-4" />}
+              >
+                {chamado.anexos.length === 0 ? (
+                  <div className="rounded-xl border border-dashed border-zinc-300 bg-zinc-50/70 px-4 py-6 text-center text-sm text-zinc-500 dark:border-zinc-700 dark:bg-zinc-900/40 dark:text-zinc-400">
+                    Nenhum anexo enviado até o momento.
+                  </div>
+                ) : (
+                  <ul className="space-y-2.5">
+                    {chamado.anexos.map((anexo) => (
+                      <li
+                        key={anexo.id}
+                        className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-zinc-200/80 bg-zinc-50/70 px-3.5 py-3 dark:border-zinc-800 dark:bg-zinc-900/50"
+                      >
+                        <div className="min-w-0">
+                          <p className="truncate text-sm font-semibold text-zinc-800 dark:text-zinc-100">{anexo.nomeOriginal}</p>
+                          <p className="mt-0.5 text-xs text-zinc-500 dark:text-zinc-400">
+                            {anexo.mimeType} • {formatFileSize(anexo.tamanhoBytes)}
+                          </p>
+                        </div>
+                        <a
+                          href={anexo.url}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-300 bg-white px-2.5 py-1.5 text-xs font-semibold text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:bg-zinc-800"
+                        >
+                          <Download className="h-3.5 w-3.5" aria-hidden="true" />
+                          Abrir
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </SurfaceCard>
+            </div>
           </div>
-
-          <SurfaceCard
-            title="Anexos"
-            subtitle="Arquivos compartilhados para apoiar análise e resolução"
-            icon={<Download className="h-4 w-4" />}
-          >
-            {chamado.anexos.length === 0 ? (
-              <div className="rounded-xl border border-dashed border-zinc-300 bg-zinc-50/70 px-4 py-6 text-center text-sm text-zinc-500 dark:border-zinc-700 dark:bg-zinc-900/40 dark:text-zinc-400">
-                Nenhum anexo enviado até o momento.
-              </div>
-            ) : (
-              <ul className="space-y-2.5">
-                {chamado.anexos.map((anexo) => (
-                  <li
-                    key={anexo.id}
-                    className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-zinc-200/80 bg-zinc-50/70 px-3.5 py-3 dark:border-zinc-800 dark:bg-zinc-900/50"
-                  >
-                    <div className="min-w-0">
-                      <p className="truncate text-sm font-semibold text-zinc-800 dark:text-zinc-100">{anexo.nomeOriginal}</p>
-                      <p className="mt-0.5 text-xs text-zinc-500 dark:text-zinc-400">
-                        {anexo.mimeType} • {formatFileSize(anexo.tamanhoBytes)}
-                      </p>
-                    </div>
-                    <a
-                      href={anexo.url}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-300 bg-white px-2.5 py-1.5 text-xs font-semibold text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:bg-zinc-800"
-                    >
-                      <Download className="h-3.5 w-3.5" aria-hidden="true" />
-                      Abrir
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </SurfaceCard>
 
           <HistoricoStatusPanel chamado={chamado} />
         </main>
 
-        <aside className="space-y-4 xl:sticky xl:top-20 xl:self-start">
+        <aside className="space-y-4">
           {canSolicitanteAction && <AcoesSolicitanteForm chamadoId={chamado.id} />}
 
           {!canAtend && !canSolicitanteAction && (
