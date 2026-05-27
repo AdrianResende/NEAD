@@ -110,8 +110,12 @@ export async function atualizarChamadoAction(
   const urgenteDefinido = urgenteAtendimento === "sim" || urgenteAtendimento === "nao";
   const novoUrgente = urgenteAtendimento === "sim";
 
-  if (urgenteDefinido && novoUrgente && !urgenciaDescricaoAtendimento) {
+  if (urgenteDefinido && novoUrgente && !urgenciaDescricaoAtendimento && !chamado.urgencia_descricao) {
     return { error: "Descreva o motivo da urgência." };
+  }
+
+  if (chamado.urgencia_descricao && urgenteDefinido && novoUrgente !== chamado.urgente) {
+    return { error: "A prioridade não pode ser alterada após o registro da justificativa." };
   }
 
   if (urgenciaDescricaoAtendimento && urgenciaDescricaoAtendimento.length > 800) {
