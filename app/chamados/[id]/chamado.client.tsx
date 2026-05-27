@@ -355,35 +355,45 @@ export function ChamadoDetalheClient({ chamado, currentUserId, currentUserRole, 
         aria-hidden="true"
       />
 
-      <div className="mb-6 rounded-2xl border border-zinc-200/80 bg-white/90 p-4 shadow-sm ring-1 ring-zinc-100/60 backdrop-blur-sm dark:border-zinc-800 dark:bg-zinc-950 dark:ring-zinc-900 sm:p-5">
-        <Link
-          href={ROUTES.CHAMADOS}
-          className="inline-flex items-center gap-2 rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:bg-zinc-800"
-          title="Voltar para chamados"
-        >
-          <ArrowLeft className="h-4 w-4" aria-hidden="true" />
-          <span>Voltar</span>
-        </Link>
+      <div className="mb-6 rounded-2xl border border-zinc-200/80 bg-white/95 p-5 shadow-sm ring-1 ring-zinc-100/60 backdrop-blur-sm dark:border-zinc-800 dark:bg-zinc-950 dark:ring-zinc-900 sm:p-6">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+          <div className="space-y-3">
+            <Link
+              href={ROUTES.CHAMADOS}
+              className="inline-flex items-center gap-2 rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:bg-zinc-800"
+              title="Voltar para chamados"
+            >
+              <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+              <span>Voltar</span>
+            </Link>
 
-        <div className="mt-2 grid gap-4 sm:gap-5">
-          {/* Linha 1: Título e Status */}
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-            <div className="space-y-1.5">
-              <div className="flex items-center gap-2.5">
-                <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-zinc-200 bg-zinc-50 text-zinc-600 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300">
-                  <LifeBuoy className="h-4 w-4" aria-hidden="true" />
-                </span>
-                <span className="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Chamado #{chamado.id}</span>
-                <Badge variant={chamado.urgente ? "danger" : "default"}>
-                  {chamado.urgente ? "Urgente" : "Não urgente"}
-                </Badge>
-              </div>
-              <h1 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">{chamado.titulo}</h1>
+            <div className="flex flex-wrap items-center gap-2.5">
+              <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-zinc-200 bg-zinc-50 text-zinc-600 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300">
+                <LifeBuoy className="h-4 w-4" aria-hidden="true" />
+              </span>
+              <span className="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Chamado #{chamado.id}</span>
+              <Badge variant={chamado.urgente ? "danger" : "default"}>
+                {chamado.urgente ? "Urgente" : "Não urgente"}
+              </Badge>
             </div>
 
-            <div className="grid w-full max-w-md gap-2 self-start rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-2.5 dark:border-zinc-800 dark:bg-zinc-900 sm:w-auto">
+            <h1 className="max-w-3xl text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">
+              {chamado.titulo}
+            </h1>
+          </div>
+
+          <div className="w-full rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-3 dark:border-zinc-800 dark:bg-zinc-900 lg:max-w-sm">
+            <div className="flex flex-col gap-2.5 sm:flex-row sm:items-start sm:justify-between">
+              <div className="min-w-0">
+                <p className="text-[10px] font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Datas</p>
+                <div className="mt-1.5 grid gap-1.5 text-xs text-zinc-600 dark:text-zinc-300">
+                  <p>Criado: {formatDateTime(chamado.createdAt)}</p>
+                  <p>Atualizado: {formatDateTime(chamado.updatedAt)}</p>
+                </div>
+              </div>
+
               {canAtend && (
-                <div className="flex justify-end">
+                <div className="sm:shrink-0 sm:pt-4">
                   <Button
                     type="submit"
                     size="sm"
@@ -397,11 +407,13 @@ export function ChamadoDetalheClient({ chamado, currentUserId, currentUserRole, 
                   </Button>
                 </div>
               )}
-              <p className="text-[10px] font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Datas</p>
-              <p className="text-xs text-zinc-600 dark:text-zinc-300">Criado: {formatDateTime(chamado.createdAt)}</p>
-              <p className="text-xs text-zinc-600 dark:text-zinc-300">Atualizado: {formatDateTime(chamado.updatedAt)}</p>
             </div>
           </div>
+        </div>
+
+        <div className="my-4 h-px bg-zinc-200/80 dark:bg-zinc-800" />
+
+        <div className="grid gap-4 sm:gap-5">
 
           {/* Linha 2: Informações principais */}
           {canAtend ? (
