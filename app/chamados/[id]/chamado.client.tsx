@@ -277,8 +277,8 @@ function HistoricoStatusPanel({ chamado }: { chamado: Chamado }) {
       {chamado.historicoStatus.length === 0 ? (
         <p className="text-sm text-zinc-500 dark:text-zinc-400">Nenhuma mudança de status registrada.</p>
       ) : (
-        <ol className="space-y-3">
-          {chamado.historicoStatus.map((item, index) => {
+        <ol className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
+          {chamado.historicoStatus.map((item) => {
             const ToIcon = STATUS_ICON[item.paraStatus] ?? CircleDashed;
             return (
               <li
@@ -309,12 +309,6 @@ function HistoricoStatusPanel({ chamado }: { chamado: Chamado }) {
                     <p className="mt-0.5 text-[11px] text-zinc-500 dark:text-zinc-400">{formatDateTime(item.createdAt)}</p>
                   </div>
                 </div>
-                {index < chamado.historicoStatus.length - 1 && (
-                  <span
-                    className="pointer-events-none absolute left-[1.08rem] top-[2.6rem] h-4 w-px bg-zinc-300/70 dark:bg-zinc-700"
-                    aria-hidden="true"
-                  />
-                )}
               </li>
             );
           })}
