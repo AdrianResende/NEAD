@@ -475,7 +475,6 @@ export function ChamadoDetalheClient({ chamado, currentUserId, currentUserRole, 
                         { value: "sim", label: "Urgente" },
                       ]}
                       value={urgenteAtendimento}
-                      disabled={urgenciaJaRegistrada}
                       onChange={(event) => {
                         const value = event.target.value as "sim" | "nao";
                         setUrgenteAtendimento(value);
@@ -485,11 +484,6 @@ export function ChamadoDetalheClient({ chamado, currentUserId, currentUserRole, 
                       }}
                     />
                   </div>
-                  {urgenciaJaRegistrada && (
-                    <p className="mt-1.5 text-[11px] text-zinc-500 dark:text-zinc-400">
-                      Prioridade travada após registro da justificativa.
-                    </p>
-                  )}
                 </div>
               </div>
 

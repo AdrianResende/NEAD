@@ -126,6 +126,16 @@ export async function abrirChamadoAction(
       },
     });
 
+    if (urgente && urgenciaDescricao) {
+      await tx.chamadoMensagem.create({
+        data: {
+          chamado_id: criado.id,
+          autor_id: user.id,
+          mensagem: `Prioridade atualizada para Urgente.\nMotivo: ${urgenciaDescricao}`,
+        },
+      });
+    }
+
     if (atendenteId) {
       await tx.chamadoStatusHistorico.create({
         data: {

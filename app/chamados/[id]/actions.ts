@@ -114,10 +114,6 @@ export async function atualizarChamadoAction(
     return { error: "Descreva o motivo da urgência." };
   }
 
-  if (chamado.urgencia_descricao && urgenteDefinido && novoUrgente !== chamado.urgente) {
-    return { error: "A prioridade não pode ser alterada após o registro da justificativa." };
-  }
-
   if (urgenciaDescricaoAtendimento && urgenciaDescricaoAtendimento.length > 800) {
     return { error: "A justificativa de urgência deve ter no máximo 800 caracteres." };
   }

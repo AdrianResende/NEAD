@@ -62,6 +62,8 @@ export function NovoChamadoForm({ servicos }: { servicos: ServicoOption[] }) {
     [servicoOptions, servicoSelecionado],
   );
 
+  const termoFiltro = filtroServico.trim();
+
   function handleSelecionarArquivos(event: React.ChangeEvent<HTMLInputElement>) {
     const files = Array.from(event.target.files ?? []);
     setArquivosSelecionados(files);
@@ -84,35 +86,54 @@ export function NovoChamadoForm({ servicos }: { servicos: ServicoOption[] }) {
   return (
     <>
       <form action={action}>
-        <Field label="Serviço" htmlFor="servico_id" required>
-          <Input
-            id="filtro_servico"
-            type="text"
-            placeholder="Filtrar serviço por nome"
-            value={filtroServico}
-            onChange={(event) => setFiltroServico(event.target.value)}
-            className="mb-2"
-          />
+        <Field
+          label="Serviço"
+          htmlFor="servico_id"
+          required
+          hint="Primeiro filtre pelo nome ou setor e depois escolha uma opção na lista."
+        >
+          <div className="space-y-2.5 rounded-xl border border-zinc-200/80 bg-zinc-50/70 p-3 dark:border-zinc-800 dark:bg-zinc-900/40">
+            <Input
+              id="filtro_servico"
+              type="text"
+              placeholder="Buscar serviço (ex: Impressora, TI, Secretaria...)"
+              value={filtroServico}
+              onChange={(event) => setFiltroServico(event.target.value)}
+            />
 
-          <Select
-            id="servico_id"
-            name="servico_id"
-            options={servicoOptionsFiltrados}
-            placeholder="Selecione um serviço"
-            value={servicoSelecionado}
-            onChange={(event) => setServicoSelecionado(event.target.value)}
-            required
-          />
+            <Select
+              id="servico_id"
+              name="servico_id"
+              options={servicoOptionsFiltrados}
+              placeholder={termoFiltro ? "Selecione um serviço filtrado" : "Selecione um serviço"}
+              value={servicoSelecionado}
+              onChange={(event) => setServicoSelecionado(event.target.value)}
+              required
+            />
 
-          {servicoOptionsFiltrados.length === 0 && (
-            <p className="mt-2 text-sm text-zinc-500 dark:text-zinc-400">
-              Nenhum serviço encontrado para o filtro informado.
-            </p>
-          )}
+            <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-zinc-500 dark:text-zinc-400">
+              <span>{servicoOptionsFiltrados.length} serviço(s) encontrado(s)</span>
+              {termoFiltro && (
+                <button
+                  type="button"
+                  onClick={() => setFiltroServico("")}
+                  className="rounded-md border border-zinc-300 px-2 py-1 font-medium text-zinc-600 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800"
+                >
+                  Limpar busca
+                </button>
+              )}
+            </div>
+
+            {servicoOptionsFiltrados.length === 0 && (
+              <p className="text-sm text-zinc-500 dark:text-zinc-400">
+                Nenhum serviço encontrado. Tente outro termo de busca.
+              </p>
+            )}
+          </div>
 
           {servicoSelecionadoLabel && (
             <p className="mt-2 text-xs text-zinc-500 dark:text-zinc-400">
-              Serviço selecionado: <span className="font-medium text-zinc-700 dark:text-zinc-200">{servicoSelecionadoLabel}</span>
+              Selecionado: <span className="font-medium text-zinc-700 dark:text-zinc-200">{servicoSelecionadoLabel}</span>
             </p>
           )}
         </Field>
@@ -130,7 +151,8 @@ export function NovoChamadoForm({ servicos }: { servicos: ServicoOption[] }) {
           <Textarea
             id="descricao"
             name="descricao"
-            rows={5}
+            rows={3}
+            className="text-xs sm:text-sm"
             placeholder="Descreva detalhadamente o problema ou solicitação..."
           />
         </Field>
