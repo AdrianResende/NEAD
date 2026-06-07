@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect, useState } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -197,6 +197,7 @@ function MensagensPanel({
   currentUserId: number;
 }) {
   const [state, action, pending] = useActionState(enviarMensagemChamadoAction, {});
+  const mensagensContainerRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     if (state.error) {
@@ -207,6 +208,12 @@ function MensagensPanel({
     }
   }, [state.error, state.success]);
 
+  useEffect(() => {
+    const container = mensagensContainerRef.current;
+    if (!container) return;
+    container.scrollTop = container.scrollHeight;
+  }, [chamado.mensagens.length]);
+
   return (
     <SurfaceCard
       title="Conversa do chamado"
@@ -214,7 +221,10 @@ function MensagensPanel({
       icon={<MessageSquareText className="h-4 w-4" />}
       className="h-full"
     >
-      <div className="mb-4 max-h-[28rem] space-y-3 overflow-y-auto rounded-2xl border border-zinc-200/80 bg-zinc-50/60 p-3.5 dark:border-zinc-800 dark:bg-zinc-900/40 sm:p-4">
+      <div
+        ref={mensagensContainerRef}
+        className="mb-4 max-h-[28rem] space-y-3 overflow-y-auto rounded-2xl border border-zinc-200/80 bg-zinc-50/60 p-3.5 dark:border-zinc-800 dark:bg-zinc-900/40 sm:p-4"
+      >
         {chamado.mensagens.length === 0 ? (
           <div className="rounded-xl border border-dashed border-zinc-300 bg-white px-4 py-6 text-center text-sm text-zinc-500 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-400">
             Nenhuma mensagem ainda. Inicie a conversa com contexto objetivo para agilizar o atendimento.
@@ -227,8 +237,8 @@ function MensagensPanel({
                 <div
                   className={
                     isMine
-                      ? "max-w-[92%] rounded-2xl rounded-br-md bg-primary px-3.5 py-3 text-white shadow-sm sm:max-w-[78%]"
-                      : "max-w-[92%] rounded-2xl rounded-bl-md border border-zinc-200 bg-white px-3.5 py-3 text-zinc-800 shadow-sm dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-100 sm:max-w-[78%]"
+                      ? "max-w-[96%] rounded-2xl rounded-br-md bg-sky-600 px-3.5 py-3 text-white shadow-sm sm:max-w-[90%]"
+                      : "max-w-[96%] rounded-2xl rounded-bl-md border border-zinc-200 bg-white px-3.5 py-3 text-zinc-800 shadow-sm dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-100 sm:max-w-[90%]"
                   }
                 >
                   <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
@@ -258,6 +268,15 @@ function MensagensPanel({
             rows={3}
           />
         </Field>
+        <Field label="Anexo (opcional)" htmlFor="mensagem-anexo">
+          <input
+            id="mensagem-anexo"
+            name="anexo"
+            type="file"
+            accept=".pdf,image/png,image/jpeg,image/jpg,image/webp"
+            className="block w-full cursor-pointer rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-700 outline-none transition-colors file:mr-3 file:cursor-pointer file:rounded-md file:border-0 file:bg-zinc-100 file:px-3 file:py-1.5 file:text-xs file:font-medium file:text-zinc-700 hover:file:bg-zinc-200 focus:ring-2 focus:ring-[color:var(--color-primary-ring)] dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200 dark:file:bg-zinc-800 dark:file:text-zinc-200 dark:hover:file:bg-zinc-700"
+          />
+        </Field>
         <Button type="submit" disabled={pending} title="Enviar mensagem">
           <SendHorizonal className="h-4 w-4" aria-hidden="true" />
           {pending ? "Enviando..." : "Enviar mensagem"}
@@ -277,37 +296,42 @@ function HistoricoStatusPanel({ chamado }: { chamado: Chamado }) {
       {chamado.historicoStatus.length === 0 ? (
         <p className="text-sm text-zinc-500 dark:text-zinc-400">Nenhuma mudança de status registrada.</p>
       ) : (
-        <ol className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
-          {chamado.historicoStatus.map((item) => {
-            const ToIcon = STATUS_ICON[item.paraStatus] ?? CircleDashed;
+        <ol className="grid grid-cols-2 gap-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6">
+          {chamado.historicoStatus.map((item, index) => {
             return (
               <li
                 key={item.id}
-                className="relative rounded-xl border border-zinc-200/80 bg-zinc-50/60 p-3.5 dark:border-zinc-800 dark:bg-zinc-900/50 sm:p-4"
+                className="relative rounded-lg border border-zinc-200/80 bg-zinc-50/60 p-2.5 dark:border-zinc-800 dark:bg-zinc-900/50"
               >
-                <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-start sm:gap-4">
-                  <div className="flex items-start gap-3">
-                    <span className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-zinc-200 bg-white text-zinc-600 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-300">
-                      <ToIcon className="h-4 w-4" aria-hidden="true" />
-                    </span>
+                <div className="space-y-2">
+                  <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <Badge variant="default">{STATUS_LABEL[item.deStatus] ?? item.deStatus}</Badge>
-                        <span className="text-xs text-zinc-400 dark:text-zinc-500">→</span>
-                        <Badge variant={STATUS_BADGE[item.paraStatus] ?? "default"}>
-                          {STATUS_LABEL[item.paraStatus] ?? item.paraStatus}
-                        </Badge>
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        {index === 0 ? (
+                          <>
+                            <Badge variant="default">{STATUS_LABEL[item.deStatus] ?? item.deStatus}</Badge>
+                            <span className="text-xs text-zinc-400 dark:text-zinc-500">→</span>
+                            <Badge variant={STATUS_BADGE[item.paraStatus] ?? "default"}>
+                              {STATUS_LABEL[item.paraStatus] ?? item.paraStatus}
+                            </Badge>
+                          </>
+                        ) : (
+                          <Badge variant={STATUS_BADGE[item.paraStatus] ?? "default"}>
+                            {STATUS_LABEL[item.paraStatus] ?? item.paraStatus}
+                          </Badge>
+                        )}
                       </div>
-                      {item.observacao && (
-                        <p className="mt-2 text-xs leading-relaxed text-zinc-600 dark:text-zinc-300">{item.observacao}</p>
-                      )}
+                    </div>
+
+                    <div className="w-fit rounded-md border border-zinc-200/80 bg-white px-1.5 py-1 text-right dark:border-zinc-800 dark:bg-zinc-950">
+                      <p className="text-[10px] font-medium leading-tight text-zinc-700 dark:text-zinc-200">{item.autorNome}</p>
+                      <p className="mt-0.5 whitespace-nowrap text-[10px] leading-tight text-zinc-500 dark:text-zinc-400">{formatDateTime(item.createdAt)}</p>
                     </div>
                   </div>
 
-                  <div className="rounded-lg border border-zinc-200/80 bg-white px-2.5 py-1.5 text-right dark:border-zinc-800 dark:bg-zinc-950">
-                    <p className="text-[11px] font-medium text-zinc-700 dark:text-zinc-200">{item.autorNome}</p>
-                    <p className="mt-0.5 text-[11px] text-zinc-500 dark:text-zinc-400">{formatDateTime(item.createdAt)}</p>
-                  </div>
+                  {item.observacao && (
+                    <p className="text-[11px] leading-relaxed text-zinc-600 dark:text-zinc-300">{item.observacao}</p>
+                  )}
                 </div>
               </li>
             );
@@ -358,16 +382,16 @@ export function ChamadoDetalheClient({ chamado, currentUserId, currentUserRole, 
       <div className="mb-6 rounded-2xl border border-zinc-200/80 bg-white/95 p-5 shadow-sm ring-1 ring-zinc-100/60 backdrop-blur-sm dark:border-zinc-800 dark:bg-zinc-950 dark:ring-zinc-900 sm:p-6">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div className="space-y-3">
-            <Link
-              href={ROUTES.CHAMADOS}
-              className="inline-flex items-center gap-2 rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:bg-zinc-800"
-              title="Voltar para chamados"
-            >
-              <ArrowLeft className="h-4 w-4" aria-hidden="true" />
-              <span>Voltar</span>
-            </Link>
-
             <div className="flex flex-wrap items-center gap-2.5">
+              <Link
+                href={ROUTES.CHAMADOS}
+                className="inline-flex items-center gap-2 rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:bg-zinc-800"
+                title="Voltar para chamados"
+              >
+                <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+                <span>Voltar</span>
+              </Link>
+
               <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-zinc-200 bg-zinc-50 text-zinc-600 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300">
                 <LifeBuoy className="h-4 w-4" aria-hidden="true" />
               </span>
@@ -389,6 +413,12 @@ export function ChamadoDetalheClient({ chamado, currentUserId, currentUserRole, 
                 <div className="mt-1.5 grid gap-1.5 text-xs text-zinc-600 dark:text-zinc-300">
                   <p>Criado: {formatDateTime(chamado.createdAt)}</p>
                   <p>Atualizado: {formatDateTime(chamado.updatedAt)}</p>
+                  <div className="flex items-center gap-1.5">
+                    <span>Status atual:</span>
+                    <Badge variant={STATUS_BADGE[chamado.status] ?? "default"}>
+                      {STATUS_LABEL[chamado.status] ?? chamado.status}
+                    </Badge>
+                  </div>
                 </div>
               </div>
 
@@ -567,20 +597,20 @@ export function ChamadoDetalheClient({ chamado, currentUserId, currentUserRole, 
 
       <div className="grid gap-6">
         <main className="space-y-6">
+          <SurfaceCard
+            title="Descrição"
+            subtitle="Contexto inicial informado na abertura do chamado"
+            icon={<FileText className="h-4 w-4" />}
+          >
+            <p className="whitespace-pre-wrap text-sm leading-relaxed text-zinc-700 dark:text-zinc-300">{chamado.descricao}</p>
+          </SurfaceCard>
+
           <div className="grid gap-6 lg:grid-cols-[minmax(0,7fr)_minmax(0,3fr)] lg:items-start">
             <MensagensPanel chamado={chamado} currentUserId={currentUserId} />
             <div className="space-y-6 lg:self-start">
               <SurfaceCard
-                title="Descrição"
-                subtitle="Contexto inicial informado na abertura do chamado"
-                icon={<FileText className="h-4 w-4" />}
-              >
-                <p className="whitespace-pre-wrap text-sm leading-relaxed text-zinc-700 dark:text-zinc-300">{chamado.descricao}</p>
-              </SurfaceCard>
-
-              <SurfaceCard
-                title="Anexos"
-                subtitle="Arquivos compartilhados para apoiar análise e resolução"
+                title="Documentos e prints de apoio"
+                subtitle="Materiais enviados para auxiliar o atendimento do chamado"
                 icon={<Download className="h-4 w-4" />}
               >
                 {chamado.anexos.length === 0 ? (
