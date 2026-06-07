@@ -26,7 +26,7 @@ import { notifyError, notifySuccess } from "@/lib/toast";
 
 type Setor = { id: number; nome: string };
 
-type Atendente = { id: number; nome: string; email: string };
+type Atendente = { id: number; nome: string; email: string; role?: string };
 
 type Servico = {
   id: number;
@@ -136,6 +136,7 @@ export function ServicosClient({
   atendentesDisponiveis?: Atendente[];
 }) {
   const router = useRouter();
+  const [filtro, setFiltro] = useState("");
   const [showCriar, setShowCriar] = useState(false);
   const [editando, setEditando] = useState<Servico | null>(null);
   const [gerenciandoAtendentesId, setGerenciandoAtendentesId] = useState<number | null>(null);
@@ -182,9 +183,18 @@ export function ServicosClient({
 
   const atendentesSemVinculo = gerenciandoAtendentes
     ? atendentesDisponiveis.filter(
-        (a) => !gerenciandoAtendentes.atendentes.some((at) => at.id === a.id)
+        (a) => a.role === "atendente" && !gerenciandoAtendentes.atendentes.some((at) => at.id === a.id)
       )
     : [];
+
+  const filtroNormalizado = filtro.trim().toLowerCase();
+  const servicosFiltrados = servicos.filter((servico) => {
+    if (!filtroNormalizado) return true;
+    return (
+      servico.nome.toLowerCase().includes(filtroNormalizado) ||
+      servico.setor.nome.toLowerCase().includes(filtroNormalizado)
+    );
+  });
 
   return (
     <div className="w-full px-4 py-8 sm:px-6 lg:px-8">
@@ -221,15 +231,26 @@ export function ServicosClient({
             </Button>
           </div>
         </div>
+
+        <div className="mt-4">
+          <Field label="Filtro" htmlFor="servico-filtro">
+            <Input
+              id="servico-filtro"
+              value={filtro}
+              onChange={(e) => setFiltro(e.target.value)}
+              placeholder="Filtre o setor ou serviço"
+            />
+          </Field>
+        </div>
       </div>
 
       <div className="space-y-3 md:hidden">
-        {servicos.length === 0 ? (
+        {servicosFiltrados.length === 0 ? (
           <div className="rounded-2xl border border-zinc-200/80 bg-white p-4 text-sm text-zinc-500 shadow-sm dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-400">
-            Nenhum serviço cadastrado.
+            {filtroNormalizado ? "Nenhum serviço encontrado para o filtro." : "Nenhum serviço cadastrado."}
           </div>
         ) : (
-          servicos.map((s) => (
+          servicosFiltrados.map((s) => (
             <article key={s.id} className="rounded-2xl border border-zinc-200/80 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
@@ -276,10 +297,10 @@ export function ServicosClient({
             </tr>
           </TableHead>
           <TableBody>
-            {servicos.length === 0 ? (
-              <TableEmpty colSpan={4} message="Nenhum serviço cadastrado." />
+            {servicosFiltrados.length === 0 ? (
+              <TableEmpty colSpan={4} message={filtroNormalizado ? "Nenhum serviço encontrado para o filtro." : "Nenhum serviço cadastrado."} />
             ) : (
-              servicos.map((s) => (
+              servicosFiltrados.map((s) => (
                 <Tr key={s.id}>
                   <Td className="font-semibold">{s.nome}</Td>
                   <Td className="text-zinc-500 dark:text-zinc-400">{s.descricao ?? "—"}</Td>
@@ -320,29 +341,39 @@ export function ServicosClient({
       )}
       {editando && (
         <Modal title="Editar Serviço" onClose={() => setEditando(null)}>
-          <EditarServicoForm servico={editando} setores={setores} setorFixo={setorAtual} onClose={() => setEditando(null)} />
+          <EditarServicoForm key={editando.id} servico={editando} setores={setores} setorFixo={setorAtual} onClose={() => setEditando(null)} />
         </Modal>
       )}
 
       {gerenciandoAtendentes && (
         <Modal title={`Atendentes: ${gerenciandoAtendentes.nome}`} onClose={() => setGerenciandoAtendentesId(null)}>
-          <div className="space-y-4">
+          <div className="space-y-5">
             <div>
-              <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-50 mb-2">Atendentes Vinculados ({gerenciandoAtendentes.atendentes.length})</h3>
+              <div className="mb-2 flex items-center justify-between">
+                <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-50">Atendentes vinculados</h3>
+                <Badge variant="info">{gerenciandoAtendentes.atendentes.length}</Badge>
+              </div>
               {gerenciandoAtendentes.atendentes.length === 0 ? (
-                <p className="text-sm text-zinc-500 dark:text-zinc-400">Nenhum atendente vinculado.</p>
+                <p className="rounded-lg border border-dashed border-zinc-300 bg-zinc-50 p-3 text-sm text-zinc-500 dark:border-zinc-700 dark:bg-zinc-900/40 dark:text-zinc-400">
+                  Nenhum atendente vinculado.
+                </p>
               ) : (
-                <div className="space-y-2 mb-4">
+                <div className="mb-4 space-y-2">
                   {gerenciandoAtendentes.atendentes.map((atendente) => (
-                    <div key={atendente.id} className="flex items-center justify-between rounded-lg border border-zinc-200 bg-zinc-50 p-3 dark:border-zinc-800 dark:bg-zinc-900/50">
+                    <div key={atendente.id} className="flex items-center justify-between rounded-xl border border-zinc-200 bg-zinc-50 p-3 dark:border-zinc-800 dark:bg-zinc-900/50">
                       <div>
-                        <p className="text-sm font-medium text-zinc-900 dark:text-zinc-50">{atendente.nome}</p>
+                        <div className="flex items-center gap-2">
+                          <p className="text-sm font-medium text-zinc-900 dark:text-zinc-50">{atendente.nome}</p>
+                          <Badge variant={atendente.role === "atendente" ? "success" : "warning"}>
+                            {atendente.role === "atendente" ? "Atendente" : "Perfil inválido"}
+                          </Badge>
+                        </div>
                         <p className="text-xs text-zinc-500 dark:text-zinc-400">{atendente.email}</p>
                       </div>
                       <Form action={removeAtendenteAction}>
                         <input type="hidden" name="servico_id" value={gerenciandoAtendentes.id} />
                         <input type="hidden" name="user_id" value={atendente.id} />
-                        <Button type="submit" variant="danger" size="sm" loading={isRemovingAtendente} aria-label={`Remover ${atendente.nome}`} title={`Remover ${atendente.nome}`}>
+                        <Button type="submit" variant="outline" size="sm" loading={isRemovingAtendente} aria-label={`Remover ${atendente.nome}`} title={`Remover ${atendente.nome}`}>
                           <Trash2 className="h-4 w-4" aria-hidden="true" />
                         </Button>
                       </Form>
@@ -360,7 +391,7 @@ export function ServicosClient({
                   <div className="flex gap-2">
                     <Select
                       name="user_id"
-                      options={atendentesSemVinculo.map((a) => ({ value: String(a.id), label: a.nome }))}
+                      options={atendentesSemVinculo.map((a) => ({ value: String(a.id), label: `${a.nome} - ${a.email}` }))}
                       placeholder="Selecionar atendente"
                     />
                     <Button type="submit" loading={isAddingAtendente} title="Adicionar atendente">
@@ -369,6 +400,12 @@ export function ServicosClient({
                   </div>
                 </Form>
               </div>
+            )}
+
+            {atendentesSemVinculo.length === 0 && (
+              <p className="rounded-lg border border-dashed border-zinc-300 bg-zinc-50 p-3 text-sm text-zinc-500 dark:border-zinc-700 dark:bg-zinc-900/40 dark:text-zinc-400">
+                Todos os atendentes ativos já estão vinculados a este serviço.
+              </p>
             )}
           </div>
         </Modal>
