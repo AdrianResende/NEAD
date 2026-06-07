@@ -3,6 +3,8 @@
 import type { PrismaPromise } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
+import { mkdir, writeFile } from "node:fs/promises";
+import path from "node:path";
 import { SESSION_COOKIE_NAME, validateSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
@@ -17,6 +19,12 @@ export type MensagemChamadoState = {
 };
 
 const STATUS_VALIDOS = ["aberto", "atribuido", "em_andamento", "resolvido", "fechado", "cancelado"] as const;
+const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024;
+const ALLOWED_MIME_TYPES = ["application/pdf", "image/png", "image/jpeg", "image/jpg", "image/webp"];
+
+function sanitizeFileName(fileName: string) {
+  return fileName.replace(/[^a-zA-Z0-9._-]/g, "_");
+}
 
 export async function atualizarChamadoAction(
   _prevState: AtenderChamadoState,
@@ -134,6 +142,10 @@ export async function atualizarChamadoAction(
   }
 
   if (atendente_id !== undefined) {
+    if (user.role !== "admin") {
+      return { error: "Apenas administradores podem alterar a atribuição do chamado." };
+    }
+
     if (isNaN(atendente_id)) return { error: "Atendente inválido." };
     if (!atendente_id) {
       updateData.atendente_id = null;
@@ -237,17 +249,29 @@ export async function enviarMensagemChamadoAction(
 
   const chamadoId = Number(formData.get("chamado_id"));
   const mensagem = (formData.get("mensagem") as string | null)?.trim();
+  const anexo = formData.get("anexo");
+  const arquivo = anexo instanceof File && anexo.size > 0 ? anexo : null;
 
   if (!chamadoId || Number.isNaN(chamadoId)) {
     return { error: "Chamado inválido." };
   }
 
-  if (!mensagem) {
-    return { error: "Digite uma mensagem." };
+  if (!mensagem && !arquivo) {
+    return { error: "Digite uma mensagem ou envie um anexo." };
   }
 
-  if (mensagem.length > 2000) {
+  if (mensagem && mensagem.length > 2000) {
     return { error: "A mensagem deve ter no máximo 2000 caracteres." };
+  }
+
+  if (arquivo) {
+    if (!ALLOWED_MIME_TYPES.includes(arquivo.type)) {
+      return { error: "Tipo de arquivo não permitido. Envie apenas imagens ou PDF." };
+    }
+
+    if (arquivo.size > MAX_FILE_SIZE_BYTES) {
+      return { error: "O arquivo excede o limite de 5MB." };
+    }
   }
 
   const chamado = await prisma.chamado.findUnique({
@@ -280,13 +304,46 @@ export async function enviarMensagemChamadoAction(
     return { error: "Sem permissão." };
   }
 
-  await prisma.chamadoMensagem.create({
-    data: {
-      chamado_id: chamadoId,
-      autor_id: user.id,
-      mensagem,
-    },
-  });
+  const operations: PrismaPromise<any>[] = [];
+
+  if (mensagem) {
+    operations.push(
+      prisma.chamadoMensagem.create({
+        data: {
+          chamado_id: chamadoId,
+          autor_id: user.id,
+          mensagem,
+        },
+      }),
+    );
+  }
+
+  if (operations.length > 0) {
+    await prisma.$transaction(operations);
+  }
+
+  if (arquivo) {
+    const uploadDir = path.join(process.cwd(), "public", "uploads", "chamados", String(chamadoId));
+    await mkdir(uploadDir, { recursive: true });
+
+    const extension = path.extname(arquivo.name).toLowerCase();
+    const baseName = sanitizeFileName(path.basename(arquivo.name, extension));
+    const storedFileName = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}-${baseName}${extension}`;
+    const targetPath = path.join(uploadDir, storedFileName);
+    const bytes = Buffer.from(await arquivo.arrayBuffer());
+
+    await writeFile(targetPath, bytes);
+
+    await prisma.chamadoAnexo.create({
+      data: {
+        chamado_id: chamadoId,
+        nome_original: arquivo.name,
+        mime_type: arquivo.type,
+        tamanho_bytes: arquivo.size,
+        url: `/uploads/chamados/${chamadoId}/${storedFileName}`,
+      },
+    });
+  }
 
   revalidatePath(`/chamados/${chamadoId}`);
   return { success: true };
