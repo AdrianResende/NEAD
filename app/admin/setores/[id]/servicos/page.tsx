@@ -62,12 +62,14 @@ export default async function SetorServicosPage({
           id: a.user.id,
           nome: a.user.nome,
           email: a.user.email,
+          role: a.user.role,
         })),
       }))}
       atendentesDisponiveis={atendentesDisponiveis.map((u) => ({
         id: u.id,
         nome: u.nome,
         email: u.email,
+        role: u.role,
       }))}
       setores={[{ id: setor.id, nome: setor.nome }]}
       setorAtual={{ id: setor.id, nome: setor.nome }}
