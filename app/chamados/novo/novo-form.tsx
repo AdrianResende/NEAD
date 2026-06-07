@@ -93,13 +93,26 @@ export function NovoChamadoForm({ servicos }: { servicos: ServicoOption[] }) {
           hint="Primeiro filtre pelo nome ou setor e depois escolha uma opção na lista."
         >
           <div className="space-y-2.5 rounded-xl border border-zinc-200/80 bg-zinc-50/70 p-3 dark:border-zinc-800 dark:bg-zinc-900/40">
+            <label
+              htmlFor="filtro_servico"
+              className="block text-sm font-medium text-zinc-700 dark:text-zinc-200"
+            >
+              Filtro de serviço
+            </label>
             <Input
               id="filtro_servico"
               type="text"
-              placeholder="Buscar serviço (ex: Impressora, TI, Secretaria...)"
+              placeholder="Filtre o setor ou serviço"
               value={filtroServico}
               onChange={(event) => setFiltroServico(event.target.value)}
             />
+
+            <label
+              htmlFor="servico_id"
+              className="block text-sm font-medium text-zinc-700 dark:text-zinc-200"
+            >
+              Serviço
+            </label>
 
             <Select
               id="servico_id"
@@ -186,7 +199,7 @@ export function NovoChamadoForm({ servicos }: { servicos: ServicoOption[] }) {
         <Field
           label="Anexos"
           htmlFor="anexos"
-          hint="Aceita imagens (PNG, JPG, WEBP) e PDF. Máximo de 5 arquivos com até 5MB cada."
+          hint="Dica: é recomendado enviar prints, documentos e outras evidências para auxiliar o atendente. Aceita imagens (PNG, JPG, WEBP) e PDF. Máximo de 5 arquivos com até 5MB cada."
         >
           <input
             id="anexos"
