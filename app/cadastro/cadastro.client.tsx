@@ -8,6 +8,7 @@ import {
   Field,
   Form,
   Input,
+  Pagination,
   Select,
   Table,
   TableBody,
@@ -19,6 +20,7 @@ import {
 } from "@/components/ui";
 import { criarUsuarioAction, editarUsuarioAction, toggleActivoUsuarioAction } from "./actions";
 import { notifyError, notifySuccess } from "@/lib/toast";
+import { PAGINATION } from "@/lib/constants";
 
 type User = {
   id: number;
@@ -114,6 +116,7 @@ export const CadastroClient = ({
   const [createServicoIds, setCreateServicoIds] = useState<string[]>([]);
   const [editSetorIds, setEditSetorIds] = useState<string[]>([]);
   const [editServicoIds, setEditServicoIds] = useState<string[]>([]);
+  const [paginaAtual, setPaginaAtual] = useState<number>(PAGINATION.DEFAULT_PAGE);
 
   const [createState, createAction, isCreating] = useActionState(criarUsuarioAction, {});
   const [editState, editAction, isEditing] = useActionState(editarUsuarioAction, {});
@@ -261,6 +264,16 @@ export const CadastroClient = ({
   }
 
   const users = aba === "ativos" ? usersAtivos : usersDesativados;
+  const totalPaginas = Math.max(1, Math.ceil(users.length / PAGINATION.DEFAULT_PER_PAGE));
+  const paginaNormalizada = Math.min(paginaAtual, totalPaginas);
+  const usersPaginados = useMemo(() => {
+    const start = (paginaNormalizada - 1) * PAGINATION.DEFAULT_PER_PAGE;
+    return users.slice(start, start + PAGINATION.DEFAULT_PER_PAGE);
+  }, [paginaNormalizada, users]);
+
+  useEffect(() => {
+    setPaginaAtual(PAGINATION.DEFAULT_PAGE);
+  }, [aba]);
 
   return (
     <div className="w-full px-4 py-8 sm:px-6 lg:px-8">
@@ -321,7 +334,7 @@ export const CadastroClient = ({
             Nenhum usuário cadastrado.
           </div>
         ) : (
-          users.map((user) => (
+          usersPaginados.map((user) => (
             <article key={user.id} className="rounded-2xl border border-zinc-200/80 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
@@ -403,7 +416,7 @@ export const CadastroClient = ({
           {users.length === 0 ? (
             <TableEmpty colSpan={canEdit ? 6 : 5} message={aba === "ativos" ? "Nenhum usuário cadastrado." : "Nenhum usuário desativado."} />
           ) : (
-            users.map((user) => (
+            usersPaginados.map((user) => (
               <Tr key={user.id}>
                 <Td>
                   <div className="space-y-1">
@@ -490,6 +503,15 @@ export const CadastroClient = ({
         </TableBody>
       </Table>
       </div>
+
+      <Pagination
+        page={paginaNormalizada}
+        totalPages={totalPaginas}
+        totalItems={users.length}
+        perPage={PAGINATION.DEFAULT_PER_PAGE}
+        onPageChange={setPaginaAtual}
+        label={aba === "ativos" ? "usuários ativos" : "usuários desativados"}
+      />
 
       {/* Modal: Novo usuário */}
       {createOpen && (

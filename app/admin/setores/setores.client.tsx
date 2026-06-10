@@ -1,15 +1,16 @@
 "use client";
 
 import Link from "next/link";
-import { useActionState, useEffect, useState } from "react";
+import { useActionState, useEffect, useMemo, useState } from "react";
 import { Plus, Edit2, Trash2, ExternalLink } from "lucide-react";
-import { ROUTES } from "@/lib/constants";
+import { PAGINATION, ROUTES } from "@/lib/constants";
 import {
   Badge,
   Button,
   Field,
   Form,
   Input,
+  Pagination,
   Table,
   TableBody,
   TableEmpty,
@@ -134,6 +135,14 @@ function EditarSetorModal({ setor, onClose }: { setor: Setor; onClose: () => voi
 export function SetoresClient({ setores }: { setores: Setor[] }) {
   const [showCriar, setShowCriar] = useState(false);
   const [editando, setEditando] = useState<Setor | null>(null);
+  const [paginaAtual, setPaginaAtual] = useState<number>(PAGINATION.DEFAULT_PAGE);
+
+  const totalPaginas = Math.max(1, Math.ceil(setores.length / PAGINATION.DEFAULT_PER_PAGE));
+  const paginaNormalizada = Math.min(paginaAtual, totalPaginas);
+  const setoresPaginados = useMemo(() => {
+    const start = (paginaNormalizada - 1) * PAGINATION.DEFAULT_PER_PAGE;
+    return setores.slice(start, start + PAGINATION.DEFAULT_PER_PAGE);
+  }, [paginaNormalizada, setores]);
 
   async function handleExcluir(id: number) {
     const result = await excluirSetorAction(id);
@@ -167,7 +176,7 @@ export function SetoresClient({ setores }: { setores: Setor[] }) {
             Nenhum setor cadastrado.
           </div>
         ) : (
-          setores.map((s) => (
+          setoresPaginados.map((s) => (
             <article key={s.id} className="rounded-2xl border border-zinc-200/80 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
@@ -220,7 +229,7 @@ export function SetoresClient({ setores }: { setores: Setor[] }) {
             {setores.length === 0 ? (
               <TableEmpty colSpan={5} message="Nenhum setor cadastrado." />
             ) : (
-              setores.map((s) => (
+              setoresPaginados.map((s) => (
                 <Tr key={s.id}>
                   <Td className="font-semibold">{s.nome}</Td>
                   <Td className="text-zinc-500 dark:text-zinc-400">{s.descricao ?? "—"}</Td>
@@ -258,6 +267,15 @@ export function SetoresClient({ setores }: { setores: Setor[] }) {
           </TableBody>
         </Table>
       </div>
+
+      <Pagination
+        page={paginaNormalizada}
+        totalPages={totalPaginas}
+        totalItems={setores.length}
+        perPage={PAGINATION.DEFAULT_PER_PAGE}
+        onPageChange={setPaginaAtual}
+        label="setores"
+      />
 
       {showCriar && <CriarSetorModal onClose={() => setShowCriar(false)} />}
       {editando && <EditarSetorModal setor={editando} onClose={() => setEditando(null)} />}
