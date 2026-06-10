@@ -36,18 +36,12 @@ export default async function SetorServicosPage({
     include: {
       setor: true,
       atendentes: {
-        include: { user: true },
+        select: {
+          user_id: true,
+        },
       },
       _count: { select: { chamados: true } },
     },
-  });
-
-  const atendentesDisponiveis = await prisma.user.findMany({
-    where: {
-      role: "atendente",
-      ativo: true,
-    },
-    orderBy: { nome: "asc" },
   });
 
   return (
@@ -58,18 +52,7 @@ export default async function SetorServicosPage({
         descricao: s.descricao ?? null,
         setor: { id: s.setor.id, nome: s.setor.nome },
         _count: s._count,
-        atendentes: s.atendentes.map((a) => ({
-          id: a.user.id,
-          nome: a.user.nome,
-          email: a.user.email,
-          role: a.user.role,
-        })),
-      }))}
-      atendentesDisponiveis={atendentesDisponiveis.map((u) => ({
-        id: u.id,
-        nome: u.nome,
-        email: u.email,
-        role: u.role,
+        atendentes: s.atendentes.map((a) => ({ id: a.user_id })),
       }))}
       setores={[{ id: setor.id, nome: setor.nome }]}
       setorAtual={{ id: setor.id, nome: setor.nome }}

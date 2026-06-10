@@ -1,16 +1,16 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useActionState, useEffect, useState } from "react";
+import { useActionState, useEffect, useMemo, useState } from "react";
 import { SquarePlus, Edit2, Trash2, ArrowLeft, Users } from "lucide-react";
-import { ROUTES } from "@/lib/constants";
+import { PAGINATION, ROUTES } from "@/lib/constants";
 import {
   Badge,
   Button,
   Field,
   Form,
   Input,
+  Pagination,
   Select,
   Table,
   TableBody,
@@ -21,12 +21,10 @@ import {
   Tr,
 } from "@/components/ui";
 import { Textarea } from "@/components/ui/textarea";
-import { criarServicoAction, editarServicoAction, excluirServicoAction, adicionarAtendenteAction, removerAtendenteAction } from "./actions";
+import { criarServicoAction, editarServicoAction, excluirServicoAction } from "./actions";
 import { notifyError, notifySuccess } from "@/lib/toast";
 
 type Setor = { id: number; nome: string };
-
-type Atendente = { id: number; nome: string; email: string; role?: string };
 
 type Servico = {
   id: number;
@@ -34,7 +32,7 @@ type Servico = {
   descricao: string | null;
   setor: Setor;
   _count: { chamados: number };
-  atendentes: Atendente[];
+  atendentes: Array<{ id: number }>;
 };
 
 function Modal({
@@ -128,49 +126,15 @@ export function ServicosClient({
   servicos,
   setores,
   setorAtual,
-  atendentesDisponiveis = [],
 }: {
   servicos: Servico[];
   setores: Setor[];
   setorAtual?: Setor;
-  atendentesDisponiveis?: Atendente[];
 }) {
-  const router = useRouter();
   const [filtro, setFiltro] = useState("");
   const [showCriar, setShowCriar] = useState(false);
   const [editando, setEditando] = useState<Servico | null>(null);
-  const [gerenciandoAtendentesId, setGerenciandoAtendentesId] = useState<number | null>(null);
-  const [addAtendenteState, addAtendenteAction, isAddingAtendente] = useActionState(adicionarAtendenteAction, {});
-  const [removeAtendenteState, removeAtendenteAction, isRemovingAtendente] = useActionState(removerAtendenteAction, {});
-
-  const gerenciandoAtendentes =
-    gerenciandoAtendentesId !== null
-      ? servicos.find((servico) => servico.id === gerenciandoAtendentesId) ?? null
-      : null;
-
-  useEffect(() => {
-    if (addAtendenteState.success || removeAtendenteState.success) {
-      router.refresh();
-    }
-  }, [addAtendenteState.success, removeAtendenteState.success, router]);
-
-  useEffect(() => {
-    if (addAtendenteState.success) {
-      notifySuccess("Atendente vinculado com sucesso.");
-    }
-    if (addAtendenteState.error) {
-      notifyError(addAtendenteState.error);
-    }
-  }, [addAtendenteState.success, addAtendenteState.error]);
-
-  useEffect(() => {
-    if (removeAtendenteState.success) {
-      notifySuccess("Atendente removido com sucesso.");
-    }
-    if (removeAtendenteState.error) {
-      notifyError(removeAtendenteState.error);
-    }
-  }, [removeAtendenteState.success, removeAtendenteState.error]);
+  const [paginaAtual, setPaginaAtual] = useState<number>(PAGINATION.DEFAULT_PAGE);
 
   async function handleExcluir(id: number) {
     const result = await excluirServicoAction(id);
@@ -181,20 +145,26 @@ export function ServicosClient({
     notifySuccess("Serviço excluído com sucesso.");
   }
 
-  const atendentesSemVinculo = gerenciandoAtendentes
-    ? atendentesDisponiveis.filter(
-        (a) => a.role === "atendente" && !gerenciandoAtendentes.atendentes.some((at) => at.id === a.id)
-      )
-    : [];
-
   const filtroNormalizado = filtro.trim().toLowerCase();
-  const servicosFiltrados = servicos.filter((servico) => {
-    if (!filtroNormalizado) return true;
-    return (
-      servico.nome.toLowerCase().includes(filtroNormalizado) ||
-      servico.setor.nome.toLowerCase().includes(filtroNormalizado)
-    );
-  });
+  const servicosFiltrados = useMemo(
+    () =>
+      servicos.filter((servico) => {
+        if (!filtroNormalizado) return true;
+        return (
+          servico.nome.toLowerCase().includes(filtroNormalizado) ||
+          servico.setor.nome.toLowerCase().includes(filtroNormalizado)
+        );
+      }),
+    [filtroNormalizado, servicos],
+  );
+
+  const totalPaginas = Math.max(1, Math.ceil(servicosFiltrados.length / PAGINATION.DEFAULT_PER_PAGE));
+  const paginaNormalizada = Math.min(paginaAtual, totalPaginas);
+
+  const servicosPaginados = useMemo(() => {
+    const start = (paginaNormalizada - 1) * PAGINATION.DEFAULT_PER_PAGE;
+    return servicosFiltrados.slice(start, start + PAGINATION.DEFAULT_PER_PAGE);
+  }, [paginaNormalizada, servicosFiltrados]);
 
   return (
     <div className="w-full px-4 py-8 sm:px-6 lg:px-8">
@@ -237,7 +207,10 @@ export function ServicosClient({
             <Input
               id="servico-filtro"
               value={filtro}
-              onChange={(e) => setFiltro(e.target.value)}
+              onChange={(e) => {
+                setFiltro(e.target.value);
+                setPaginaAtual(PAGINATION.DEFAULT_PAGE);
+              }}
               placeholder="Filtre o setor ou serviço"
             />
           </Field>
@@ -250,22 +223,27 @@ export function ServicosClient({
             {filtroNormalizado ? "Nenhum serviço encontrado para o filtro." : "Nenhum serviço cadastrado."}
           </div>
         ) : (
-          servicosFiltrados.map((s) => (
+          servicosPaginados.map((s) => (
             <article key={s.id} className="rounded-2xl border border-zinc-200/80 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
                   <h3 className="truncate text-sm font-semibold text-zinc-900 dark:text-zinc-50">{s.nome}</h3>
                   <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">{s.descricao ?? "Sem descrição"}</p>
                 </div>
-                <Badge variant="default">{s._count.chamados}</Badge>
+                <div className="flex items-center gap-1">
+                  <Badge variant="default">{s._count.chamados} chamados</Badge>
+                  <Badge variant="info">{s.atendentes.length} atendentes</Badge>
+                </div>
               </div>
 
               <div className="mt-3 flex items-center justify-between border-t border-zinc-200/80 pt-3 dark:border-zinc-800">
                 <Badge variant="info">{s.setor.nome}</Badge>
                 <div className="flex items-center gap-2">
-                  <Button variant="ghost" size="sm" onClick={() => setGerenciandoAtendentesId(s.id)} aria-label={`Gerenciar atendentes de ${s.nome}`} title={`Gerenciar atendentes de ${s.nome}`}>
-                    <Users className="h-4 w-4" aria-hidden="true" />
-                  </Button>
+                  <Link href={`${ROUTES.SERVICOS}/${s.id}/atendentes`}>
+                    <Button variant="ghost" size="sm" aria-label={`Gerenciar atendentes de ${s.nome}`} title={`Gerenciar atendentes de ${s.nome}`}>
+                      <Users className="h-4 w-4" aria-hidden="true" />
+                    </Button>
+                  </Link>
                   <Button variant="ghost" size="sm" onClick={() => setEditando(s)} aria-label={`Editar serviço ${s.nome}`} title={`Editar serviço ${s.nome}`}>
                     <Edit2 className="h-4 w-4" aria-hidden="true" />
                   </Button>
@@ -300,18 +278,23 @@ export function ServicosClient({
             {servicosFiltrados.length === 0 ? (
               <TableEmpty colSpan={4} message={filtroNormalizado ? "Nenhum serviço encontrado para o filtro." : "Nenhum serviço cadastrado."} />
             ) : (
-              servicosFiltrados.map((s) => (
+              servicosPaginados.map((s) => (
                 <Tr key={s.id}>
                   <Td className="font-semibold">{s.nome}</Td>
                   <Td className="text-zinc-500 dark:text-zinc-400">{s.descricao ?? "—"}</Td>
                   <Td className="text-center">
-                    <Badge variant="default">{s._count.chamados}</Badge>
+                    <div className="flex items-center justify-center gap-1">
+                      <Badge variant="default">{s._count.chamados}</Badge>
+                      <Badge variant="info">{s.atendentes.length}</Badge>
+                    </div>
                   </Td>
                   <Td className="text-right">
                     <div className="flex justify-end gap-2">
-                      <Button variant="ghost" size="sm" onClick={() => setGerenciandoAtendentesId(s.id)} aria-label={`Gerenciar atendentes de ${s.nome}`} title={`Gerenciar atendentes de ${s.nome}`}>
-                        <Users className="h-4 w-4" aria-hidden="true" />
-                      </Button>
+                      <Link href={`${ROUTES.SERVICOS}/${s.id}/atendentes`}>
+                        <Button variant="ghost" size="sm" aria-label={`Gerenciar atendentes de ${s.nome}`} title={`Gerenciar atendentes de ${s.nome}`}>
+                          <Users className="h-4 w-4" aria-hidden="true" />
+                        </Button>
+                      </Link>
                       <Button variant="ghost" size="sm" onClick={() => setEditando(s)} aria-label={`Editar serviço ${s.nome}`} title={`Editar serviço ${s.nome}`}>
                         <Edit2 className="h-4 w-4" aria-hidden="true" />
                       </Button>
@@ -334,6 +317,15 @@ export function ServicosClient({
         </Table>
       </div>
 
+      <Pagination
+        page={paginaNormalizada}
+        totalPages={totalPaginas}
+        totalItems={servicosFiltrados.length}
+        perPage={PAGINATION.DEFAULT_PER_PAGE}
+        onPageChange={setPaginaAtual}
+        label="serviços"
+      />
+
       {showCriar && (
         <Modal title="Novo Serviço" onClose={() => setShowCriar(false)}>
           <CriarServicoForm setores={setores} setorFixo={setorAtual} onClose={() => setShowCriar(false)} />
@@ -342,72 +334,6 @@ export function ServicosClient({
       {editando && (
         <Modal title="Editar Serviço" onClose={() => setEditando(null)}>
           <EditarServicoForm key={editando.id} servico={editando} setores={setores} setorFixo={setorAtual} onClose={() => setEditando(null)} />
-        </Modal>
-      )}
-
-      {gerenciandoAtendentes && (
-        <Modal title={`Atendentes: ${gerenciandoAtendentes.nome}`} onClose={() => setGerenciandoAtendentesId(null)}>
-          <div className="space-y-5">
-            <div>
-              <div className="mb-2 flex items-center justify-between">
-                <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-50">Atendentes vinculados</h3>
-                <Badge variant="info">{gerenciandoAtendentes.atendentes.length}</Badge>
-              </div>
-              {gerenciandoAtendentes.atendentes.length === 0 ? (
-                <p className="rounded-lg border border-dashed border-zinc-300 bg-zinc-50 p-3 text-sm text-zinc-500 dark:border-zinc-700 dark:bg-zinc-900/40 dark:text-zinc-400">
-                  Nenhum atendente vinculado.
-                </p>
-              ) : (
-                <div className="mb-4 space-y-2">
-                  {gerenciandoAtendentes.atendentes.map((atendente) => (
-                    <div key={atendente.id} className="flex items-center justify-between rounded-xl border border-zinc-200 bg-zinc-50 p-3 dark:border-zinc-800 dark:bg-zinc-900/50">
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <p className="text-sm font-medium text-zinc-900 dark:text-zinc-50">{atendente.nome}</p>
-                          <Badge variant={atendente.role === "atendente" ? "success" : "warning"}>
-                            {atendente.role === "atendente" ? "Atendente" : "Perfil inválido"}
-                          </Badge>
-                        </div>
-                        <p className="text-xs text-zinc-500 dark:text-zinc-400">{atendente.email}</p>
-                      </div>
-                      <Form action={removeAtendenteAction}>
-                        <input type="hidden" name="servico_id" value={gerenciandoAtendentes.id} />
-                        <input type="hidden" name="user_id" value={atendente.id} />
-                        <Button type="submit" variant="outline" size="sm" loading={isRemovingAtendente} aria-label={`Remover ${atendente.nome}`} title={`Remover ${atendente.nome}`}>
-                          <Trash2 className="h-4 w-4" aria-hidden="true" />
-                        </Button>
-                      </Form>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {atendentesSemVinculo.length > 0 && (
-              <div>
-                <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-50 mb-2">Adicionar Atendente</h3>
-                <Form action={addAtendenteAction}>
-                  <input type="hidden" name="servico_id" value={gerenciandoAtendentes.id} />
-                  <div className="flex gap-2">
-                    <Select
-                      name="user_id"
-                      options={atendentesSemVinculo.map((a) => ({ value: String(a.id), label: `${a.nome} - ${a.email}` }))}
-                      placeholder="Selecionar atendente"
-                    />
-                    <Button type="submit" loading={isAddingAtendente} title="Adicionar atendente">
-                      <SquarePlus className="h-4 w-4" aria-hidden="true" />
-                    </Button>
-                  </div>
-                </Form>
-              </div>
-            )}
-
-            {atendentesSemVinculo.length === 0 && (
-              <p className="rounded-lg border border-dashed border-zinc-300 bg-zinc-50 p-3 text-sm text-zinc-500 dark:border-zinc-700 dark:bg-zinc-900/40 dark:text-zinc-400">
-                Todos os atendentes ativos já estão vinculados a este serviço.
-              </p>
-            )}
-          </div>
         </Modal>
       )}
     </div>

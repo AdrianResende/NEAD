@@ -271,10 +271,6 @@ export const CadastroClient = ({
     return users.slice(start, start + PAGINATION.DEFAULT_PER_PAGE);
   }, [paginaNormalizada, users]);
 
-  useEffect(() => {
-    setPaginaAtual(PAGINATION.DEFAULT_PAGE);
-  }, [aba]);
-
   return (
     <div className="w-full px-4 py-8 sm:px-6 lg:px-8">
       <div className="mb-6 rounded-2xl border border-zinc-200/80 bg-white/95 p-5 shadow-sm ring-1 ring-zinc-100/60 backdrop-blur-sm dark:border-zinc-800 dark:bg-zinc-950 dark:ring-zinc-900 sm:p-6">
@@ -300,7 +296,10 @@ export const CadastroClient = ({
         {/* Abas */}
         <div className="mt-4 flex gap-2 border-b border-zinc-200/80 dark:border-zinc-800">
           <button
-            onClick={() => setAba("ativos")}
+            onClick={() => {
+              setAba("ativos");
+              setPaginaAtual(PAGINATION.DEFAULT_PAGE);
+            }}
             className={`px-4 py-2 font-medium text-sm transition-colors ${
               aba === "ativos"
                 ? "border-b-2 border-primary text-primary dark:text-primary"
@@ -313,7 +312,10 @@ export const CadastroClient = ({
             </span>
           </button>
           <button
-            onClick={() => setAba("desativados")}
+            onClick={() => {
+              setAba("desativados");
+              setPaginaAtual(PAGINATION.DEFAULT_PAGE);
+            }}
             className={`px-4 py-2 font-medium text-sm transition-colors ${
               aba === "desativados"
                 ? "border-b-2 border-primary text-primary dark:text-primary"

@@ -193,7 +193,7 @@ export async function atualizarChamadoAction(
     (novoUrgente !== chamado.urgente || (novoUrgente && urgenciaDescricaoAtendimento !== chamado.urgencia_descricao));
 
   if (Object.keys(updateData).length > 0) {
-    const operations: PrismaPromise<any>[] = [
+    const operations: PrismaPromise<unknown>[] = [
       prisma.chamado.update({ where: { id }, data: updateData }),
     ];
 
@@ -304,7 +304,7 @@ export async function enviarMensagemChamadoAction(
     return { error: "Sem permissão." };
   }
 
-  const operations: PrismaPromise<any>[] = [];
+  const operations: PrismaPromise<unknown>[] = [];
 
   if (mensagem) {
     operations.push(
