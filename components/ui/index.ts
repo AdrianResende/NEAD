@@ -13,3 +13,4 @@ export {
   Td,
   TableEmpty,
 } from "./table";
+export { Pagination } from "./pagination";
