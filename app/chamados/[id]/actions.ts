@@ -138,7 +138,7 @@ export async function atualizarChamadoAction(
     updateData.urgente = novoUrgente;
     updateData.urgencia_descricao = novoUrgente
       ? urgenciaDescricaoAtendimento ?? chamado.urgencia_descricao ?? null
-      : null;
+      : chamado.urgencia_descricao ?? null;
   }
 
   if (atendente_id !== undefined) {
