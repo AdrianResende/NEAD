@@ -1,11 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
 import { Plus, Eye, MapPin } from "lucide-react";
-import { Badge, Button, Table, TableBody, TableEmpty, TableHead, Td, Th, Tr } from "@/components/ui";
+import { Badge, Button, Pagination, Table, TableBody, TableEmpty, TableHead, Td, Th, Tr } from "@/components/ui";
 import { NovoChamadoForm, type ServicoOption } from "./novo/novo-form";
-import { ROUTES } from "@/lib/constants";
+import { PAGINATION, ROUTES } from "@/lib/constants";
 
 type Chamado = {
   id: number;
@@ -86,6 +86,14 @@ export function ChamadosClient({ chamados, role, servicos = [] }: Props) {
   const isSolicitante = role === "solicitante";
   const isAdmin = role === "admin";
   const [showSolicitarModal, setShowSolicitarModal] = useState(false);
+  const [paginaAtual, setPaginaAtual] = useState<number>(PAGINATION.DEFAULT_PAGE);
+
+  const totalPaginas = Math.max(1, Math.ceil(chamados.length / PAGINATION.DEFAULT_PER_PAGE));
+  const paginaNormalizada = Math.min(paginaAtual, totalPaginas);
+  const chamadosPaginados = useMemo(() => {
+    const start = (paginaNormalizada - 1) * PAGINATION.DEFAULT_PER_PAGE;
+    return chamados.slice(start, start + PAGINATION.DEFAULT_PER_PAGE);
+  }, [chamados, paginaNormalizada]);
 
   return (
     <div className="w-full px-4 py-8 sm:px-6 lg:px-8">
@@ -128,7 +136,7 @@ export function ChamadosClient({ chamados, role, servicos = [] }: Props) {
               : "Nenhuma solicitação encontrada."}
           </div>
         ) : (
-          chamados.map((c) => (
+          chamadosPaginados.map((c) => (
             <article key={c.id} className="rounded-2xl border border-zinc-200/80 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
@@ -200,7 +208,7 @@ export function ChamadosClient({ chamados, role, servicos = [] }: Props) {
                 }
               />
             ) : (
-              chamados.map((c) => (
+              chamadosPaginados.map((c) => (
                 <Tr key={c.id}>
                   <Td className="text-zinc-500">#{c.id}</Td>
                   <Td className="font-semibold">{c.titulo}</Td>
@@ -234,6 +242,15 @@ export function ChamadosClient({ chamados, role, servicos = [] }: Props) {
           </TableBody>
         </Table>
       </div>
+
+      <Pagination
+        page={paginaNormalizada}
+        totalPages={totalPaginas}
+        totalItems={chamados.length}
+        perPage={PAGINATION.DEFAULT_PER_PAGE}
+        onPageChange={setPaginaAtual}
+        label="chamados"
+      />
 
       {isSolicitante && showSolicitarModal && (
         <Modal title="Solicitar Serviço" onClose={() => setShowSolicitarModal(false)}>

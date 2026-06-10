@@ -157,6 +157,10 @@ function formatDateTime(dateIso: string) {
   });
 }
 
+function isMensagemSistemaPrioridade(mensagem: string) {
+  return mensagem.startsWith("Prioridade atualizada para ");
+}
+
 function AcoesSolicitanteForm({ chamadoId }: { chamadoId: number }) {
   const [state, action, pending] = useActionState(atualizarChamadoAction, {});
 
@@ -231,7 +235,26 @@ function MensagensPanel({
           </div>
         ) : (
           chamado.mensagens.map((msg) => {
+            const isMensagemSistema = isMensagemSistemaPrioridade(msg.mensagem);
             const isMine = msg.autor.id === currentUserId;
+
+            if (isMensagemSistema) {
+              return (
+                <div key={msg.id} className="flex justify-center">
+                  <div className="w-full max-w-[98%] rounded-xl border border-amber-300/80 bg-amber-50/90 px-3.5 py-3 text-amber-900 shadow-sm dark:border-amber-800/80 dark:bg-amber-950/40 dark:text-amber-100 sm:max-w-[92%]">
+                    <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                      <span className="inline-flex items-center rounded-md border border-amber-400/70 bg-amber-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-amber-800 dark:border-amber-700 dark:bg-amber-900/70 dark:text-amber-200">
+                        Atualização automática
+                      </span>
+                      <p className="text-[11px] text-amber-800/90 dark:text-amber-200/90">{msg.autor.nome}</p>
+                      <p className="text-[11px] text-amber-800/80 dark:text-amber-200/80">{formatDateTime(msg.createdAt)}</p>
+                    </div>
+                    <p className="mt-1.5 whitespace-pre-wrap text-sm leading-relaxed font-medium">{msg.mensagem}</p>
+                  </div>
+                </div>
+              );
+            }
+
             return (
               <div key={msg.id} className={isMine ? "flex justify-end" : "flex justify-start"}>
                 <div
@@ -353,7 +376,7 @@ export function ChamadoDetalheClient({ chamado, currentUserId, currentUserRole, 
   const [atendimentoState, atendimentoAction, atendimentoPending] = useActionState(atualizarChamadoAction, {});
   const [urgenteAtendimento, setUrgenteAtendimento] = useState<"sim" | "nao">(chamado.urgente ? "sim" : "nao");
   const [motivoAtendimento, setMotivoAtendimento] = useState(chamado.urgenciaDescricao ?? "");
-  const urgenciaJaRegistrada = Boolean(chamado.urgenciaDescricao?.trim());
+  const exibirCampoMotivo = urgenteAtendimento === "sim";
 
   const atendenteOptions = [
     { value: "", label: "Sem atendente" },
@@ -508,42 +531,41 @@ export function ChamadoDetalheClient({ chamado, currentUserId, currentUserRole, 
                       onChange={(event) => {
                         const value = event.target.value as "sim" | "nao";
                         setUrgenteAtendimento(value);
-                        if (value === "nao") {
-                          setMotivoAtendimento("");
-                        }
                       }}
                     />
                   </div>
                 </div>
               </div>
 
-              {!urgenciaJaRegistrada && (
+              <div
+                className={`overflow-hidden transition-all duration-300 ease-out ${
+                  exibirCampoMotivo ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
+                }`}
+                aria-hidden={!exibirCampoMotivo}
+              >
                 <div className="rounded-xl border border-zinc-200/80 bg-zinc-50/70 p-3 dark:border-zinc-800 dark:bg-zinc-900/50">
                   <Field
-                    label={urgenteAtendimento === "sim" ? "Motivo da urgência" : "Motivo da alteração (opcional)"}
+                    label="Motivo da urgência"
                     htmlFor="urgencia_descricao_atendimento"
-                    required={urgenteAtendimento === "sim"}
+                    required
                   >
                     <Textarea
                       id="urgencia_descricao_atendimento"
                       name="urgencia_descricao_atendimento"
                       rows={3}
                       maxLength={800}
-                      required={urgenteAtendimento === "sim"}
+                      required={exibirCampoMotivo}
+                      disabled={!exibirCampoMotivo}
                       value={motivoAtendimento}
                       onChange={(event) => setMotivoAtendimento(event.target.value)}
-                      placeholder={
-                        urgenteAtendimento === "sim"
-                          ? "Descreva o impacto e por que este chamado precisa de prioridade..."
-                          : "Se desejar, informe por que a prioridade foi alterada..."
-                      }
+                      placeholder="Descreva o impacto e por que este chamado precisa de prioridade..."
                     />
                   </Field>
                   <p className="mt-2 text-xs text-zinc-500 dark:text-zinc-400">
                     Ao salvar, essa atualização de prioridade será registrada automaticamente no chat do chamado.
                   </p>
                 </div>
-              )}
+              </div>
             </Form>
           ) : (
             <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 sm:gap-3 lg:grid-cols-5">
