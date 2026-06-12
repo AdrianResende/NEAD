@@ -157,3 +157,9 @@ model ChamadoAnexo {
 
   @@map("chamado_anexos")
 }
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
