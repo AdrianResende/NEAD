@@ -12,6 +12,7 @@ async function main() {
       password: hash,
       role: "admin",
       ativo: true,
+      mustChangePassword: true,
     },
     create: {
       nome: "Administrador",
@@ -19,6 +20,7 @@ async function main() {
       password: hash,
       role: "admin",
       ativo: true,
+      mustChangePassword: true,
     },
   });
   console.log("Seed concluído — admin@nead.com / admin123");

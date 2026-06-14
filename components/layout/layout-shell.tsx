@@ -17,7 +17,7 @@ type LayoutShellProps = {
 
 export function LayoutShell({ children, role, currentUser }: LayoutShellProps) {
   const pathname = usePathname();
-  const isAuthPage = pathname === ROUTES.LOGIN;
+  const isAuthPage = pathname === ROUTES.LOGIN || pathname === ROUTES.ALTERAR_SENHA;
 
   if (isAuthPage) {
     return (

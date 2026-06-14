@@ -5,6 +5,7 @@ export const APP_DESCRIPTION =
 export const ROUTES = {
   HOME: "/",
   LOGIN: "/login",
+  ALTERAR_SENHA: "/alterar-senha",
   CADASTRO: "/cadastro",
   COURSES: "/cursos",
   SETORES: "/admin/setores",
