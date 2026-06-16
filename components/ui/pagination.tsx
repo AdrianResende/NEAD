@@ -27,27 +27,27 @@ export function Pagination({
   const end = Math.min(page * perPage, totalItems);
 
   return (
-    <div className="mt-4 flex flex-col gap-2 rounded-[8px] border border-[#E9ECEF] bg-white px-3 py-2.5 text-sm dark:border-zinc-800 dark:bg-zinc-950 sm:flex-row sm:items-center sm:justify-between">
-      <p className="text-zinc-600 dark:text-zinc-300">
-        Mostrando {start}-{end} de {totalItems} {label}
+    <div className="mt-4 flex flex-col gap-2 rounded-[10px] border border-[#E8E8E3] bg-white px-[18px] py-[13px] text-sm sm:flex-row sm:items-center sm:justify-between">
+      <p className="text-[12.5px] text-[#A0A099]">
+        Mostrando {start}–{end} de {totalItems} {label}
       </p>
 
       <div className="flex items-center justify-end gap-2">
         <Button
           type="button"
-          variant="outline"
+          variant="secondary"
           size="sm"
           disabled={page <= 1}
           onClick={() => onPageChange(page - 1)}
         >
           Anterior
         </Button>
-        <span className="text-xs text-zinc-500 dark:text-zinc-400">
-          Página {page} de {totalPages}
+        <span className="text-xs text-[#86867D]">
+          {page} / {totalPages}
         </span>
         <Button
           type="button"
-          variant="outline"
+          variant="secondary"
           size="sm"
           disabled={page >= totalPages}
           onClick={() => onPageChange(page + 1)}

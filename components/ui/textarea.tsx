@@ -1,8 +1,7 @@
 import * as React from "react";
 import { cn } from "@/lib/utils";
 
-interface TextareaProps
-  extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
+interface TextareaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
   error?: boolean;
 }
 
@@ -13,14 +12,13 @@ export const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
         ref={ref}
         rows={4}
         className={cn(
-          "w-full resize-y rounded-[8px] border bg-[#F7F9FB] px-4 py-3 text-sm text-zinc-900 outline-none transition-colors",
-          "placeholder:text-zinc-400",
-          "focus:ring-2 focus:ring-offset-1",
+          "w-full resize-y rounded-[9px] border bg-white px-3 py-3 text-[13.5px] text-[#1C1C1A] outline-none transition-colors",
+          "placeholder:text-[#A8A89F]",
+          "focus:ring-2",
           "disabled:cursor-not-allowed disabled:opacity-50",
-          "dark:bg-zinc-900 dark:text-zinc-50 dark:placeholder:text-zinc-500",
           error
-            ? "border-red-400 focus:border-red-500 focus:ring-red-200 dark:border-red-600 dark:focus:ring-red-900"
-            : "border-[#E9ECEF] focus:border-primary focus:ring-[color:var(--color-primary-ring)] dark:border-zinc-700 dark:focus:border-primary dark:focus:ring-[color:var(--color-primary-ring)]",
+            ? "border-[#C9554A] focus:border-[#9A463B] focus:ring-[rgba(201,85,74,0.15)]"
+            : "border-[#E4E4DE] focus:border-[#3E6F6B] focus:ring-[rgba(62,111,107,0.15)]",
           className,
         )}
         {...props}

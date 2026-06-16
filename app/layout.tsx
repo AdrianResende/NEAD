@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Hanken_Grotesk } from "next/font/google";
 import { LayoutShell } from "@/components/layout/layout-shell";
 import { validateSession } from "@/lib/auth";
 import { SESSION_COOKIE_NAME } from "@/lib/auth";
@@ -7,10 +7,11 @@ import { prisma } from "@/lib/prisma";
 import { cookies } from "next/headers";
 import "./globals.css";
 
-const inter = Inter({
+const hanken = Hanken_Grotesk({
   subsets: ["latin"],
-  variable: "--font-inter",
+  variable: "--font-hanken",
   display: "swap",
+  weight: ["400", "500", "600", "700"],
 });
 
 export const metadata: Metadata = {
@@ -45,8 +46,8 @@ export default async function RootLayout({
     : null;
 
   return (
-    <html lang="pt-BR" className={inter.variable} suppressHydrationWarning>
-      <body className="flex min-h-screen flex-col bg-white font-sans antialiased dark:bg-zinc-950">
+    <html lang="pt-BR" className={hanken.variable} suppressHydrationWarning>
+      <body className="flex min-h-screen flex-col bg-[#F4F4F2] font-sans antialiased">
         <LayoutShell
           role={role}
           currentUser={

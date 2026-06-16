@@ -4,7 +4,7 @@ import { useActionState, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Search, UserCheck2, UserPlus, UserX2, Wrench } from "lucide-react";
 import {
-  Badge,
+  RoleBadge,
   Button,
   Field,
   Form,
@@ -52,20 +52,8 @@ type UsuariosClientProps = {
   currentUserId: number;
 };
 
-const ROLE_BADGE: Record<string, "danger" | "warning" | "default"> = {
-  admin: "danger",
-  atendente: "warning",
-  solicitante: "default",
-};
-
-const ROLE_LABEL: Record<string, string> = {
-  admin: "Administrador",
-  atendente: "Atendente",
-  solicitante: "Solicitante",
-};
-
 const selectionPanelClasses =
-  "rounded-[12px] border border-[#E9ECEF] bg-[#F7F9FB] p-3 dark:border-zinc-700 dark:bg-zinc-900/60";
+  "rounded-[9px] border border-[#E4E4DE] bg-[#FAFAF8] p-3";
 
 export const CadastroClient = ({
   usersAtivos,
@@ -272,7 +260,7 @@ export const CadastroClient = ({
       const haystack = [
         user.nome,
         user.email,
-        ROLE_LABEL[user.role] ?? user.role,
+        ({ admin: "Administrador", atendente: "Atendente", solicitante: "Solicitante" } as Record<string, string>)[user.role] ?? user.role,
         user.setor ?? "",
         user.servicos.join(" "),
       ]
@@ -291,243 +279,186 @@ export const CadastroClient = ({
   }, [paginaNormalizada, users]);
 
   return (
-    <div className="w-full bg-[#F7F9FB] px-4 py-6 sm:px-6 lg:px-8 dark:bg-zinc-950">
-      <div className="mx-auto max-w-[1440px] space-y-6">
-        <div className="rounded-[12px] border border-[#C3C6D7] bg-white p-6 shadow-[0px_1px_2px_rgba(0,0,0,0.05)] dark:border-zinc-800 dark:bg-zinc-950 sm:p-8">
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-            <div className="space-y-2">
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#737686] dark:text-zinc-500">
-                Painel de controle
-              </p>
-              <div>
-                <h1 className="text-[30px] font-bold tracking-[-0.02em] text-[#191C1E] dark:text-zinc-50">
-                  Cadastro de Usuários
-                </h1>
-                <p className="mt-2 text-base text-[#434655] dark:text-zinc-400">
-                  Gerencie os usuários do sistema, permissões e departamentos com facilidade.
-                </p>
-              </div>
+    <div>
+      <div className="space-y-[18px]">
+        {/* Header */}
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <h1 className="mb-1 text-[25px] font-bold tracking-[-0.02em] text-[#1C1C1A]">
+              Usuários
+            </h1>
+            <p className="text-[14px] text-[#86867D]">
+              Gerencie perfis, vínculos e acessos dos colaboradores
+            </p>
+          </div>
+          <div className="flex gap-2">
+            <div className="w-[260px]">
+              <Input
+                value={query}
+                onChange={(event) => {
+                  setQuery(event.target.value);
+                  setPaginaAtual(PAGINATION.DEFAULT_PAGE);
+                }}
+                placeholder="Buscar usuários..."
+                leftIcon={<Search className="h-4 w-4 text-[#A8A89F]" aria-hidden="true" />}
+              />
             </div>
-            <div className="flex w-full flex-col gap-3 sm:flex-row lg:w-auto">
-              <div className="w-full min-w-[260px] lg:w-[280px]">
-                <Input
-                  value={query}
-                  onChange={(event) => {
-                    setQuery(event.target.value);
-                    setPaginaAtual(PAGINATION.DEFAULT_PAGE);
+            {canEdit && (
+              <Button onClick={() => setCreateOpen(true)}>
+                <UserPlus className="h-4 w-4" aria-hidden="true" />
+                Novo usuário
+              </Button>
+            )}
+          </div>
+        </div>
+
+        {/* Table card */}
+        <div className="overflow-hidden rounded-[14px] border border-[#E8E8E3] bg-white shadow-[0_1px_2px_rgba(28,28,26,0.03)]">
+          {/* Tabs */}
+          <div className="flex items-center gap-0 border-b border-[#ECECE7] px-[18px]">
+            {(["ativos", "desativados"] as const).map((tab) => {
+              const active = aba === tab;
+              const count = tab === "ativos" ? usersAtivos.length : usersDesativados.length;
+              return (
+                <button
+                  key={tab}
+                  type="button"
+                  onClick={() => { setAba(tab); setPaginaAtual(PAGINATION.DEFAULT_PAGE); }}
+                  className="relative mr-6 border-none bg-none py-[13px] text-[14px] font-medium transition-colors"
+                  style={{
+                    color: active ? "var(--color-accent-ink)" : "#86867D",
+                    fontWeight: active ? 600 : 500,
+                    boxShadow: active ? "inset 0 -2px 0 var(--color-accent)" : "none",
+                    background: "none",
+                    cursor: "pointer",
                   }}
-                  placeholder="Buscar usuários..."
-                  leftIcon={<Search className="h-4 w-4" aria-hidden="true" />}
-                />
+                >
+                  {tab === "ativos" ? "Ativos" : "Desativados"}{" "}
+                  <span
+                    className="ml-[2px] rounded-[999px] px-[7px] py-[1px] text-[11.5px] font-semibold"
+                    style={{
+                      background: active ? "var(--color-accent-soft)" : "#F0F0EC",
+                      color: active ? "var(--color-accent-ink)" : "#A0A099",
+                    }}
+                  >
+                    {count}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Mobile cards */}
+          <div className="space-y-3 p-4 md:hidden">
+            {users.length === 0 ? (
+              <div className="py-8 text-center text-sm text-[#A8A89F]">
+                {aba === "ativos" ? "Nenhum usuário cadastrado." : "Nenhum usuário desativado."}
               </div>
-              {canEdit && (
-                <Button onClick={() => setCreateOpen(true)} className="w-full justify-center sm:w-auto">
-                  <UserPlus className="h-4 w-4" aria-hidden="true" />
-                  Novo usuário
-                </Button>
-              )}
-            </div>
-          </div>
-
-          <div className="mt-8 border-b border-[#C3C6D7] dark:border-zinc-800">
-            <div className="flex gap-6 overflow-x-auto">
-              <button
-                onClick={() => {
-                  setAba("ativos");
-                  setPaginaAtual(PAGINATION.DEFAULT_PAGE);
-                }}
-                className={`flex items-center gap-2 border-b-2 px-2 pb-4 text-sm transition-colors ${
-                  aba === "ativos"
-                    ? "border-[#004AC6] text-[#004AC6]"
-                    : "border-transparent text-[#434655] hover:text-[#191C1E] dark:text-zinc-400 dark:hover:text-zinc-200"
-                }`}
-              >
-                <span>Usuários Ativos</span>
-                <span
-                  className={`rounded-full px-2 py-0.5 text-xs font-bold ${
-                    aba === "ativos"
-                      ? "bg-[rgba(0,74,198,0.1)] text-[#004AC6]"
-                      : "bg-[#E6E8EA] text-[#434655] dark:bg-zinc-800 dark:text-zinc-300"
-                  }`}
-                >
-                  {usersAtivos.length}
-                </span>
-              </button>
-              <button
-                onClick={() => {
-                  setAba("desativados");
-                  setPaginaAtual(PAGINATION.DEFAULT_PAGE);
-                }}
-                className={`flex items-center gap-2 border-b-2 px-2 pb-4 text-sm transition-colors ${
-                  aba === "desativados"
-                    ? "border-[#004AC6] text-[#004AC6]"
-                    : "border-transparent text-[#434655] hover:text-[#191C1E] dark:text-zinc-400 dark:hover:text-zinc-200"
-                }`}
-              >
-                <span>Usuários Desativados</span>
-                <span
-                  className={`rounded-full px-2 py-0.5 text-xs font-bold ${
-                    aba === "desativados"
-                      ? "bg-[rgba(0,74,198,0.1)] text-[#004AC6]"
-                      : "bg-[#E6E8EA] text-[#434655] dark:bg-zinc-800 dark:text-zinc-300"
-                  }`}
-                >
-                  {usersDesativados.length}
-                </span>
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <div className="space-y-3 md:hidden">
-          {users.length === 0 ? (
-            <div className="rounded-[12px] border border-[#C3C6D7] bg-white p-4 text-sm text-[#434655] shadow-sm dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-400">
-              {aba === "ativos" ? "Nenhum usuário cadastrado." : "Nenhum usuário desativado."}
-            </div>
-          ) : (
-            usersPaginados.map((user) => (
-              <article key={user.id} className="rounded-[12px] border border-[#C3C6D7] bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex min-w-0 items-center gap-3">
-                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-[rgba(0,74,198,0.18)] bg-[rgba(37,99,235,0.1)] text-sm font-semibold text-[#004AC6] dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200">
-                      {getUserInitials(user.nome)}
-                    </div>
-                    <div className="min-w-0">
-                      <p className="truncate text-sm font-semibold text-[#191C1E] dark:text-zinc-50">{user.nome}</p>
-                      <p className="truncate font-mono text-[11px] text-[#434655] dark:text-zinc-400">{user.email}</p>
-                    </div>
-                  </div>
-                  <Badge variant={ROLE_BADGE[user.role] ?? "default"}>
-                    {ROLE_LABEL[user.role] ?? user.role}
-                  </Badge>
-                </div>
-
-                <div className="mt-4 grid grid-cols-2 gap-3 border-t border-[#E9ECEF] pt-4 text-xs dark:border-zinc-800">
-                  <div>
-                    <p className="font-semibold uppercase tracking-[0.08em] text-[#737686] dark:text-zinc-500">Setor</p>
-                    <p className="mt-1 text-sm text-[#191C1E] dark:text-zinc-300">{user.setor ?? "-"}</p>
-                  </div>
-                  <div>
-                    <p className="font-semibold uppercase tracking-[0.08em] text-[#737686] dark:text-zinc-500">Serviços</p>
-                    <p className="mt-1 text-sm text-[#191C1E] dark:text-zinc-300">{getServicesPreview(user.servicos)}</p>
-                  </div>
-                  <div>
-                    <p className="font-semibold uppercase tracking-[0.08em] text-[#737686] dark:text-zinc-500">Cadastrado</p>
-                    <p className="mt-1 text-sm text-[#191C1E] dark:text-zinc-300">{formatDate(user.createdAt)}</p>
-                  </div>
-                  {canEdit && (
-                    <div className="flex items-end justify-end gap-2">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        disabled={user.id === currentUserId}
-                        aria-label={`Editar usuário ${user.nome}`}
-                        title={`Editar usuário ${user.nome}`}
-                        onClick={() => openEdit(user)}
-                      >
-                        <span className="material-symbols-outlined" aria-hidden="true">edit</span>
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        disabled={user.id === currentUserId}
-                        aria-label={aba === "ativos" ? `Desativar usuário ${user.nome}` : `Reativar usuário ${user.nome}`}
-                        title={aba === "ativos" ? `Desativar usuário ${user.nome}` : `Reativar usuário ${user.nome}`}
-                        onClick={() => setToggleConfirm(user)}
-                      >
-                        <span className="material-symbols-outlined text-red-500" aria-hidden="true">
-                          {aba === "ativos" ? "person_off" : "person_add"}
-                        </span>
-                      </Button>
-                    </div>
-                  )}
-                </div>
-              </article>
-            ))
-          )}
-        </div>
-
-        <div className="hidden overflow-hidden rounded-[12px] border border-[#C3C6D7] bg-white shadow-[0px_1px_2px_rgba(0,0,0,0.05)] dark:border-zinc-800 dark:bg-zinc-950 md:block">
-          <Table>
-            <TableHead className="bg-[#F2F4F6] text-[#737686] dark:bg-zinc-900">
-              <Tr>
-                <Th>Usuário</Th>
-                <Th>Perfil</Th>
-                <Th>Setor</Th>
-                <Th>Serviços</Th>
-                <Th>Cadastrado</Th>
-                {canEdit && <Th className="text-right">Ações</Th>}
-              </Tr>
-            </TableHead>
-            <TableBody>
-              {users.length === 0 ? (
-                <TableEmpty
-                  colSpan={canEdit ? 6 : 5}
-                  message={aba === "ativos" ? "Nenhum usuário cadastrado." : "Nenhum usuário desativado."}
-                />
-              ) : (
-                usersPaginados.map((user) => (
-                  <Tr key={user.id}>
-                    <Td>
-                      <div className="flex items-center gap-3">
-                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-[rgba(0,74,198,0.18)] bg-[rgba(37,99,235,0.1)] text-sm font-semibold text-[#004AC6] dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200">
-                          {getUserInitials(user.nome)}
-                        </div>
-                        <div className="min-w-0">
-                          <div className="truncate text-base font-bold text-[#191C1E] dark:text-zinc-50">{user.nome}</div>
-                          <div className="truncate font-mono text-[12px] text-[#434655] dark:text-zinc-400">{user.email}</div>
-                        </div>
+            ) : (
+              usersPaginados.map((user) => (
+                <article key={user.id} className="rounded-[11px] border border-[#E8E8E3] bg-[#FAFAF8] p-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex min-w-0 items-center gap-3">
+                      <div className="flex h-[34px] w-[34px] shrink-0 items-center justify-center rounded-full bg-[#6E8B89] text-[13px] font-semibold text-white">
+                        {getUserInitials(user.nome)}
                       </div>
-                    </Td>
-                    <Td>
-                      <Badge variant={ROLE_BADGE[user.role] ?? "default"}>
-                        {ROLE_LABEL[user.role] ?? user.role}
-                      </Badge>
-                    </Td>
-                    <Td>
-                      <span className="text-sm text-[#191C1E] dark:text-zinc-300">{user.setor ?? "-"}</span>
-                    </Td>
-                    <Td>
-                      <span className="text-sm text-[#191C1E] dark:text-zinc-300">{getServicesPreview(user.servicos)}</span>
-                    </Td>
-                    <Td>
-                      <span className="font-mono text-sm text-[#191C1E] dark:text-zinc-300">{formatDate(user.createdAt)}</span>
-                    </Td>
+                      <div className="min-w-0">
+                        <p className="truncate text-[13.5px] font-semibold text-[#1C1C1A]">{user.nome}</p>
+                        <p className="truncate text-[11.5px] text-[#A0A099]">{user.email}</p>
+                      </div>
+                    </div>
+                    <RoleBadge role={user.role} />
+                  </div>
+
+                  <div className="mt-3 grid grid-cols-2 gap-2 border-t border-[#F0F0EC] pt-3 text-xs">
+                    <div>
+                      <p className="font-semibold text-[#A8A89F]">Setor</p>
+                      <p className="mt-0.5 text-[#56564F]">{user.setor ?? "-"}</p>
+                    </div>
+                    <div>
+                      <p className="font-semibold text-[#A8A89F]">Serviços</p>
+                      <p className="mt-0.5 text-[#56564F]">{getServicesPreview(user.servicos)}</p>
+                    </div>
                     {canEdit && (
-                      <Td className="text-right">
-                        <div className="flex items-center justify-end gap-1">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            disabled={user.id === currentUserId}
-                            aria-label={`Editar usuário ${user.nome}`}
-                            title={`Editar usuário ${user.nome}`}
-                            onClick={() => openEdit(user)}
-                          >
-                            <span className="material-symbols-outlined" title={`Editar usuário ${user.nome}`} aria-hidden="true">
-                              edit
-                            </span>
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            disabled={user.id === currentUserId}
-                            aria-label={aba === "ativos" ? `Desativar usuário ${user.nome}` : `Reativar usuário ${user.nome}`}
-                            title={aba === "ativos" ? `Desativar usuário ${user.nome}` : `Reativar usuário ${user.nome}`}
-                            onClick={() => setToggleConfirm(user)}
-                          >
-                            <span className="material-symbols-outlined text-red-500" aria-hidden="true">
-                              {aba === "ativos" ? "person_off" : "person_add"}
-                            </span>
-                          </Button>
+                      <div className="col-span-2 flex items-center justify-end gap-2">
+                        <Button variant="ghost" size="sm" disabled={user.id === currentUserId} onClick={() => openEdit(user)}>
+                          <span className="material-symbols-outlined" aria-hidden="true">edit</span>
+                        </Button>
+                        <Button variant="ghost" size="sm" disabled={user.id === currentUserId} onClick={() => setToggleConfirm(user)}>
+                          <span className="material-symbols-outlined text-[#9A463B]" aria-hidden="true">
+                            {aba === "ativos" ? "person_off" : "person_add"}
+                          </span>
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                </article>
+              ))
+            )}
+          </div>
+
+          {/* Desktop table */}
+          <div className="hidden md:block">
+            <Table>
+              <TableHead>
+                <Tr>
+                  <Th>Usuário</Th>
+                  <Th>Perfil</Th>
+                  <Th>Setor</Th>
+                  <Th>Serviços</Th>
+                  <Th>Cadastrado</Th>
+                  {canEdit && <Th className="text-right">Ações</Th>}
+                </Tr>
+              </TableHead>
+              <TableBody>
+                {users.length === 0 ? (
+                  <TableEmpty
+                    colSpan={canEdit ? 6 : 5}
+                    message={aba === "ativos" ? "Nenhum usuário cadastrado." : "Nenhum usuário desativado."}
+                  />
+                ) : (
+                  usersPaginados.map((user) => (
+                    <Tr key={user.id}>
+                      <Td>
+                        <div className="flex items-center gap-[11px]">
+                          <div className="flex h-[34px] w-[34px] shrink-0 items-center justify-center rounded-full bg-[#6E8B89] text-[13px] font-semibold text-white">
+                            {getUserInitials(user.nome)}
+                          </div>
+                          <div className="min-w-0">
+                            <p className="truncate text-[13.5px] font-semibold text-[#1C1C1A]">{user.nome}</p>
+                            <p className="truncate text-[11.5px] text-[#A0A099]">{user.email}</p>
+                          </div>
                         </div>
                       </Td>
-                    )}
-                  </Tr>
-                ))
-              )}
-            </TableBody>
-          </Table>
+                      <Td><RoleBadge role={user.role} /></Td>
+                      <Td><span className="text-[13px] text-[#56564F]">{user.setor ?? "—"}</span></Td>
+                      <Td><span className="text-[13px] text-[#86867D]">{getServicesPreview(user.servicos)}</span></Td>
+                      <Td mono>{formatDate(user.createdAt)}</Td>
+                      {canEdit && (
+                        <Td className="text-right">
+                          <div className="flex items-center justify-end gap-1">
+                            <Button variant="ghost" size="sm" disabled={user.id === currentUserId} onClick={() => openEdit(user)}>
+                              <span className="material-symbols-outlined" aria-hidden="true">edit</span>
+                            </Button>
+                            <Button variant="ghost" size="sm" disabled={user.id === currentUserId} onClick={() => setToggleConfirm(user)}>
+                              <span className="material-symbols-outlined text-[#9A463B]" aria-hidden="true">
+                                {aba === "ativos" ? "person_off" : "person_add"}
+                              </span>
+                            </Button>
+                          </div>
+                        </Td>
+                      )}
+                    </Tr>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
+
+          {/* Footer pagination */}
+          <div className="flex items-center justify-between px-[18px] py-[13px]">
+            <span className="text-[12.5px] text-[#A0A099]">Mostrando {usersPaginados.length} usuários</span>
+          </div>
         </div>
 
         <Pagination
@@ -538,6 +469,7 @@ export const CadastroClient = ({
           onPageChange={setPaginaAtual}
           label={aba === "ativos" ? "usuários ativos" : "usuários desativados"}
         />
+      </div>
 
       {/* Modal: Novo usuário */}
       {createOpen && (
@@ -651,11 +583,9 @@ export const CadastroClient = ({
       {/* Modal: Editar perfil */}
       {editingUser && (
         <Modal title="Editar perfil" description="Atualize permissões e vínculos operacionais do usuário selecionado." size="lg" onClose={closeEdit}>
-          <p className="mb-4 text-sm text-zinc-500 dark:text-zinc-400">
+          <p className="mb-4 text-[13px] text-[#86867D]">
             Alterando perfil de{" "}
-            <span className="font-medium text-zinc-900 dark:text-zinc-50">
-              {editingUser.nome}
-            </span>
+            <span className="font-semibold text-[#1C1C1A]">{editingUser.nome}</span>
           </p>
           <Form action={editAction}>
             <input type="hidden" name="userId" value={editingUser.id} />
@@ -754,12 +684,12 @@ export const CadastroClient = ({
           description="Confirme a alteração de acesso deste usuário ao sistema."
           onClose={() => setToggleConfirm(null)}
         >
-          <p className="mb-4 text-sm text-zinc-600 dark:text-zinc-400">
+          <p className="mb-4 text-[13px] text-[#56564F]">
             Tem certeza que deseja {toggleConfirm.ativo ? "desativar" : "reativar"} o usuário{" "}
-            <span className="font-medium text-zinc-900 dark:text-zinc-50">{toggleConfirm.nome}</span>?
+            <span className="font-semibold text-[#1C1C1A]">{toggleConfirm.nome}</span>?
           </p>
           {toggleConfirm.ativo && (
-            <p className="mb-4 text-sm text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/40 rounded-lg p-3">
+            <p className="mb-4 rounded-[9px] bg-[#FAF1E2] p-3 text-[13px] text-[#946726]">
               ⚠️ Usuários desativados não poderão acessar o sistema.
             </p>
           )}
@@ -787,7 +717,6 @@ export const CadastroClient = ({
           </Form>
         </Modal>
       )}
-      </div>
     </div>
   );
 }

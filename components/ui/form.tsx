@@ -25,7 +25,7 @@ export function Field({
       {label && (
         <label
           htmlFor={htmlFor}
-          className="text-sm font-medium text-zinc-700 dark:text-zinc-300 text-[13px]"
+          className="text-[12px] font-semibold text-[#86867D]"
         >
           {label}
           {required && (
@@ -39,11 +39,11 @@ export function Field({
       {children}
 
       {error ? (
-        <p className="text-xs text-red-500 dark:text-red-400" role="alert">
+        <p className="text-xs text-[#9A463B]" role="alert">
           {error}
         </p>
       ) : hint ? (
-        <p className="text-xs text-zinc-400 dark:text-zinc-500">{hint}</p>
+        <p className="text-xs text-[#A8A89F]">{hint}</p>
       ) : null}
     </div>
   );
@@ -81,14 +81,14 @@ export function FormSection({
   return (
     <fieldset
       className={cn(
-        "rounded-[12px] border border-[#E9ECEF] p-6 dark:border-zinc-800",
+        "rounded-[14px] border border-[#E8E8E3] p-6",
         className,
       )}
     >
       {(title || description) && (
         <div className="mb-5">
           {title && (
-            <legend className="text-[20px] font-semibold text-zinc-900 dark:text-zinc-50">
+            <legend className="text-[15.5px] font-bold text-[#1C1C1A]">
               {title}
             </legend>
           )}

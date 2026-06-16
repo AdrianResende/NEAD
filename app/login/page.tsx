@@ -1,7 +1,6 @@
 "use client";
 
-import { FormEvent, useState } from "react";
-import Link from "next/link";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { ROUTES } from "@/lib/constants";
 import { Button, Field, Form, Input } from "@/components/ui";
@@ -11,7 +10,7 @@ export default function LoginPage() {
   const router = useRouter();
   const [isPending, setIsPending] = useState(false);
 
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: { preventDefault(): void; currentTarget: HTMLFormElement }) {
     event.preventDefault();
     setIsPending(true);
 
@@ -20,8 +19,7 @@ export default function LoginPage() {
     const password = (formData.get("password") as string | null) ?? "";
 
     if (!email || !password) {
-      const message = "Preencha e-mail e senha.";
-      notifyError(message);
+      notifyError("Preencha e-mail e senha.");
       setIsPending(false);
       return;
     }
@@ -34,49 +32,70 @@ export default function LoginPage() {
 
     if (!response.ok) {
       const payload = (await response.json().catch(() => null)) as { error?: string } | null;
-      const message = payload?.error ?? "E-mail ou senha inválidos.";
-      notifyError(message);
+      notifyError(payload?.error ?? "E-mail ou senha inválidos.");
       setIsPending(false);
       return;
     }
 
-    const payload = (await response.json().catch(() => null)) as
-      | { redirectTo?: string }
-      | null;
-
+    const payload = (await response.json().catch(() => null)) as { redirectTo?: string } | null;
     router.push(payload?.redirectTo ?? ROUTES.CHAMADOS);
     router.refresh();
   }
 
   return (
-    <div className="mx-auto flex min-h-screen w-full max-w-md items-center px-4">
-      <div className="w-full rounded-2xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-950">
-        <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-50">Entrar</h1>
-        <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-          Faça login para acessar o sistema.
-        </p>
-
-        <Form onSubmit={handleSubmit} className="mt-6">
-          <Field label="E-mail" htmlFor="email">
-            <Input id="email" name="email" type="email" placeholder="seuemail@nead.com" required />
-          </Field>
-
-          <Field label="Senha" htmlFor="password">
-            <Input id="password" name="password" type="password" placeholder="••••••••" required />
-          </Field>
-
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            <Button type="submit" className="w-full" disabled={isPending}>
-              {isPending ? "Entrando..." : "Entrar"}
-            </Button>
-            <Link
-              href={ROUTES.CADASTRO}
-              className="inline-flex h-10 w-full items-center justify-center rounded-lg border border-zinc-300 bg-transparent px-4 text-sm font-medium text-zinc-900 transition-colors hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-50 dark:hover:bg-zinc-800"
-            >
-              Cadastrar
-            </Link>
+    <div className="flex min-h-screen items-center justify-center bg-[#F4F4F2] px-4">
+      <div className="w-full max-w-[400px]">
+        {/* Brand mark */}
+        <div className="mb-8 flex flex-col items-center gap-3">
+          <div
+            className="flex h-12 w-12 items-center justify-center rounded-[14px] text-xl font-bold text-white"
+            style={{ background: "var(--color-accent)", boxShadow: "0 4px 14px rgba(46,92,88,0.3)" }}
+          >
+            N
           </div>
-        </Form>
+          <div className="text-center">
+            <p className="text-[17px] font-bold text-[#1C1C1A]">NEAD</p>
+            <p className="text-[13px] text-[#86867D]">Central de Chamados</p>
+          </div>
+        </div>
+
+        {/* Card */}
+        <div className="rounded-[16px] border border-[#E8E8E3] bg-white p-7 shadow-[0_4px_24px_rgba(28,28,26,0.07)]">
+          <h1 className="mb-1 text-[20px] font-bold text-[#1C1C1A]">Entrar</h1>
+          <p className="mb-6 text-[13.5px] text-[#86867D]">Acesse sua conta para continuar.</p>
+
+          <Form onSubmit={handleSubmit}>
+            <Field label="E-mail" htmlFor="email">
+              <Input
+                id="email"
+                name="email"
+                type="email"
+                placeholder="seuemail@nead.com"
+                required
+                autoComplete="email"
+              />
+            </Field>
+
+            <Field label="Senha" htmlFor="password">
+              <Input
+                id="password"
+                name="password"
+                type="password"
+                placeholder="••••••••"
+                required
+                autoComplete="current-password"
+              />
+            </Field>
+
+            <Button type="submit" className="mt-1 w-full" loading={isPending}>
+              {isPending ? "Entrando…" : "Entrar"}
+            </Button>
+          </Form>
+        </div>
+
+        <p className="mt-5 text-center text-[12.5px] text-[#A8A89F]">
+          NEAD — Central de Chamados
+        </p>
       </div>
     </div>
   );

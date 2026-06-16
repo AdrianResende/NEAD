@@ -13,20 +13,21 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 
 const variantClasses: Record<ButtonVariant, string> = {
   primary:
-    "bg-primary text-white hover:bg-primary-dark focus-visible:ring-primary",
+    "bg-[#3E6F6B] text-white hover:bg-[#335C58] shadow-[0_1px_2px_rgba(46,92,88,0.25)] focus-visible:ring-[#3E6F6B]",
   secondary:
-    "bg-[#E9ECEF] text-zinc-800 hover:bg-zinc-200 focus-visible:ring-zinc-400 dark:bg-zinc-800 dark:text-zinc-50 dark:hover:bg-zinc-700",
+    "bg-white border border-[#E4E4DE] text-[#56564F] hover:bg-[#F4F4F1] focus-visible:ring-[#3E6F6B]",
   outline:
-    "border border-primary bg-transparent text-primary hover:bg-primary-light dark:border-primary dark:text-primary dark:hover:bg-primary/10",
+    "border border-[#3E6F6B] bg-transparent text-[#3E6F6B] hover:bg-[#EAF2F1] focus-visible:ring-[#3E6F6B]",
   ghost:
-    "bg-transparent text-zinc-700 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800",
-  danger: "bg-[#DC3545] text-white hover:bg-[#b02030] focus-visible:ring-[#DC3545]",
+    "bg-transparent text-[#56564F] hover:bg-[#F4F4F1] focus-visible:ring-[#3E6F6B]",
+  danger:
+    "bg-[#9A463B] text-white hover:bg-[#7E3830] focus-visible:ring-[#9A463B]",
 };
 
 const sizeClasses: Record<ButtonSize, string> = {
   sm: "h-8 px-3 text-xs rounded-[8px]",
-  md: "h-10 px-[18px] text-sm rounded-[8px] font-medium",
-  lg: "h-12 px-6 text-base rounded-[8px]",
+  md: "h-[38px] px-[15px] text-[13.5px] rounded-[10px] font-semibold",
+  lg: "h-11 px-6 text-sm rounded-[10px]",
 };
 
 export function Button({
@@ -42,7 +43,7 @@ export function Button({
     <button
       disabled={disabled || loading}
       className={cn(
-        "inline-flex items-center justify-center gap-2 font-medium transition-colors",
+        "inline-flex items-center justify-center gap-[7px] font-medium transition-colors",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2",
         "disabled:pointer-events-none disabled:opacity-50",
         variantClasses[variant],
@@ -59,19 +60,8 @@ export function Button({
           viewBox="0 0 24 24"
           aria-hidden="true"
         >
-          <circle
-            className="opacity-25"
-            cx="12"
-            cy="12"
-            r="10"
-            stroke="currentColor"
-            strokeWidth="4"
-          />
-          <path
-            className="opacity-75"
-            fill="currentColor"
-            d="M4 12a8 8 0 018-8v8H4z"
-          />
+          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
         </svg>
       )}
       {children}

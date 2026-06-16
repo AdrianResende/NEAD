@@ -2,8 +2,19 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { Plus, Eye, MapPin } from "lucide-react";
-import { Badge, Button, Pagination, Table, TableBody, TableEmpty, TableHead, Td, Th, Tr } from "@/components/ui";
+import { Eye } from "lucide-react";
+import {
+  Button,
+  Table,
+  TableBody,
+  TableEmpty,
+  TableHead,
+  Td,
+  Th,
+  Tr,
+  StatusBadge,
+  UrgentBadge,
+} from "@/components/ui";
 import { NovoChamadoForm, type ServicoOption } from "./novo/novo-form";
 import { PAGINATION, ROUTES } from "@/lib/constants";
 import { Modal } from "@/components/shared/modal";
@@ -23,17 +34,7 @@ type Props = {
   chamados: Chamado[];
   role: string;
   servicos?: ServicoOption[];
-};
-
-
-
-const STATUS_BADGE: Record<string, "default" | "warning" | "success" | "danger" | "info"> = {
-  aberto: "info",
-  atribuido: "default",
-  em_andamento: "warning",
-  resolvido: "success",
-  fechado: "default",
-  cancelado: "danger",
+  abrirModal?: boolean;
 };
 
 const STATUS_LABEL: Record<string, string> = {
@@ -45,96 +46,107 @@ const STATUS_LABEL: Record<string, string> = {
   cancelado: "Cancelado",
 };
 
-export function ChamadosClient({ chamados, role, servicos = [] }: Props) {
+type TabKey = "todos" | "abertos" | "andamento" | "resolvidos";
+
+const TAB_DEFS: { key: TabKey; label: string }[] = [
+  { key: "todos", label: "Todos" },
+  { key: "abertos", label: "Abertos" },
+  { key: "andamento", label: "Em andamento" },
+  { key: "resolvidos", label: "Resolvidos" },
+];
+
+function inTab(status: string, tab: TabKey): boolean {
+  if (tab === "todos") return true;
+  if (tab === "abertos") return ["aberto", "atribuido"].includes(status);
+  if (tab === "andamento") return status === "em_andamento";
+  return ["resolvido", "fechado"].includes(status);
+}
+
+export function ChamadosClient({ chamados, role, servicos = [], abrirModal = false }: Props) {
   const isSolicitante = role === "solicitante";
-  const isAdmin = role === "admin";
-  const [showSolicitarModal, setShowSolicitarModal] = useState(false);
+  const [showSolicitarModal, setShowSolicitarModal] = useState(abrirModal);
+  const [activeTab, setActiveTab] = useState<TabKey>("todos");
   const [paginaAtual, setPaginaAtual] = useState<number>(PAGINATION.DEFAULT_PAGE);
 
-  const totalPaginas = Math.max(1, Math.ceil(chamados.length / PAGINATION.DEFAULT_PER_PAGE));
+  const filteredChamados = useMemo(
+    () => chamados.filter((c) => inTab(c.status, activeTab)),
+    [chamados, activeTab],
+  );
+
+  const totalPaginas = Math.max(1, Math.ceil(filteredChamados.length / PAGINATION.DEFAULT_PER_PAGE));
   const paginaNormalizada = Math.min(paginaAtual, totalPaginas);
   const chamadosPaginados = useMemo(() => {
     const start = (paginaNormalizada - 1) * PAGINATION.DEFAULT_PER_PAGE;
-    return chamados.slice(start, start + PAGINATION.DEFAULT_PER_PAGE);
-  }, [chamados, paginaNormalizada]);
+    return filteredChamados.slice(start, start + PAGINATION.DEFAULT_PER_PAGE);
+  }, [filteredChamados, paginaNormalizada]);
+
+  function handleTabChange(tab: TabKey) {
+    setActiveTab(tab);
+    setPaginaAtual(1);
+  }
 
   return (
-    <div className="w-full px-4 py-8 sm:px-6 lg:px-8">
-      <div className="mb-6 rounded-2xl border border-zinc-200/80 bg-white/95 p-5 shadow-sm ring-1 ring-zinc-100/60 backdrop-blur-sm dark:border-zinc-800 dark:bg-zinc-950 dark:ring-zinc-900 sm:p-6">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">
-              {isSolicitante ? "Meus Chamados" : "Chamados"}
-            </h1>
-            <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-              {isSolicitante
-                ? "Acompanhe o status das suas solicitações."
-                : "Gerencie os atendimentos e solicitações de serviço."}
-            </p>
-          </div>
-          <div className="flex flex-wrap items-center gap-2">
-            {isAdmin && (
-              <Link href={ROUTES.SETORES} title="Acessar setores">
-                <Button variant="outline" size="sm">
-                  <MapPin className="h-4 w-4" aria-hidden="true" />
-                  Setores
-                </Button>
-              </Link>
-            )}
-            {isSolicitante && (
-              <Button onClick={() => setShowSolicitarModal(true)} title="Solicitar novo serviço">
-                <Plus className="h-4 w-4" aria-hidden="true" />
-                Solicitar Serviço
-              </Button>
-            )}
-          </div>
-        </div>
+    <div>
+      {/* Page header */}
+      <div className="mb-[18px]">
+        <h1 className="mb-1 text-[25px] font-bold tracking-[-0.02em] text-[#1C1C1A]">
+          {isSolicitante ? "Meus Chamados" : "Chamados"}
+        </h1>
+        <p className="text-[14px] text-[#86867D]">
+          {isSolicitante
+            ? `Acompanhe o status das suas solicitações · ${chamados.length} chamados`
+            : `Fila operacional de atendimento · ${chamados.length} chamados`}
+        </p>
       </div>
 
+      {/* Mobile cards */}
       <div className="space-y-3 md:hidden">
         {chamados.length === 0 ? (
-          <div className="rounded-2xl border border-zinc-200/80 bg-white p-4 text-sm text-zinc-500 shadow-sm dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-400">
+          <div className="rounded-[14px] border border-[#E8E8E3] bg-white p-4 text-sm text-[#A8A89F] shadow-[0_1px_2px_rgba(28,28,26,0.03)]">
             {isSolicitante
               ? "Você ainda não solicitou nenhum serviço."
               : "Nenhuma solicitação encontrada."}
           </div>
         ) : (
           chamadosPaginados.map((c) => (
-            <article key={c.id} className="rounded-2xl border border-zinc-200/80 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
+            <article
+              key={c.id}
+              className="rounded-[14px] border border-[#E8E8E3] bg-white p-4 shadow-[0_1px_2px_rgba(28,28,26,0.03)]"
+            >
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
-                  <p className="text-xs font-medium text-zinc-500 dark:text-zinc-400">#{c.id}</p>
-                  <h3 className="truncate text-sm font-semibold text-zinc-900 dark:text-zinc-50">{c.titulo}</h3>
-                  <p className="mt-1 truncate text-xs text-zinc-500 dark:text-zinc-400">{c.servico}</p>
-                  <div className="mt-2">
-                    <Badge variant={c.urgente ? "danger" : "default"}>
-                      {c.urgente ? "Urgente" : "Não urgente"}
-                    </Badge>
-                  </div>
+                  <p className="font-mono text-xs text-[#86867D]">#{c.id}</p>
+                  <h3 className="truncate text-[13.5px] font-semibold text-[#1C1C1A]">{c.titulo}</h3>
+                  <p className="mt-0.5 truncate text-[11.5px] text-[#A0A099]">{c.servico}</p>
+                  {c.urgente && (
+                    <div className="mt-2">
+                      <UrgentBadge />
+                    </div>
+                  )}
                 </div>
-                <Badge variant={STATUS_BADGE[c.status] ?? "default"}>
-                  {STATUS_LABEL[c.status] ?? c.status}
-                </Badge>
+                <StatusBadge status={c.status} />
               </div>
 
-              <div className="mt-3 grid grid-cols-2 gap-2 border-t border-zinc-200/80 pt-3 text-xs dark:border-zinc-800">
+              <div className="mt-3 grid grid-cols-2 gap-2 border-t border-[#F0F0EC] pt-3 text-xs">
                 {!isSolicitante && (
                   <div>
-                    <p className="font-medium text-zinc-500 dark:text-zinc-400">Solicitante</p>
-                    <p className="mt-0.5 text-zinc-700 dark:text-zinc-300">{c.solicitante}</p>
+                    <p className="font-semibold text-[#A8A89F]">Solicitante</p>
+                    <p className="mt-0.5 text-[#56564F]">{c.solicitante}</p>
                   </div>
                 )}
                 <div>
-                  <p className="font-medium text-zinc-500 dark:text-zinc-400">Atendente</p>
-                  <p className="mt-0.5 text-zinc-700 dark:text-zinc-300">{c.atendente ?? "—"}</p>
+                  <p className="font-semibold text-[#A8A89F]">Atendente</p>
+                  <p className="mt-0.5 text-[#56564F]">{c.atendente ?? "—"}</p>
                 </div>
                 <div>
-                  <p className="font-medium text-zinc-500 dark:text-zinc-400">Aberto em</p>
-                  <p className="mt-0.5 text-zinc-700 dark:text-zinc-300">{new Date(c.createdAt).toLocaleDateString("pt-BR")}</p>
+                  <p className="font-semibold text-[#A8A89F]">Aberto em</p>
+                  <p className="mt-0.5 text-[#56564F]">
+                    {new Date(c.createdAt).toLocaleDateString("pt-BR")}
+                  </p>
                 </div>
                 <div className="flex items-end justify-end">
                   <Link href={`${ROUTES.CHAMADOS}/${c.id}`}>
-                    <Button variant="ghost" size="sm" aria-label={`Ver chamado ${c.id}`} title={`Ver chamado ${c.id}`}>
+                    <Button variant="ghost" size="sm" aria-label={`Ver chamado ${c.id}`}>
                       <Eye className="h-4 w-4" aria-hidden="true" />
                     </Button>
                   </Link>
@@ -145,14 +157,49 @@ export function ChamadosClient({ chamados, role, servicos = [] }: Props) {
         )}
       </div>
 
-      <div className="hidden overflow-hidden rounded-2xl border border-zinc-200/80 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-950 md:block">
+      {/* Desktop table */}
+      <div className="hidden rounded-[14px] border border-[#E8E8E3] bg-white shadow-[0_1px_2px_rgba(28,28,26,0.03)] overflow-hidden md:block">
+        {/* Tabs */}
+        {!isSolicitante && (
+          <div className="flex items-center gap-0 border-b border-[#ECECE7] px-[18px]">
+            {TAB_DEFS.map((tab) => {
+              const active = activeTab === tab.key;
+              const count = chamados.filter((c) => inTab(c.status, tab.key)).length;
+              return (
+                <button
+                  key={tab.key}
+                  type="button"
+                  onClick={() => handleTabChange(tab.key)}
+                  className="relative mr-6 border-none bg-none py-[13px] text-[14px] font-medium transition-colors"
+                  style={{
+                    color: active ? "var(--color-accent-ink)" : "#86867D",
+                    fontWeight: active ? 600 : 500,
+                    boxShadow: active ? "inset 0 -2px 0 var(--color-accent)" : "none",
+                    background: "none",
+                    cursor: "pointer",
+                  }}
+                >
+                  {tab.label}{" "}
+                  <span
+                    className="ml-[2px] rounded-[999px] px-[7px] py-[1px] text-[11.5px] font-semibold"
+                    style={{
+                      background: active ? "var(--color-accent-soft)" : "#F0F0EC",
+                      color: active ? "var(--color-accent-ink)" : "#A0A099",
+                    }}
+                  >
+                    {count}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        )}
+
         <Table>
           <TableHead>
             <tr>
-              <Th>#</Th>
-              <Th>Título</Th>
-              <Th>Serviço</Th>
-              <Th>Prioridade</Th>
+              <Th>ID</Th>
+              <Th>Assunto</Th>
               {!isSolicitante && <Th>Solicitante</Th>}
               <Th>Atendente</Th>
               <Th>Status</Th>
@@ -161,9 +208,9 @@ export function ChamadosClient({ chamados, role, servicos = [] }: Props) {
             </tr>
           </TableHead>
           <TableBody>
-            {chamados.length === 0 ? (
+            {filteredChamados.length === 0 ? (
               <TableEmpty
-                colSpan={isSolicitante ? 8 : 9}
+                colSpan={isSolicitante ? 5 : 6}
                 message={
                   isSolicitante
                     ? "Você ainda não solicitou nenhum serviço."
@@ -172,28 +219,36 @@ export function ChamadosClient({ chamados, role, servicos = [] }: Props) {
               />
             ) : (
               chamadosPaginados.map((c) => (
-                <Tr key={c.id}>
-                  <Td className="text-zinc-500">#{c.id}</Td>
-                  <Td className="font-semibold">{c.titulo}</Td>
-                  <Td className="text-zinc-500 dark:text-zinc-400">{c.servico}</Td>
+                <Tr key={c.id} clickable>
+                  <Td mono>#{c.id}</Td>
                   <Td>
-                    <Badge variant={c.urgente ? "danger" : "default"}>
-                      {c.urgente ? "Urgente" : "Não urgente"}
-                    </Badge>
+                    <div>
+                      <p className="text-[13.5px] font-semibold text-[#1C1C1A]">{c.titulo}</p>
+                      <div className="flex items-center gap-2 mt-0.5">
+                        <p className="text-[11.5px] text-[#A0A099]">{c.servico}</p>
+                        {c.urgente && <UrgentBadge />}
+                      </div>
+                    </div>
                   </Td>
-                  {!isSolicitante && <Td className="text-zinc-600 dark:text-zinc-300">{c.solicitante}</Td>}
-                  <Td>{c.atendente ?? <span className="text-zinc-400">—</span>}</Td>
+                  {!isSolicitante && (
+                    <Td>
+                      <span className="text-[13px] text-[#56564F]">{c.solicitante}</span>
+                    </Td>
+                  )}
                   <Td>
-                    <Badge variant={STATUS_BADGE[c.status] ?? "default"}>
-                      {STATUS_LABEL[c.status] ?? c.status}
-                    </Badge>
+                    <span className="text-[13px] text-[#56564F]">{c.atendente ?? <span className="text-[#B4B4AB]">—</span>}</span>
                   </Td>
-                  <Td className="text-zinc-500 text-xs">
-                    {new Date(c.createdAt).toLocaleDateString("pt-BR")}
+                  <Td>
+                    <StatusBadge status={c.status} />
+                  </Td>
+                  <Td muted>
+                    <span className="text-xs">
+                      {new Date(c.createdAt).toLocaleDateString("pt-BR")}
+                    </span>
                   </Td>
                   <Td className="text-right">
                     <Link href={`${ROUTES.CHAMADOS}/${c.id}`}>
-                      <Button variant="ghost" size="sm" aria-label={`Ver chamado ${c.id}`} title={`Ver chamado ${c.id}`}>
+                      <Button variant="ghost" size="sm" aria-label={`Ver chamado ${c.id}`}>
                         <Eye className="h-4 w-4" aria-hidden="true" />
                         <span className="hidden lg:inline">Ver</span>
                       </Button>
@@ -204,21 +259,40 @@ export function ChamadosClient({ chamados, role, servicos = [] }: Props) {
             )}
           </TableBody>
         </Table>
+
+        <div className="flex items-center justify-between px-[18px] py-[13px]">
+          <span className="text-[12.5px] text-[#A0A099]">
+            Mostrando {chamadosPaginados.length} de {filteredChamados.length} chamados
+          </span>
+          {totalPaginas > 1 && (
+            <div className="flex gap-2">
+              <Button
+                type="button"
+                variant="secondary"
+                size="sm"
+                disabled={paginaNormalizada <= 1}
+                onClick={() => setPaginaAtual((p) => p - 1)}
+              >
+                Anterior
+              </Button>
+              <Button
+                type="button"
+                variant="secondary"
+                size="sm"
+                disabled={paginaNormalizada >= totalPaginas}
+                onClick={() => setPaginaAtual((p) => p + 1)}
+              >
+                Próximo
+              </Button>
+            </div>
+          )}
+        </div>
       </div>
 
-      <Pagination
-        page={paginaNormalizada}
-        totalPages={totalPaginas}
-        totalItems={chamados.length}
-        perPage={PAGINATION.DEFAULT_PER_PAGE}
-        onPageChange={setPaginaAtual}
-        label="chamados"
-      />
-
-      {isSolicitante && showSolicitarModal && (
+      {showSolicitarModal && (
         <Modal
-          title="Solicitar Serviço"
-          description="Escolha o setor e o serviço sem sair da tela de acompanhamento."
+          title={isSolicitante ? "Solicitar Serviço" : "Novo Chamado"}
+          description="Preencha as informações para abrir um chamado."
           size="lg"
           onClose={() => setShowSolicitarModal(false)}
         >

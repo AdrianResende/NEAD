@@ -12,42 +12,38 @@ interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
 
 const sizeClasses: Record<InputSize, string> = {
   sm: "h-8 px-3 text-xs",
-  md: "h-10 px-4 text-sm",
-  lg: "h-12 px-4 text-base",
+  md: "h-[38px] px-3 text-[13.5px]",
+  lg: "h-11 px-4 text-sm",
 };
 
 export const Input = React.forwardRef<HTMLInputElement, InputProps>(
-  (
-    { inputSize = "md", error, leftIcon, rightIcon, className, ...props },
-    ref,
-  ) => {
+  ({ inputSize = "md", error, leftIcon, rightIcon, className, ...props }, ref) => {
     return (
       <div className="relative flex items-center">
         {leftIcon && (
-          <span className="absolute left-3 flex items-center text-zinc-400">
+          <span className="pointer-events-none absolute left-3 flex items-center text-[#A8A89F]">
             {leftIcon}
           </span>
         )}
         <input
           ref={ref}
           className={cn(
-            "w-full rounded-[8px] border bg-[#F7F9FB] text-zinc-900 outline-none transition-colors",
-            "placeholder:text-zinc-400",
-            "focus:ring-2 focus:ring-offset-1",
+            "w-full rounded-[9px] border bg-white text-[#1C1C1A] outline-none transition-colors",
+            "placeholder:text-[#A8A89F]",
+            "focus:ring-2",
             "disabled:cursor-not-allowed disabled:opacity-50",
-            "dark:bg-zinc-900 dark:text-zinc-50 dark:placeholder:text-zinc-500",
             error
-              ? "border-red-400 focus:border-red-500 focus:ring-red-200 dark:border-red-600 dark:focus:ring-red-900"
-              : "border-[#E9ECEF] focus:border-primary focus:ring-[color:var(--color-primary-ring)] dark:border-zinc-700 dark:focus:border-primary dark:focus:ring-[color:var(--color-primary-ring)]",
-            leftIcon && "pl-10",
-            rightIcon && "pr-10",
+              ? "border-[#C9554A] focus:border-[#9A463B] focus:ring-[rgba(201,85,74,0.15)]"
+              : "border-[#E4E4DE] focus:border-[#3E6F6B] focus:ring-[rgba(62,111,107,0.15)]",
+            leftIcon && "pl-9",
+            rightIcon && "pr-9",
             sizeClasses[inputSize],
             className,
           )}
           {...props}
         />
         {rightIcon && (
-          <span className="absolute right-3 flex items-center text-zinc-400">
+          <span className="pointer-events-none absolute right-3 flex items-center text-[#A8A89F]">
             {rightIcon}
           </span>
         )}

@@ -21,7 +21,7 @@ import {
   UserCheck,
   Workflow,
 } from "lucide-react";
-import { Badge, Button, Field, Form, Select, Textarea } from "@/components/ui";
+import { Badge, StatusBadge, UrgentBadge, Button, Field, Form, Select, Textarea } from "@/components/ui";
 import { atualizarChamadoAction, enviarMensagemChamadoAction } from "./actions";
 import { ROUTES } from "@/lib/constants";
 import { notifyError, notifySuccess } from "@/lib/toast";
@@ -125,15 +125,15 @@ function SurfaceCard({
 }) {
   return (
     <section
-      className={`rounded-2xl border border-zinc-200/80 bg-white/95 p-5 shadow-sm ring-1 ring-zinc-100/60 backdrop-blur-sm dark:border-zinc-800 dark:bg-zinc-950 dark:ring-zinc-900 sm:p-6 ${className ?? ""}`}
+      className={`rounded-[14px] border border-[#E8E8E3] bg-white p-5 shadow-[0_1px_2px_rgba(28,28,26,0.03)] sm:p-6 ${className ?? ""}`}
     >
       <div className="mb-5 flex items-start justify-between gap-3">
         <div>
-          <h2 className="text-base font-semibold tracking-tight text-zinc-900 dark:text-zinc-50">{title}</h2>
-          {subtitle && <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">{subtitle}</p>}
+          <h2 className="text-[15.5px] font-bold tracking-tight text-[#1C1C1A]">{title}</h2>
+          {subtitle && <p className="mt-1 text-[13px] text-[#86867D]">{subtitle}</p>}
         </div>
         {icon && (
-          <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-zinc-200 bg-zinc-50 text-zinc-600 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300">
+          <span className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-[9px] border border-[#E8E8E3] bg-[#FAFAF8] text-[#86867D]">
             {icon}
           </span>
         )}
@@ -227,10 +227,10 @@ function MensagensPanel({
     >
       <div
         ref={mensagensContainerRef}
-        className="mb-4 max-h-[28rem] space-y-3 overflow-y-auto rounded-2xl border border-zinc-200/80 bg-zinc-50/60 p-3.5 dark:border-zinc-800 dark:bg-zinc-900/40 sm:p-4"
+        className="mb-4 max-h-[28rem] space-y-3 overflow-y-auto rounded-[11px] border border-[#ECECE7] bg-[#FAFAF9] p-3.5 sm:p-4"
       >
         {chamado.mensagens.length === 0 ? (
-          <div className="rounded-xl border border-dashed border-zinc-300 bg-white px-4 py-6 text-center text-sm text-zinc-500 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-400">
+          <div className="rounded-[9px] border border-dashed border-[#D9D9D3] bg-white px-4 py-6 text-center text-[13.5px] text-[#A8A89F]">
             Nenhuma mensagem ainda. Inicie a conversa com contexto objetivo para agilizar o atendimento.
           </div>
         ) : (
@@ -260,19 +260,20 @@ function MensagensPanel({
                 <div
                   className={
                     isMine
-                      ? "max-w-[96%] rounded-2xl rounded-br-md bg-sky-600 px-3.5 py-3 text-white shadow-sm sm:max-w-[90%]"
-                      : "max-w-[96%] rounded-2xl rounded-bl-md border border-zinc-200 bg-white px-3.5 py-3 text-zinc-800 shadow-sm dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-100 sm:max-w-[90%]"
+                      ? "max-w-[90%] rounded-[13px] rounded-br-[4px] px-3.5 py-3 sm:max-w-[84%]"
+                      : "max-w-[90%] rounded-[4px] rounded-br-[13px] rounded-tl-[13px] rounded-tr-[13px] border border-[#ECECE7] bg-white px-3.5 py-3 sm:max-w-[84%]"
                   }
+                  style={isMine ? { background: "var(--color-accent-soft)", color: "#274A47" } : {}}
                 >
                   <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                    <p className={isMine ? "text-xs font-semibold text-white/90" : "text-xs font-semibold text-zinc-500 dark:text-zinc-400"}>
+                    <p className={isMine ? "text-[13px] font-semibold text-[#1C1C1A]" : "text-[13px] font-semibold text-[#1C1C1A]"}>
                       {msg.autor.nome}
                     </p>
-                    <p className={isMine ? "text-[11px] text-white/80" : "text-[11px] text-zinc-500 dark:text-zinc-400"}>
+                    <p className="text-[11px] text-[#B4B4AB]">
                       {formatDateTime(msg.createdAt)}
                     </p>
                   </div>
-                  <p className="mt-1.5 whitespace-pre-wrap text-sm leading-relaxed">{msg.mensagem}</p>
+                  <p className="mt-1.5 whitespace-pre-wrap text-[13.5px] leading-relaxed text-[#36362F]">{msg.mensagem}</p>
                 </div>
               </div>
             );
@@ -319,12 +320,12 @@ function HistoricoStatusPanel({ chamado }: { chamado: Chamado }) {
       {chamado.historicoStatus.length === 0 ? (
         <p className="text-sm text-zinc-500 dark:text-zinc-400">Nenhuma mudança de status registrada.</p>
       ) : (
-        <ol className="grid grid-cols-2 gap-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6">
+        <ol className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
           {chamado.historicoStatus.map((item, index) => {
             return (
               <li
                 key={item.id}
-                className="relative rounded-lg border border-zinc-200/80 bg-zinc-50/60 p-2.5 dark:border-zinc-800 dark:bg-zinc-900/50"
+                className="relative rounded-[9px] border border-[#E8E8E3] bg-[#FAFAF8] p-2.5"
               >
                 <div className="space-y-2">
                   <div className="flex items-start justify-between gap-2">
@@ -332,23 +333,19 @@ function HistoricoStatusPanel({ chamado }: { chamado: Chamado }) {
                       <div className="flex flex-wrap items-center gap-1.5">
                         {index === 0 ? (
                           <>
-                            <Badge variant="default">{STATUS_LABEL[item.deStatus] ?? item.deStatus}</Badge>
-                            <span className="text-xs text-zinc-400 dark:text-zinc-500">→</span>
-                            <Badge variant={STATUS_BADGE[item.paraStatus] ?? "default"}>
-                              {STATUS_LABEL[item.paraStatus] ?? item.paraStatus}
-                            </Badge>
+                            <StatusBadge status={item.deStatus} />
+                            <span className="text-xs text-[#A8A89F]">→</span>
+                            <StatusBadge status={item.paraStatus} />
                           </>
                         ) : (
-                          <Badge variant={STATUS_BADGE[item.paraStatus] ?? "default"}>
-                            {STATUS_LABEL[item.paraStatus] ?? item.paraStatus}
-                          </Badge>
+                          <StatusBadge status={item.paraStatus} />
                         )}
                       </div>
                     </div>
 
-                    <div className="w-fit rounded-md border border-zinc-200/80 bg-white px-1.5 py-1 text-right dark:border-zinc-800 dark:bg-zinc-950">
-                      <p className="text-[10px] font-medium leading-tight text-zinc-700 dark:text-zinc-200">{item.autorNome}</p>
-                      <p className="mt-0.5 whitespace-nowrap text-[10px] leading-tight text-zinc-500 dark:text-zinc-400">{formatDateTime(item.createdAt)}</p>
+                    <div className="w-fit rounded-[7px] border border-[#ECECE7] bg-white px-1.5 py-1 text-right">
+                      <p className="text-[10px] font-medium leading-tight text-[#56564F]">{item.autorNome}</p>
+                      <p className="mt-0.5 whitespace-nowrap text-[10px] leading-tight text-[#A8A89F]">{formatDateTime(item.createdAt)}</p>
                     </div>
                   </div>
 
@@ -396,51 +393,38 @@ export function ChamadoDetalheClient({ chamado, currentUserId, currentUserRole, 
   }, [atendimentoState, router]);
 
   return (
-    <div className="relative w-full px-4 py-8 sm:px-6 lg:px-8">
-      <div
-        className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-56 bg-gradient-to-b from-zinc-100/80 to-transparent dark:from-zinc-900/40"
-        aria-hidden="true"
-      />
-
-      <div className="mb-6 rounded-2xl border border-zinc-200/80 bg-white/95 p-5 shadow-sm ring-1 ring-zinc-100/60 backdrop-blur-sm dark:border-zinc-800 dark:bg-zinc-950 dark:ring-zinc-900 sm:p-6">
+    <div className="relative w-full">
+      <div className="mb-6 rounded-[14px] border border-[#E8E8E3] bg-white p-5 shadow-[0_1px_2px_rgba(28,28,26,0.03)] sm:p-6">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div className="space-y-3">
             <div className="flex flex-wrap items-center gap-2.5">
               <Link
                 href={ROUTES.CHAMADOS}
-                className="inline-flex items-center gap-2 rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:bg-zinc-800"
+                className="inline-flex items-center gap-2 rounded-[9px] border border-[#E4E4DE] bg-white px-3 py-2 text-[13px] font-medium text-[#56564F] hover:bg-[#F4F4F1]"
                 title="Voltar para chamados"
               >
                 <ArrowLeft className="h-4 w-4" aria-hidden="true" />
                 <span>Voltar</span>
               </Link>
-
-              <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-zinc-200 bg-zinc-50 text-zinc-600 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300">
-                <LifeBuoy className="h-4 w-4" aria-hidden="true" />
-              </span>
-              <span className="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Chamado #{chamado.id}</span>
-              <Badge variant={chamado.urgente ? "danger" : "default"}>
-                {chamado.urgente ? "Urgente" : "Não urgente"}
-              </Badge>
+              <span className="font-mono text-[13px] text-[#56564F]">#{chamado.id}</span>
+              {chamado.urgente && <UrgentBadge />}
             </div>
 
-            <h1 className="max-w-3xl text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">
+            <h1 className="max-w-3xl text-[23px] font-bold tracking-[-0.02em] text-[#1C1C1A]">
               {chamado.titulo}
             </h1>
           </div>
 
-          <div className="w-full rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-3 dark:border-zinc-800 dark:bg-zinc-900 lg:max-w-sm">
+          <div className="w-full rounded-[11px] border border-[#E8E8E3] bg-[#FAFAF8] px-3 py-3 lg:max-w-sm">
             <div className="flex flex-col gap-2.5 sm:flex-row sm:items-start sm:justify-between">
               <div className="min-w-0">
-                <p className="text-[10px] font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Datas</p>
-                <div className="mt-1.5 grid gap-1.5 text-xs text-zinc-600 dark:text-zinc-300">
+                <p className="text-[10px] font-semibold uppercase tracking-[0.05em] text-[#A8A89F]">Datas</p>
+                <div className="mt-1.5 grid gap-1.5 text-[12px] text-[#56564F]">
                   <p>Criado: {formatDateTime(chamado.createdAt)}</p>
                   <p>Atualizado: {formatDateTime(chamado.updatedAt)}</p>
                   <div className="flex items-center gap-1.5">
-                    <span>Status atual:</span>
-                    <Badge variant={STATUS_BADGE[chamado.status] ?? "default"}>
-                      {STATUS_LABEL[chamado.status] ?? chamado.status}
-                    </Badge>
+                    <span>Status:</span>
+                    <StatusBadge status={chamado.status} />
                   </div>
                 </div>
               </div>
@@ -452,7 +436,6 @@ export function ChamadoDetalheClient({ chamado, currentUserId, currentUserRole, 
                     size="sm"
                     disabled={atendimentoPending}
                     title="Salvar alterações do atendimento"
-                    className="h-9 rounded-lg border border-primary/20 bg-primary px-3.5 text-xs font-semibold text-white shadow-sm transition-colors hover:bg-primary-dark"
                     form="atendimento-form"
                   >
                     <CheckCircle2 className="h-3.5 w-3.5" aria-hidden="true" />
@@ -474,32 +457,32 @@ export function ChamadoDetalheClient({ chamado, currentUserId, currentUserRole, 
               <input type="hidden" name="id" value={chamado.id} />
 
               <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 sm:gap-3 lg:grid-cols-5">
-                <div className="rounded-xl border border-zinc-200/80 bg-zinc-50/70 p-2.5 dark:border-zinc-800 dark:bg-zinc-900/50">
-                  <p className="text-[10px] font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Solicitante</p>
+                <div className="rounded-[9px] border border-[#E8E8E3] bg-[#FAFAF8] p-2.5">
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.05em] text-[#A8A89F]">Solicitante</p>
                   <div className="mt-1 flex items-center gap-1.5">
                     <User className="h-3.5 w-3.5 shrink-0 text-zinc-600 dark:text-zinc-400" aria-hidden="true" />
                     <div className="min-w-0">
-                      <p className="truncate text-xs font-semibold text-zinc-900 dark:text-zinc-50">{chamado.solicitante.nome}</p>
-                      <p className="truncate text-xs text-zinc-500 dark:text-zinc-400">{chamado.solicitante.email}</p>
+                      <p className="truncate text-xs font-semibold text-[#1C1C1A]">{chamado.solicitante.nome}</p>
+                      <p className="truncate text-xs text-[#86867D]">{chamado.solicitante.email}</p>
                     </div>
                   </div>
                 </div>
 
-                <div className="rounded-xl border border-zinc-200/80 bg-zinc-50/70 p-2.5 dark:border-zinc-800 dark:bg-zinc-900/50">
-                  <p className="text-[10px] font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Serviço</p>
+                <div className="rounded-[9px] border border-[#E8E8E3] bg-[#FAFAF8] p-2.5">
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.05em] text-[#A8A89F]">Serviço</p>
                   <p className="mt-1 text-xs font-semibold text-zinc-900 dark:text-zinc-50">{chamado.servico.nome}</p>
                   <p className="text-xs text-zinc-500 dark:text-zinc-400">{chamado.servico.setor}</p>
                 </div>
 
-                <div className="rounded-xl border border-zinc-200/80 bg-zinc-50/70 p-2.5 dark:border-zinc-800 dark:bg-zinc-900/50">
-                  <p className="text-[10px] font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Status</p>
+                <div className="rounded-[9px] border border-[#E8E8E3] bg-[#FAFAF8] p-2.5">
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.05em] text-[#A8A89F]">Status</p>
                   <div className="mt-1">
                     <Select id="status" name="status" options={STATUS_OPTIONS_ATENDENTE} defaultValue={chamado.status} />
                   </div>
                 </div>
 
-                <div className="rounded-xl border border-zinc-200/80 bg-zinc-50/70 p-2.5 dark:border-zinc-800 dark:bg-zinc-900/50">
-                  <p className="text-[10px] font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Atendente</p>
+                <div className="rounded-[9px] border border-[#E8E8E3] bg-[#FAFAF8] p-2.5">
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.05em] text-[#A8A89F]">Atendente</p>
                   <div className="mt-1">
                     {isAdmin ? (
                       <Select
@@ -517,8 +500,8 @@ export function ChamadoDetalheClient({ chamado, currentUserId, currentUserRole, 
                   </div>
                 </div>
 
-                <div className="rounded-xl border border-zinc-200/80 bg-zinc-50/70 p-2.5 dark:border-zinc-800 dark:bg-zinc-900/50">
-                  <p className="text-[10px] font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Prioridade</p>
+                <div className="rounded-[9px] border border-[#E8E8E3] bg-[#FAFAF8] p-2.5">
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.05em] text-[#A8A89F]">Prioridade</p>
                   <div className="mt-1">
                     <Select
                       id="urgente_atendimento"
@@ -569,43 +552,40 @@ export function ChamadoDetalheClient({ chamado, currentUserId, currentUserRole, 
             </Form>
           ) : (
             <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 sm:gap-3 lg:grid-cols-5">
-              <div className="rounded-xl border border-zinc-200/80 bg-zinc-50/70 p-2.5 dark:border-zinc-800 dark:bg-zinc-900/50">
-                <p className="text-[10px] font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Solicitante</p>
+              <div className="rounded-[9px] border border-[#E8E8E3] bg-[#FAFAF8] p-2.5">
+                <p className="text-[10px] font-semibold uppercase tracking-[0.05em] text-[#A8A89F]">Solicitante</p>
                 <div className="mt-1 flex items-center gap-1.5">
                   <User className="h-3.5 w-3.5 shrink-0 text-zinc-600 dark:text-zinc-400" aria-hidden="true" />
                   <div className="min-w-0">
-                    <p className="truncate text-xs font-semibold text-zinc-900 dark:text-zinc-50">{chamado.solicitante.nome}</p>
-                    <p className="truncate text-xs text-zinc-500 dark:text-zinc-400">{chamado.solicitante.email}</p>
+                    <p className="truncate text-xs font-semibold text-[#1C1C1A]">{chamado.solicitante.nome}</p>
+                    <p className="truncate text-xs text-[#86867D]">{chamado.solicitante.email}</p>
                   </div>
                 </div>
               </div>
 
-              <div className="rounded-xl border border-zinc-200/80 bg-zinc-50/70 p-2.5 dark:border-zinc-800 dark:bg-zinc-900/50">
-                <p className="text-[10px] font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Serviço</p>
+              <div className="rounded-[9px] border border-[#E8E8E3] bg-[#FAFAF8] p-2.5">
+                <p className="text-[10px] font-semibold uppercase tracking-[0.05em] text-[#A8A89F]">Serviço</p>
                 <p className="mt-1 text-xs font-semibold text-zinc-900 dark:text-zinc-50">{chamado.servico.nome}</p>
                 <p className="text-xs text-zinc-500 dark:text-zinc-400">{chamado.servico.setor}</p>
               </div>
 
-              <div className="rounded-xl border border-zinc-200/80 bg-zinc-50/70 p-2.5 dark:border-zinc-800 dark:bg-zinc-900/50">
-                <p className="text-[10px] font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Status</p>
+              <div className="rounded-[9px] border border-[#E8E8E3] bg-[#FAFAF8] p-2.5">
+                <p className="text-[10px] font-semibold uppercase tracking-[0.05em] text-[#A8A89F]">Status</p>
                 <div className="mt-1 flex items-center gap-1.5">
-                  <StatusIcon className="h-4 w-4 text-zinc-600 dark:text-zinc-300" aria-hidden="true" />
-                  <Badge variant={STATUS_BADGE[chamado.status] ?? "default"}>
-                    {STATUS_LABEL[chamado.status] ?? chamado.status}
-                  </Badge>
+                  <StatusBadge status={chamado.status} />
                 </div>
               </div>
 
-              <div className="rounded-xl border border-zinc-200/80 bg-zinc-50/70 p-2.5 dark:border-zinc-800 dark:bg-zinc-900/50">
-                <p className="text-[10px] font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Atendente</p>
+              <div className="rounded-[9px] border border-[#E8E8E3] bg-[#FAFAF8] p-2.5">
+                <p className="text-[10px] font-semibold uppercase tracking-[0.05em] text-[#A8A89F]">Atendente</p>
                 <div className="mt-1 flex items-center gap-1.5">
                   <UserCheck className="h-3.5 w-3.5 shrink-0 text-zinc-600 dark:text-zinc-400" aria-hidden="true" />
                   <p className="truncate text-xs font-medium text-zinc-900 dark:text-zinc-100">{chamado.atendente?.nome ?? "Não atribuído"}</p>
                 </div>
               </div>
 
-              <div className="rounded-xl border border-zinc-200/80 bg-zinc-50/70 p-2.5 dark:border-zinc-800 dark:bg-zinc-900/50">
-                <p className="text-[10px] font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Prioridade</p>
+              <div className="rounded-[9px] border border-[#E8E8E3] bg-[#FAFAF8] p-2.5">
+                <p className="text-[10px] font-semibold uppercase tracking-[0.05em] text-[#A8A89F]">Prioridade</p>
                 <div className="mt-1">
                   <Badge variant={chamado.urgente ? "danger" : "default"}>
                     {chamado.urgente ? "Urgente" : "Não urgente"}

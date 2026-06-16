@@ -5,7 +5,6 @@ import { useActionState, useEffect, useMemo, useState } from "react";
 import { Plus, Edit2, Trash2, ExternalLink } from "lucide-react";
 import { PAGINATION, ROUTES } from "@/lib/constants";
 import {
-  Badge,
   Button,
   Field,
   Form,
@@ -122,118 +121,97 @@ export function SetoresClient({ setores }: { setores: Setor[] }) {
   }
 
   return (
-    <div className="w-full px-4 py-8 sm:px-6 lg:px-8">
-      <div className="mb-6 rounded-2xl border border-zinc-200/80 bg-white/95 p-5 shadow-sm ring-1 ring-zinc-100/60 backdrop-blur-sm dark:border-zinc-800 dark:bg-zinc-950 dark:ring-zinc-900 sm:p-6">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">Setores</h1>
-            <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-              Gerencie os setores da organização.
-            </p>
-          </div>
-          <Button onClick={() => setShowCriar(true)} title="Novo setor" className="w-full justify-center sm:w-auto">
-            <Plus className="h-4 w-4" aria-hidden="true" />
-            Novo Setor
-          </Button>
+    <div>
+      {/* Header */}
+      <div className="mb-[18px] flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <h1 className="mb-1 text-[25px] font-bold tracking-[-0.02em] text-[#1C1C1A]">Setores &amp; Serviços</h1>
+          <p className="text-[14px] text-[#86867D]">Estrutura organizacional e serviços oferecidos</p>
         </div>
+        <Button onClick={() => setShowCriar(true)}>
+          <Plus className="h-4 w-4" aria-hidden="true" />
+          Novo Setor
+        </Button>
       </div>
 
+      {/* Mobile cards */}
       <div className="space-y-3 md:hidden">
         {setores.length === 0 ? (
-          <div className="rounded-2xl border border-zinc-200/80 bg-white p-4 text-sm text-zinc-500 shadow-sm dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-400">
+          <div className="rounded-[14px] border border-[#E8E8E3] bg-white p-4 text-sm text-[#A8A89F] shadow-[0_1px_2px_rgba(28,28,26,0.03)]">
             Nenhum setor cadastrado.
           </div>
         ) : (
           setoresPaginados.map((s) => (
-            <article key={s.id} className="rounded-2xl border border-zinc-200/80 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
+            <article key={s.id} className="rounded-[14px] border border-[#E8E8E3] bg-white p-4 shadow-[0_1px_2px_rgba(28,28,26,0.03)] transition-[border-color,box-shadow] hover:border-[#3E6F6B] hover:shadow-[0_4px_14px_rgba(46,92,88,0.1)]">
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
-                  <h3 className="truncate text-sm font-semibold text-zinc-900 dark:text-zinc-50">{s.nome}</h3>
-                  <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">{s.descricao ?? "Sem descrição"}</p>
-                </div>
-                <div className="flex items-center gap-1">
-                  <Badge variant="default">U: {s._count.users}</Badge>
-                  <Badge variant="default">S: {s._count.servicos}</Badge>
+                  <h3 className="truncate text-[15.5px] font-bold text-[#1C1C1A]">{s.nome}</h3>
+                  <p className="mt-1 text-[12.5px] text-[#A0A099]">{s.descricao ?? "Sem descrição"}</p>
                 </div>
               </div>
-
-              <div className="mt-3 flex items-center justify-end gap-2 border-t border-zinc-200/80 pt-3 dark:border-zinc-800">
-                <Link href={`${ROUTES.SETORES}/${s.id}/servicos`}>
-                  <Button size="sm" variant="ghost" aria-label={`Acessar serviços do setor ${s.nome}`} title={`Acessar serviços do setor ${s.nome}`}>
-                    <ExternalLink className="h-4 w-4" aria-hidden="true" />
-                  </Button>
-                </Link>
-                <Button variant="ghost" size="sm" onClick={() => setEditando(s)} aria-label={`Editar setor ${s.nome}`} title={`Editar setor ${s.nome}`}>
-                  <Edit2 className="h-4 w-4" aria-hidden="true" />
-                </Button>
-                <Button
-                  variant="danger"
-                  size="sm"
-                  onClick={() => handleExcluir(s.id)}
-                  disabled={s._count.users > 0 || s._count.servicos > 0}
-                  aria-label={`Excluir setor ${s.nome}`}
-                  title={`Excluir setor ${s.nome}`}
-                >
-                  <Trash2 className="h-4 w-4" aria-hidden="true" />
-                </Button>
+              <div className="mt-3 flex items-center gap-4 border-t border-[#F0F0EC] pt-3">
+                <div>
+                  <span className="text-[17px] font-bold">{s._count.users}</span>{" "}
+                  <span className="text-[12px] text-[#A0A099]">usuários</span>
+                </div>
+                <div>
+                  <span className="text-[17px] font-bold">{s._count.servicos}</span>{" "}
+                  <span className="text-[12px] text-[#A0A099]">serviços</span>
+                </div>
+                <div className="ml-auto flex items-center gap-1">
+                  <Link href={`${ROUTES.SETORES}/${s.id}/servicos`}>
+                    <Button size="sm" variant="ghost"><ExternalLink className="h-4 w-4" /></Button>
+                  </Link>
+                  <Button variant="ghost" size="sm" onClick={() => setEditando(s)}><Edit2 className="h-4 w-4" /></Button>
+                  <Button variant="danger" size="sm" onClick={() => handleExcluir(s.id)} disabled={s._count.users > 0 || s._count.servicos > 0}><Trash2 className="h-4 w-4" /></Button>
+                </div>
               </div>
             </article>
           ))
         )}
       </div>
 
-      <div className="hidden overflow-hidden rounded-2xl border border-zinc-200/80 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-950 md:block">
-        <Table>
-          <TableHead>
-            <tr>
-              <Th>Nome</Th>
-              <Th>Descrição</Th>
-              <Th className="text-center">Usuários</Th>
-              <Th className="text-center">Serviços</Th>
-              <Th className="text-right">Ações</Th>
-            </tr>
-          </TableHead>
-          <TableBody>
-            {setores.length === 0 ? (
-              <TableEmpty colSpan={5} message="Nenhum setor cadastrado." />
-            ) : (
-              setoresPaginados.map((s) => (
-                <Tr key={s.id}>
-                  <Td className="font-semibold">{s.nome}</Td>
-                  <Td className="text-zinc-500 dark:text-zinc-400">{s.descricao ?? "—"}</Td>
-                  <Td className="text-center">
-                    <Badge variant="default">{s._count.users}</Badge>
-                  </Td>
-                  <Td className="text-center">
-                    <Badge variant="default">{s._count.servicos}</Badge>
-                  </Td>
-                  <Td className="text-right">
-                    <div className="flex justify-end gap-2">
-                      <Link href={`${ROUTES.SETORES}/${s.id}/servicos`}>
-                        <Button size="sm" variant="ghost" aria-label={`Acessar serviços do setor ${s.nome}`} title={`Acessar serviços do setor ${s.nome}`}>
-                          <ExternalLink className="h-4 w-4" aria-hidden="true" />
-                        </Button>
-                      </Link>
-                      <Button variant="ghost" size="sm" onClick={() => setEditando(s)} aria-label={`Editar setor ${s.nome}`} title={`Editar setor ${s.nome}`}>
-                        <Edit2 className="h-4 w-4" aria-hidden="true" />
-                      </Button>
-                      <Button
-                        variant="danger"
-                        size="sm"
-                        onClick={() => handleExcluir(s.id)}
-                        disabled={s._count.users > 0 || s._count.servicos > 0}
-                        aria-label={`Excluir setor ${s.nome}`}
-                        title={`Excluir setor ${s.nome}`}
-                      >
-                        <Trash2 className="h-4 w-4" aria-hidden="true" />
-                      </Button>
-                    </div>
-                  </Td>
-                </Tr>
-              ))
-            )}
-          </TableBody>
-        </Table>
+      {/* Desktop grid */}
+      <div className="hidden md:grid md:grid-cols-3 md:gap-4">
+        {setores.length === 0 ? (
+          <div className="col-span-3 rounded-[14px] border border-[#E8E8E3] bg-white p-8 text-center text-sm text-[#A8A89F]">
+            Nenhum setor cadastrado.
+          </div>
+        ) : (
+          setoresPaginados.map((s) => (
+            <div key={s.id} className="rounded-[14px] border border-[#E8E8E3] bg-white p-[18px] shadow-[0_1px_2px_rgba(28,28,26,0.03)] transition-[border-color,box-shadow] hover:border-[#3E6F6B] hover:shadow-[0_4px_14px_rgba(46,92,88,0.1)]">
+              <div className="mb-[14px] flex items-center justify-between">
+                <div className="flex h-9 w-9 items-center justify-center rounded-[10px] bg-[#EAF2F1] text-[#2E5C58]">
+                  <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7">
+                    <path d="M3 21V8l9-5 9 5v13"/><path d="M9 21v-6h6v6M3 21h18"/>
+                  </svg>
+                </div>
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#C4C4BC" strokeWidth="2"><path d="m9 18 6-6-6-6"/></svg>
+              </div>
+              <p className="mb-[3px] text-[15.5px] font-bold text-[#1C1C1A]">{s.nome}</p>
+              <p className="mb-[14px] min-h-[36px] text-[12.5px] leading-[1.45] text-[#A0A099]">{s.descricao ?? "Sem descrição"}</p>
+              <div className="flex items-center justify-between border-t border-[#F0F0EC] pt-3">
+                <div className="flex gap-[18px]">
+                  <div>
+                    <span className="text-[17px] font-bold">{s._count.users}</span>{" "}
+                    <span className="text-[12px] text-[#A0A099]">usuários</span>
+                  </div>
+                  <div>
+                    <span className="text-[17px] font-bold">{s._count.servicos}</span>{" "}
+                    <span className="text-[12px] text-[#A0A099]">serviços</span>
+                  </div>
+                </div>
+                <div className="flex items-center gap-1">
+                  <Link href={`${ROUTES.SETORES}/${s.id}/servicos`}>
+                    <Button size="sm" variant="ghost" title={`Serviços de ${s.nome}`}><ExternalLink className="h-4 w-4" /></Button>
+                  </Link>
+                  <Button variant="ghost" size="sm" onClick={() => setEditando(s)} title={`Editar ${s.nome}`}><Edit2 className="h-4 w-4" /></Button>
+                  <Button variant="danger" size="sm" onClick={() => handleExcluir(s.id)} disabled={s._count.users > 0 || s._count.servicos > 0} title={`Excluir ${s.nome}`}><Trash2 className="h-4 w-4" /></Button>
+                </div>
+              </div>
+            </div>
+          ))
+        )}
       </div>
 
       <Pagination

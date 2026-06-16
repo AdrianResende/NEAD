@@ -92,10 +92,10 @@ export function NovoChamadoForm({ servicos }: { servicos: ServicoOption[] }) {
           required
           hint="Primeiro filtre pelo nome ou setor e depois escolha uma opção na lista."
         >
-          <div className="space-y-2.5 rounded-xl border border-zinc-200/80 bg-zinc-50/70 p-3 dark:border-zinc-800 dark:bg-zinc-900/40">
+          <div className="space-y-2.5 rounded-[10px] border border-[#E8E8E3] bg-[#F4F4F2] p-3">
             <label
               htmlFor="filtro_servico"
-              className="block text-sm font-medium text-zinc-700 dark:text-zinc-200"
+              className="block text-sm font-medium text-[#1C1C1A]"
             >
               Filtro de serviço
             </label>
@@ -109,7 +109,7 @@ export function NovoChamadoForm({ servicos }: { servicos: ServicoOption[] }) {
 
             <label
               htmlFor="servico_id"
-              className="block text-sm font-medium text-zinc-700 dark:text-zinc-200"
+              className="block text-sm font-medium text-[#1C1C1A]"
             >
               Serviço
             </label>
@@ -124,13 +124,13 @@ export function NovoChamadoForm({ servicos }: { servicos: ServicoOption[] }) {
               required
             />
 
-            <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-zinc-500 dark:text-zinc-400">
+            <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-[#86867D]">
               <span>{servicoOptionsFiltrados.length} serviço(s) encontrado(s)</span>
               {termoFiltro && (
                 <button
                   type="button"
                   onClick={() => setFiltroServico("")}
-                  className="rounded-md border border-zinc-300 px-2 py-1 font-medium text-zinc-600 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800"
+                  className="rounded-[8px] border border-[#E8E8E3] bg-white px-2 py-1 font-medium text-[#56564F] hover:bg-[#F4F4F2]"
                 >
                   Limpar busca
                 </button>
@@ -138,15 +138,15 @@ export function NovoChamadoForm({ servicos }: { servicos: ServicoOption[] }) {
             </div>
 
             {servicoOptionsFiltrados.length === 0 && (
-              <p className="text-sm text-zinc-500 dark:text-zinc-400">
+              <p className="text-sm text-[#86867D]">
                 Nenhum serviço encontrado. Tente outro termo de busca.
               </p>
             )}
           </div>
 
           {servicoSelecionadoLabel && (
-            <p className="mt-2 text-xs text-zinc-500 dark:text-zinc-400">
-              Selecionado: <span className="font-medium text-zinc-700 dark:text-zinc-200">{servicoSelecionadoLabel}</span>
+            <p className="mt-2 text-xs text-[#86867D]">
+              Selecionado: <span className="font-medium text-[#1C1C1A]">{servicoSelecionadoLabel}</span>
             </p>
           )}
         </Field>
@@ -212,7 +212,7 @@ export function NovoChamadoForm({ servicos }: { servicos: ServicoOption[] }) {
             className="sr-only"
           />
 
-          <div className="rounded-xl border border-dashed border-zinc-300 bg-zinc-50/70 p-4 dark:border-zinc-700 dark:bg-zinc-900/40">
+          <div className="rounded-[10px] border border-dashed border-[#C4C4BC] bg-[#F4F4F2] p-4">
             <Button
               type="button"
               variant="outline"
@@ -230,13 +230,13 @@ export function NovoChamadoForm({ servicos }: { servicos: ServicoOption[] }) {
                 {arquivosSelecionados.map((arquivo, index) => (
                   <div
                     key={`${arquivo.name}-${arquivo.size}-${index}`}
-                    className="inline-flex items-center gap-2 rounded-full border border-zinc-300 bg-white px-3 py-1 text-xs text-zinc-700 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200"
+                    className="inline-flex items-center gap-2 rounded-full border border-[#E8E8E3] bg-white px-3 py-1 text-xs text-[#56564F]"
                   >
                     <span className="max-w-[180px] truncate" title={arquivo.name}>{arquivo.name}</span>
                     <button
                       type="button"
                       onClick={() => handleRemoverArquivo(index)}
-                      className="rounded-full p-0.5 text-zinc-500 hover:bg-zinc-200 hover:text-zinc-700 dark:hover:bg-zinc-700 dark:hover:text-zinc-100"
+                      className="rounded-full p-0.5 text-[#A8A89F] hover:bg-[#F0F0EC] hover:text-[#56564F]"
                       aria-label={`Remover ${arquivo.name}`}
                     >
                       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="h-3.5 w-3.5">
@@ -257,4 +257,3 @@ export function NovoChamadoForm({ servicos }: { servicos: ServicoOption[] }) {
     </>
   );
 }
-

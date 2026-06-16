@@ -20,20 +20,21 @@ export function LayoutShell({ children, role, currentUser }: LayoutShellProps) {
   const isAuthPage = pathname === ROUTES.LOGIN || pathname === ROUTES.ALTERAR_SENHA;
 
   if (isAuthPage) {
-    return (
-      <>
-        <main className="flex-1">{children}</main>
-      </>
-    );
+    return <main className="flex-1">{children}</main>;
   }
 
   return (
-    <>
-      <Header currentUser={currentUser} />
-      <div className="flex flex-1 flex-col md:flex-row">
-        <Sidebar role={role} />
-        <main className="flex-1">{children}</main>
+    <div className="flex min-h-screen">
+      <Sidebar role={role} currentUser={currentUser} />
+      <div className="flex flex-1 flex-col min-w-0">
+        {/* Mobile top nav rendered inside sidebar, desktop sidebar is sticky */}
+        <Header currentUser={currentUser} />
+        <main className="flex-1 overflow-y-auto px-8 py-7">
+          <div className="mx-auto max-w-[1180px]">
+            {children}
+          </div>
+        </main>
       </div>
-    </>
+    </div>
   );
 }

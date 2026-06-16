@@ -1,47 +1,64 @@
-@import url("https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap");
 @import "tailwindcss";
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme inline {
-  --font-sans: var(--font-inter);
+  --font-sans: var(--font-hanken), "Hanken Grotesk", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
 
-  /* Paleta principal — azul */
-  --color-primary:       #1A6FD4;
-  --color-primary-dark:  #1560BD;
-  --color-primary-light: #E8F4FF;
-  --color-primary-ring:  rgba(26, 111, 212, 0.2);
+  /* Accent — petróleo */
+  --color-accent:      #3E6F6B;
+  --color-accent-h:    #335C58;
+  --color-accent-soft: #EAF2F1;
+  --color-accent-ink:  #2E5C58;
 
-  /* Superfícies */
-  --color-surface:       #F7F9FB;
-  --color-border:        #E9ECEF;
+  /* Kept for backwards-compat on any component still using primary */
+  --color-primary:       #3E6F6B;
+  --color-primary-dark:  #335C58;
+  --color-primary-light: #EAF2F1;
+  --color-primary-ring:  rgba(62, 111, 107, 0.2);
 
-  /* Sidebar */
-  --color-sidebar-bg:    #15263A;
+  /* Surfaces */
+  --color-surface:    #F4F4F2;
+  --color-sidebar-bg: #FBFBFA;
+  --color-card:       #FFFFFF;
+  --color-border:     #E8E8E3;
 
-  /* Status */
-  --color-status-aberto-bg:      #E8F4FF;
-  --color-status-aberto-text:    #0A53CA;
-  --color-status-andamento-bg:   #FFF3CD;
-  --color-status-andamento-text: #856404;
-  --color-status-resolvido-bg:   #DDEFE2;
-  --color-status-resolvido-text: #0D5A28;
+  /* Text */
+  --color-text-primary:   #1C1C1A;
+  --color-text-secondary: #86867D;
+  --color-text-muted:     #A8A89F;
 
-  /* Feedback */
-  --color-success:      #4A8F5B;
-  --color-success-dark: #0D5A28;
-  --color-warning:      #E8BF4F;
-  --color-danger:       #DC3545;
+  /* Status — chamado */
+  --color-status-aberto-bg:        #EAF1F7;
+  --color-status-aberto-text:      #2F6593;
+  --color-status-aberto-dot:       #4189C4;
+  --color-status-atribuido-bg:     #EEEDF8;
+  --color-status-atribuido-text:   #56539B;
+  --color-status-atribuido-dot:    #7A77C9;
+  --color-status-andamento-bg:     #FAF1E2;
+  --color-status-andamento-text:   #946726;
+  --color-status-andamento-dot:    #D89B3B;
+  --color-status-resolvido-bg:     #EAF3EC;
+  --color-status-resolvido-text:   #3A6B47;
+  --color-status-resolvido-dot:    #5A9E6B;
+  --color-status-fechado-bg:       #EFEFEC;
+  --color-status-fechado-text:     #6B6B62;
+  --color-status-fechado-dot:      #A0A099;
+  --color-status-cancelado-bg:     #F8ECEA;
+  --color-status-cancelado-text:   #9A463B;
+  --color-status-cancelado-dot:    #C9685A;
 
-  /* Tokens de espaçamento */
-  --spacing-xs: 8px;
-  --spacing-sm: 12px;
-  --spacing-md: 16px;
-  --spacing-lg: 24px;
+  /* Semantic feedback */
+  --color-success:      #3A6B47;
+  --color-warning:      #946726;
+  --color-danger:       #9A463B;
 
   /* Border radius */
   --radius-sm: 8px;
-  --radius-md: 12px;
-  --radius-lg: 20px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 20px;
 }
 
 *,
@@ -55,24 +72,32 @@ html {
 }
 
 body {
-  font-family: var(--font-sans, Arial, Helvetica, sans-serif);
+  font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  letter-spacing: -0.01em;
+  color: #1C1C1A;
+  background: #F4F4F2;
 }
 
-.material-symbols-outlined {
-  font-family: "Material Symbols Outlined";
-  font-weight: normal;
-  font-style: normal;
-  font-size: 20px;
-  line-height: 1;
-  letter-spacing: normal;
-  text-transform: none;
-  display: inline-block;
-  white-space: nowrap;
-  word-wrap: normal;
-  direction: ltr;
-  -webkit-font-feature-settings: "liga";
-  -webkit-font-smoothing: antialiased;
-  font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 20;
+:root {
+  --color-accent:      #3E6F6B;
+  --color-accent-h:    #335C58;
+  --color-accent-soft: #EAF2F1;
+  --color-accent-ink:  #2E5C58;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-thumb {
+  background: #D9D9D3;
+  border-radius: 8px;
+  border: 3px solid transparent;
+  background-clip: content-box;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #C4C4BC;
+  background-clip: content-box;
 }

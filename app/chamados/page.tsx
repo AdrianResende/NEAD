@@ -6,7 +6,11 @@ import { ROUTES } from "@/lib/constants";
 import { autoFecharChamadosResolvidos } from "@/lib/chamados-status";
 import { ChamadosClient } from "./chamados.client";
 
-export default async function ChamadosPage() {
+export default async function ChamadosPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ novo?: string }>;
+}) {
   const cookieStore = await cookies();
   const token = cookieStore.get(SESSION_COOKIE_NAME)?.value;
   const user = token ? await validateSession(token) : null;
@@ -14,6 +18,9 @@ export default async function ChamadosPage() {
   if (!user) redirect(ROUTES.LOGIN);
 
   await autoFecharChamadosResolvidos();
+
+  const params = await searchParams;
+  const abrirModal = params?.novo === "1";
 
   const where =
     user.role === "solicitante"
@@ -41,17 +48,16 @@ export default async function ChamadosPage() {
         atendente: true,
       },
     }),
-    user.role === "solicitante"
-      ? prisma.servico.findMany({
-          orderBy: [{ setor: { nome: "asc" } }, { nome: "asc" }],
-          include: { setor: true },
-        })
-      : Promise.resolve([]),
+    prisma.servico.findMany({
+      orderBy: [{ setor: { nome: "asc" } }, { nome: "asc" }],
+      include: { setor: true },
+    }),
   ]);
 
   return (
     <ChamadosClient
       role={user.role}
+      abrirModal={abrirModal}
       servicos={servicos.map((s) => ({
         id: s.id,
         nome: s.nome,

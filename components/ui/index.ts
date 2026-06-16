@@ -2,7 +2,7 @@ export { Button } from "./button";
 export { Input } from "./input";
 export { Textarea } from "./textarea";
 export { Select } from "./select";
-export { Badge } from "./badge";
+export { Badge, StatusBadge, RoleBadge, PriorityBadge, UrgentBadge } from "./badge";
 export { Form, Field, FormSection, FormActions } from "./form";
 export {
   Table,

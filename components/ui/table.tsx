@@ -8,27 +8,19 @@ interface TableProps {
 
 export function Table({ children, className }: TableProps) {
   return (
-    <div className="w-full overflow-x-auto rounded-[12px] border border-[#E9ECEF] dark:border-zinc-800">
-      <table
-        className={cn("w-full border-collapse text-sm", className)}
-      >
+    <div className="w-full overflow-x-auto rounded-[14px] border border-[#E8E8E3] bg-white shadow-[0_1px_2px_rgba(28,28,26,0.03)]">
+      <table className={cn("w-full border-collapse text-sm", className)}>
         {children}
       </table>
     </div>
   );
 }
 
-export function TableHead({
-  children,
-  className,
-}: {
-  children: React.ReactNode;
-  className?: string;
-}) {
+export function TableHead({ children, className }: { children: React.ReactNode; className?: string }) {
   return (
     <thead
       className={cn(
-        "bg-[#F7F9FB] text-xs uppercase tracking-wide text-zinc-500 dark:bg-zinc-900 dark:text-zinc-400",
+        "border-b border-[#ECECE7] bg-[#FAFAF8] text-[11px] font-semibold uppercase tracking-[0.05em] text-[#A8A89F]",
         className,
       )}
     >
@@ -44,10 +36,7 @@ interface ThProps extends React.ThHTMLAttributes<HTMLTableCellElement> {
 export function Th({ children, className, ...props }: ThProps) {
   return (
     <th
-      className={cn(
-        "whitespace-nowrap px-4 py-3 text-left font-semibold",
-        className,
-      )}
+      className={cn("whitespace-nowrap px-[18px] py-[11px] text-left font-semibold", className)}
       {...props}
     >
       {children}
@@ -55,20 +44,9 @@ export function Th({ children, className, ...props }: ThProps) {
   );
 }
 
-export function TableBody({
-  children,
-  className,
-}: {
-  children: React.ReactNode;
-  className?: string;
-}) {
+export function TableBody({ children, className }: { children: React.ReactNode; className?: string }) {
   return (
-    <tbody
-      className={cn(
-        "divide-y divide-[#E9ECEF] bg-white dark:divide-zinc-800 dark:bg-zinc-950",
-        className,
-      )}
-    >
+    <tbody className={cn("divide-y divide-[#F2F2EE] bg-white", className)}>
       {children}
     </tbody>
   );
@@ -84,8 +62,7 @@ export function Tr({ children, clickable, className, ...props }: TrProps) {
     <tr
       className={cn(
         "transition-colors",
-        clickable &&
-          "cursor-pointer hover:bg-[#F7F9FB] dark:hover:bg-zinc-900",
+        clickable && "cursor-pointer hover:bg-[#FAFAF8]",
         className,
       )}
       {...props}
@@ -98,14 +75,16 @@ export function Tr({ children, clickable, className, ...props }: TrProps) {
 interface TdProps extends React.TdHTMLAttributes<HTMLTableCellElement> {
   children?: React.ReactNode;
   muted?: boolean;
+  mono?: boolean;
 }
 
-export function Td({ children, muted, className, ...props }: TdProps) {
+export function Td({ children, muted, mono, className, ...props }: TdProps) {
   return (
     <td
       className={cn(
-        "whitespace-nowrap px-4 py-3 text-zinc-900 dark:text-zinc-100",
-        muted && "text-zinc-500 dark:text-zinc-400",
+        "whitespace-nowrap px-[18px] py-[13px] text-[#1C1C1A]",
+        muted && "text-[#86867D]",
+        mono && "font-mono text-[12.5px] text-[#86867D]",
         className,
       )}
       {...props}
@@ -115,18 +94,12 @@ export function Td({ children, muted, className, ...props }: TdProps) {
   );
 }
 
-export function TableEmpty({
-  colSpan,
-  message = "Nenhum resultado encontrado.",
-}: {
-  colSpan: number;
-  message?: string;
-}) {
+export function TableEmpty({ colSpan, message = "Nenhum resultado encontrado." }: { colSpan: number; message?: string }) {
   return (
     <tr>
       <td
         colSpan={colSpan}
-        className="py-12 text-center text-sm text-zinc-400 dark:text-zinc-500"
+        className="py-12 text-center text-sm text-[#A8A89F]"
       >
         {message}
       </td>
