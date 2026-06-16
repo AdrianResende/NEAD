@@ -25,7 +25,7 @@ export function Header({ currentUser }: HeaderProps) {
   }
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-zinc-200 bg-white/80 backdrop-blur-sm dark:border-zinc-800 dark:bg-zinc-950/80">
+    <header className="sticky top-0 z-50 w-full border-b border-[#E9ECEF] bg-white/90 backdrop-blur-sm dark:border-zinc-800 dark:bg-zinc-950/80">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         <div className="min-w-0">
           <p className="truncate text-sm font-semibold text-zinc-900 dark:text-zinc-50">
@@ -40,7 +40,7 @@ export function Header({ currentUser }: HeaderProps) {
           <button
             type="button"
             onClick={handleLogout}
-            className="inline-flex h-10 items-center justify-center rounded-lg border border-zinc-300 bg-transparent px-4 text-sm font-medium text-zinc-900 transition-colors hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-50 dark:hover:bg-zinc-800"
+            className="inline-flex h-9 items-center justify-center rounded-[8px] border border-[#E9ECEF] bg-transparent px-4 text-sm font-medium text-zinc-700 transition-colors hover:bg-[#F7F9FB] dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800"
           >
             Sair
           </button>

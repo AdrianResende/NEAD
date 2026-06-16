@@ -25,7 +25,7 @@ export function Field({
       {label && (
         <label
           htmlFor={htmlFor}
-          className="text-sm font-medium text-zinc-700 dark:text-zinc-300"
+          className="text-sm font-medium text-zinc-700 dark:text-zinc-300 text-[13px]"
         >
           {label}
           {required && (
@@ -81,14 +81,14 @@ export function FormSection({
   return (
     <fieldset
       className={cn(
-        "rounded-xl border border-zinc-200 p-6 dark:border-zinc-800",
+        "rounded-[12px] border border-[#E9ECEF] p-6 dark:border-zinc-800",
         className,
       )}
     >
       {(title || description) && (
         <div className="mb-5">
           {title && (
-            <legend className="text-base font-semibold text-zinc-900 dark:text-zinc-50">
+            <legend className="text-[20px] font-semibold text-zinc-900 dark:text-zinc-50">
               {title}
             </legend>
           )}

@@ -8,7 +8,7 @@ interface TableProps {
 
 export function Table({ children, className }: TableProps) {
   return (
-    <div className="w-full overflow-x-auto rounded-xl border border-zinc-200 dark:border-zinc-800">
+    <div className="w-full overflow-x-auto rounded-[12px] border border-[#E9ECEF] dark:border-zinc-800">
       <table
         className={cn("w-full border-collapse text-sm", className)}
       >
@@ -28,7 +28,7 @@ export function TableHead({
   return (
     <thead
       className={cn(
-        "bg-zinc-50 text-xs uppercase tracking-wide text-zinc-500 dark:bg-zinc-900 dark:text-zinc-400",
+        "bg-[#F7F9FB] text-xs uppercase tracking-wide text-zinc-500 dark:bg-zinc-900 dark:text-zinc-400",
         className,
       )}
     >
@@ -65,7 +65,7 @@ export function TableBody({
   return (
     <tbody
       className={cn(
-        "divide-y divide-zinc-100 bg-white dark:divide-zinc-800 dark:bg-zinc-950",
+        "divide-y divide-[#E9ECEF] bg-white dark:divide-zinc-800 dark:bg-zinc-950",
         className,
       )}
     >
@@ -85,7 +85,7 @@ export function Tr({ children, clickable, className, ...props }: TrProps) {
       className={cn(
         "transition-colors",
         clickable &&
-          "cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-900",
+          "cursor-pointer hover:bg-[#F7F9FB] dark:hover:bg-zinc-900",
         className,
       )}
       {...props}

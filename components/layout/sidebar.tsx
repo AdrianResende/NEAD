@@ -49,8 +49,8 @@ export function Sidebar({ role }: { role: string | null }) {
 
   return (
     <>
-      <aside className="hidden w-64 shrink-0 border-r border-zinc-200 bg-zinc-50/90 p-4 dark:border-zinc-800 dark:bg-zinc-900/50 md:block">
-        <p className="px-2 pb-3 text-xs font-semibold uppercase tracking-[0.16em] text-zinc-500 dark:text-zinc-400">
+      <aside className="hidden w-64 shrink-0 bg-[#15263A] p-4 md:block">
+        <p className="px-2 pb-3 text-xs font-semibold uppercase tracking-[0.16em] text-white/40">
           Menu
         </p>
         <nav className="space-y-1" aria-label="Menu lateral">
@@ -62,13 +62,13 @@ export function Sidebar({ role }: { role: string | null }) {
                 key={`${item.href}-${item.label}-${index}`}
                 href={item.href}
                 className={cn(
-                  "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                  "flex items-center gap-3 rounded-[8px] px-3 py-2 text-sm font-medium transition-colors",
                   isActive
-                    ? "bg-primary text-white"
-                    : "text-zinc-700 hover:bg-zinc-200/70 dark:text-zinc-200 dark:hover:bg-zinc-800"
+                    ? "bg-white/12 text-white"
+                    : "text-white/70 hover:bg-white/8 hover:text-white"
                 )}
               >
-                <span className={isActive ? "text-white" : "text-zinc-500 dark:text-zinc-400"}>
+                <span className={isActive ? "text-white" : "text-white/50"}>
                   {item.icon}
                 </span>
                 {item.label}
@@ -79,7 +79,7 @@ export function Sidebar({ role }: { role: string | null }) {
       </aside>
 
       <nav
-        className="border-b border-zinc-200 bg-zinc-50/80 px-4 py-3 dark:border-zinc-800 dark:bg-zinc-900/60 md:hidden"
+        className="border-b border-[#E9ECEF] bg-[#F7F9FB] px-4 py-3 dark:border-zinc-800 dark:bg-zinc-900/60 md:hidden"
         aria-label="Menu mobile"
       >
         <div className="flex gap-2 overflow-x-auto">
@@ -91,10 +91,10 @@ export function Sidebar({ role }: { role: string | null }) {
                 key={`${item.href}-${item.label}-${index}`}
                 href={item.href}
                 className={cn(
-                  "flex items-center gap-2 whitespace-nowrap rounded-full border px-3 py-1.5 text-sm font-medium transition-colors",
+                  "flex items-center gap-2 whitespace-nowrap rounded-[20px] border px-3 py-1.5 text-sm font-medium transition-colors",
                   isActive
                     ? "border-primary bg-primary text-white"
-                    : "border-zinc-300 text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800"
+                    : "border-[#E9ECEF] text-zinc-700 hover:bg-[#E8F4FF] hover:border-primary hover:text-primary dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800"
                 )}
               >
                 <span className={isActive ? "text-white" : "text-zinc-500 dark:text-zinc-400"}>

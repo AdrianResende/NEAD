@@ -6,6 +6,7 @@ import { Plus, Eye, MapPin } from "lucide-react";
 import { Badge, Button, Pagination, Table, TableBody, TableEmpty, TableHead, Td, Th, Tr } from "@/components/ui";
 import { NovoChamadoForm, type ServicoOption } from "./novo/novo-form";
 import { PAGINATION, ROUTES } from "@/lib/constants";
+import { Modal } from "@/components/shared/modal";
 
 type Chamado = {
   id: number;
@@ -24,44 +25,6 @@ type Props = {
   servicos?: ServicoOption[];
 };
 
-function Modal({
-  title,
-  onClose,
-  children,
-}: {
-  title: string;
-  onClose: () => void;
-  children: React.ReactNode;
-}) {
-  return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4"
-      onClick={(e) => e.target === e.currentTarget && onClose()}
-    >
-      <div className="w-full max-w-2xl rounded-2xl border border-zinc-200 bg-white p-6 shadow-xl dark:border-zinc-800 dark:bg-zinc-950">
-        <div className="mb-4 flex items-center justify-between">
-          <div>
-            <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-50">{title}</h2>
-            <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-              Escolha o setor e o serviço sem sair da tela de acompanhamento.
-            </p>
-          </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="rounded-md p-1 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-600 dark:hover:bg-zinc-800 dark:hover:text-zinc-300"
-            aria-label="Fechar"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="h-5 w-5">
-              <path d="M6.28 5.22a.75.75 0 0 0-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 1 0 1.06 1.06L10 11.06l3.72 3.72a.75.75 0 1 0 1.06-1.06L11.06 10l3.72-3.72a.75.75 0 0 0-1.06-1.06L10 8.94 6.28 5.22Z" />
-            </svg>
-          </button>
-        </div>
-        {children}
-      </div>
-    </div>
-  );
-}
 
 
 const STATUS_BADGE: Record<string, "default" | "warning" | "success" | "danger" | "info"> = {
@@ -253,7 +216,12 @@ export function ChamadosClient({ chamados, role, servicos = [] }: Props) {
       />
 
       {isSolicitante && showSolicitarModal && (
-        <Modal title="Solicitar Serviço" onClose={() => setShowSolicitarModal(false)}>
+        <Modal
+          title="Solicitar Serviço"
+          description="Escolha o setor e o serviço sem sair da tela de acompanhamento."
+          size="lg"
+          onClose={() => setShowSolicitarModal(false)}
+        >
           <NovoChamadoForm servicos={servicos} />
         </Modal>
       )}

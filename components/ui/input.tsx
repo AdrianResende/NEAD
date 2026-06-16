@@ -31,14 +31,14 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
         <input
           ref={ref}
           className={cn(
-            "w-full rounded-lg border bg-white text-zinc-900 outline-none transition-colors",
+            "w-full rounded-[8px] border bg-[#F7F9FB] text-zinc-900 outline-none transition-colors",
             "placeholder:text-zinc-400",
             "focus:ring-2 focus:ring-offset-1",
             "disabled:cursor-not-allowed disabled:opacity-50",
             "dark:bg-zinc-900 dark:text-zinc-50 dark:placeholder:text-zinc-500",
             error
               ? "border-red-400 focus:border-red-500 focus:ring-red-200 dark:border-red-600 dark:focus:ring-red-900"
-              : "border-zinc-300 focus:border-primary focus:ring-[color:var(--color-primary-ring)] dark:border-zinc-700 dark:focus:border-primary dark:focus:ring-[color:var(--color-primary-ring)]",
+              : "border-[#E9ECEF] focus:border-primary focus:ring-[color:var(--color-primary-ring)] dark:border-zinc-700 dark:focus:border-primary dark:focus:ring-[color:var(--color-primary-ring)]",
             leftIcon && "pl-10",
             rightIcon && "pr-10",
             sizeClasses[inputSize],

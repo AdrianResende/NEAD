@@ -54,7 +54,7 @@ export async function criarUsuarioAction(
     return { error: "A senha precisa ter no mínimo 6 caracteres." };
   }
 
-  if (requestedRole !== "solicitante") {
+  if (requestedRole === "atendente") {
     if (selectedSetorIds.length === 0) {
       return { error: "Selecione pelo menos um setor." };
     }
@@ -174,7 +174,7 @@ export async function editarUsuarioAction(
     return { error: "Você não pode alterar o seu próprio perfil." };
   }
 
-  if (newRole !== "solicitante") {
+  if (newRole === "atendente") {
     if (selectedSetorIds.length === 0) {
       return { error: "Selecione pelo menos um setor." };
     }
