@@ -609,7 +609,7 @@ export const CadastroClient = ({
               />
             </Field>
             <Field label="Perfil" htmlFor="c-role">
-                <div id="c-setor" className={`${selectionPanelClasses} max-h-36 space-y-2 overflow-y-auto`}>
+              <Select
                 id="c-role"
                 name="role"
                 value={createRole}
@@ -766,7 +766,7 @@ export const CadastroClient = ({
                         value={servico.value}
                         checked={editServicoIds.includes(servico.value)}
                         disabled={editSetorIds.length === 0}
-                        required={editServicoIds.length === 0}
+                        required={editRole === "atendente" && editServicoIds.length === 0}
                         onChange={(e) => {
                           setEditServicoIds((prev) => toggleIdInList(prev, servico.value, e.target.checked));
                         }}
