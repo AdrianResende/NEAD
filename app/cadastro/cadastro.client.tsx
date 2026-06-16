@@ -290,33 +290,6 @@ export const CadastroClient = ({
     return users.slice(start, start + PAGINATION.DEFAULT_PER_PAGE);
   }, [paginaNormalizada, users]);
 
-  const metricas = useMemo(
-    () => [
-      {
-        label: "Total geral",
-        value: usersAtivos.length + usersDesativados.length,
-        hint: `${usersAtivos.length} ativos`,
-      },
-      {
-        label: "Acessos liberados",
-        value: usersAtivos.length,
-        hint: `${usersDesativados.length} desativados`,
-      },
-      {
-        label: "Perfis de atendimento",
-        value: usersAtivos.filter((user) => user.role !== "solicitante").length,
-        hint: "Admin e atendentes",
-      },
-      {
-        label: "Serviços vinculados",
-        value: usersAtivos.reduce((total, user) => total + user.servicos.length, 0),
-        hint: "Cobertura operacional",
-        highlight: true,
-      },
-    ],
-    [usersAtivos, usersDesativados],
-  );
-
   return (
     <div className="w-full bg-[#F7F9FB] px-4 py-6 sm:px-6 lg:px-8 dark:bg-zinc-950">
       <div className="mx-auto max-w-[1440px] space-y-6">
@@ -565,29 +538,6 @@ export const CadastroClient = ({
           onPageChange={setPaginaAtual}
           label={aba === "ativos" ? "usuários ativos" : "usuários desativados"}
         />
-
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          {metricas.map((metrica) => (
-            <div
-              key={metrica.label}
-              className={`rounded-[12px] border p-5 shadow-sm ${
-                metrica.highlight
-                  ? "border-transparent bg-[#2563EB] text-white"
-                  : "border-[#C3C6D7] bg-white text-[#191C1E] dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-50"
-              }`}
-            >
-              <p className={`text-[11px] font-bold uppercase tracking-[0.12em] ${metrica.highlight ? "text-white/70" : "text-[#737686] dark:text-zinc-500"}`}>
-                {metrica.label}
-              </p>
-              <div className="mt-3 flex items-end gap-2">
-                <span className="text-[38px] font-semibold leading-none">{metrica.value}</span>
-              </div>
-              <p className={`mt-2 text-sm ${metrica.highlight ? "text-white/90" : "text-[#434655] dark:text-zinc-400"}`}>
-                {metrica.hint}
-              </p>
-            </div>
-          ))}
-        </div>
 
       {/* Modal: Novo usuário */}
       {createOpen && (
