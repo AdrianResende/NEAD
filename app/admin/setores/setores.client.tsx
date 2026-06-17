@@ -1,9 +1,8 @@
 "use client";
 
-import Link from "next/link";
 import { useActionState, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Plus, Edit2, Trash2, ExternalLink } from "lucide-react";
+import { Plus, Edit2, Trash2 } from "lucide-react";
 import { PAGINATION, ROUTES } from "@/lib/constants";
 import {
   Button,
@@ -101,6 +100,7 @@ function EditarSetorModal({ setor, onClose }: { setor: Setor; onClose: () => voi
 }
 
 export function SetoresClient({ setores }: { setores: Setor[] }) {
+  const router = useRouter();
   const [showCriar, setShowCriar] = useState(false);
   const [editando, setEditando] = useState<Setor | null>(null);
   const [paginaAtual, setPaginaAtual] = useState<number>(PAGINATION.DEFAULT_PAGE);
@@ -143,7 +143,11 @@ export function SetoresClient({ setores }: { setores: Setor[] }) {
           </div>
         ) : (
           setoresPaginados.map((s) => (
-            <article key={s.id} className="rounded-[14px] border border-[#E8E8E3] bg-white p-4 shadow-[0_1px_2px_rgba(28,28,26,0.03)] transition-[border-color,box-shadow] hover:border-[#3E6F6B] hover:shadow-[0_4px_14px_rgba(46,92,88,0.1)]">
+            <article
+              key={s.id}
+              className="cursor-pointer rounded-[14px] border border-[#E8E8E3] bg-white p-4 shadow-[0_1px_2px_rgba(28,28,26,0.03)] transition-[border-color,box-shadow] hover:border-[#3E6F6B] hover:shadow-[0_4px_14px_rgba(46,92,88,0.1)]"
+              onClick={() => router.push(`${ROUTES.SETORES}/${s.id}/servicos`)}
+            >
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
                   <h3 className="truncate text-[15.5px] font-bold text-[#1C1C1A]">{s.nome}</h3>
@@ -159,10 +163,7 @@ export function SetoresClient({ setores }: { setores: Setor[] }) {
                   <span className="text-[17px] font-bold">{s._count.servicos}</span>{" "}
                   <span className="text-[12px] text-[#A0A099]">serviços</span>
                 </div>
-                <div className="ml-auto flex items-center gap-1">
-                  <Link href={`${ROUTES.SETORES}/${s.id}/servicos`}>
-                    <Button size="sm" variant="ghost"><ExternalLink className="h-4 w-4" /></Button>
-                  </Link>
+                <div className="ml-auto flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
                   <Button variant="ghost" size="sm" onClick={() => setEditando(s)}><Edit2 className="h-4 w-4" /></Button>
                   <Button variant="danger" size="sm" onClick={() => handleExcluir(s.id)} disabled={s._count.users > 0 || s._count.servicos > 0}><Trash2 className="h-4 w-4" /></Button>
                 </div>
@@ -180,14 +181,18 @@ export function SetoresClient({ setores }: { setores: Setor[] }) {
           </div>
         ) : (
           setoresPaginados.map((s) => (
-            <div key={s.id} className="rounded-[14px] border border-[#E8E8E3] bg-white p-[18px] shadow-[0_1px_2px_rgba(28,28,26,0.03)] transition-[border-color,box-shadow] hover:border-[#3E6F6B] hover:shadow-[0_4px_14px_rgba(46,92,88,0.1)]">
+            <div
+              key={s.id}
+              className="cursor-pointer rounded-[14px] border border-[#E8E8E3] bg-white p-[18px] shadow-[0_1px_2px_rgba(28,28,26,0.03)] transition-[border-color,box-shadow] hover:border-[#3E6F6B] hover:shadow-[0_4px_14px_rgba(46,92,88,0.1)]"
+              onClick={() => router.push(`${ROUTES.SETORES}/${s.id}/servicos`)}
+            >
               <div className="mb-[14px] flex items-center justify-between">
                 <div className="flex h-9 w-9 items-center justify-center rounded-[10px] bg-[#EAF2F1] text-[#2E5C58]">
                   <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7">
                     <path d="M3 21V8l9-5 9 5v13"/><path d="M9 21v-6h6v6M3 21h18"/>
                   </svg>
                 </div>
-                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#C4C4BC" strokeWidth="2"><path d="m9 18 6-6-6-6"/></svg>
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#3E6F6B" strokeWidth="2"><path d="m9 18 6-6-6-6"/></svg>
               </div>
               <p className="mb-[3px] text-[15.5px] font-bold text-[#1C1C1A]">{s.nome}</p>
               <p className="mb-[14px] min-h-[36px] text-[12.5px] leading-[1.45] text-[#A0A099]">{s.descricao ?? "Sem descrição"}</p>
@@ -202,10 +207,7 @@ export function SetoresClient({ setores }: { setores: Setor[] }) {
                     <span className="text-[12px] text-[#A0A099]">serviços</span>
                   </div>
                 </div>
-                <div className="flex items-center gap-1">
-                  <Link href={`${ROUTES.SETORES}/${s.id}/servicos`}>
-                    <Button size="sm" variant="ghost" title={`Serviços de ${s.nome}`}><ExternalLink className="h-4 w-4" /></Button>
-                  </Link>
+                <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
                   <Button variant="ghost" size="sm" onClick={() => setEditando(s)} title={`Editar ${s.nome}`}><Edit2 className="h-4 w-4" /></Button>
                   <Button variant="danger" size="sm" onClick={() => handleExcluir(s.id)} disabled={s._count.users > 0 || s._count.servicos > 0} title={`Excluir ${s.nome}`}><Trash2 className="h-4 w-4" /></Button>
                 </div>
