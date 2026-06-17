@@ -1,9 +1,7 @@
 import type { Metadata } from "next";
 import { Hanken_Grotesk } from "next/font/google";
 import { LayoutShell } from "@/components/layout/layout-shell";
-import { validateSession } from "@/lib/auth";
-import { SESSION_COOKIE_NAME } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
+import { validateSession, SESSION_COOKIE_NAME } from "@/lib/auth";
 import { cookies } from "next/headers";
 import "./globals.css";
 
@@ -37,25 +35,18 @@ export default async function RootLayout({
   const cookieStore = await cookies();
   const token = cookieStore.get(SESSION_COOKIE_NAME)?.value;
   const user = token ? await validateSession(token) : null;
-  const role = user?.role ?? null;
-  const currentUser = user
-    ? await prisma.user.findUnique({
-        where: { id: user.id },
-        include: { setor: true },
-      })
-    : null;
 
   return (
     <html lang="pt-BR" className={hanken.variable} suppressHydrationWarning>
       <body className="flex min-h-screen flex-col bg-[#F4F4F2] font-sans antialiased">
         <LayoutShell
-          role={role}
+          role={user?.role ?? null}
           currentUser={
-            currentUser
+            user
               ? {
-                  nome: currentUser.nome,
-                  role: currentUser.role,
-                    setor: currentUser.role === "solicitante" ? null : currentUser.setor?.nome ?? null,
+                  nome: user.nome,
+                  role: user.role,
+                  setor: user.role === "solicitante" ? null : user.setor?.nome ?? null,
                 }
               : null
           }
