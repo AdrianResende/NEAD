@@ -360,7 +360,8 @@ export function ChamadoDetalheClient({ chamado, currentUserId, currentUserRole, 
   const [atendimentoState, atendimentoAction, atendimentoPending] = useActionState(atualizarChamadoAction, {});
   const [urgenteAtendimento, setUrgenteAtendimento] = useState<"sim" | "nao">(chamado.urgente ? "sim" : "nao");
   const [motivoAtendimento, setMotivoAtendimento] = useState(chamado.urgenciaDescricao ?? "");
-  const exibirCampoMotivo = urgenteAtendimento === "sim";
+  const prioridadeOriginal = chamado.urgente ? "sim" : "nao";
+  const exibirCampoMotivo = urgenteAtendimento === "sim" && urgenteAtendimento !== prioridadeOriginal;
 
   const atendenteOptions = [
     { value: "", label: "Sem atendente" },
@@ -501,6 +502,9 @@ export function ChamadoDetalheClient({ chamado, currentUserId, currentUserRole, 
                       onChange={(event) => {
                         const value = event.target.value as "sim" | "nao";
                         setUrgenteAtendimento(value);
+                        if (value === "nao") {
+                          setMotivoAtendimento("");
+                        }
                       }}
                     />
                   </div>
