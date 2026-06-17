@@ -91,7 +91,7 @@ export async function abrirChamadoAction(
   }
 
   for (const anexo of anexos) {
-    if (!ALLOWED_MIME_TYPES.includes(anexo.type)) {
+    if (!(ALLOWED_MIME_TYPES as readonly string[]).includes(anexo.type)) {
       return { error: `Tipo de arquivo não permitido: ${anexo.name}. Envie apenas imagens ou PDF.` };
     }
 

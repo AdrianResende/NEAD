@@ -260,7 +260,7 @@ export async function enviarMensagemChamadoAction(
   }
 
   if (arquivo) {
-    if (!ALLOWED_MIME_TYPES.includes(arquivo.type)) {
+    if (!(ALLOWED_MIME_TYPES as readonly string[]).includes(arquivo.type)) {
       return { error: "Tipo de arquivo não permitido. Envie apenas imagens ou PDF." };
     }
 
