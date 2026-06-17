@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Hanken_Grotesk } from "next/font/google";
 import { LayoutShell } from "@/components/layout/layout-shell";
 import { validateSession, SESSION_COOKIE_NAME } from "@/lib/auth";
@@ -22,8 +22,6 @@ export const metadata: Metadata = {
   keywords: ["chamados", "suporte", "EAD", "NEAD", "helpdesk"],
   applicationName: "NEAD",
   authors: [{ name: "NEAD" }],
-  themeColor: "#3E6F6B",
-  colorScheme: "light",
   icons: {
     icon: [
       { url: "/icon.svg", type: "image/svg+xml" },
@@ -40,6 +38,11 @@ export const metadata: Metadata = {
     title: "NEAD — Central de Chamados",
     description: "Central de chamados do Núcleo de Educação a Distância.",
   },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#3E6F6B",
+  colorScheme: "light",
 };
 
 export default async function RootLayout({
