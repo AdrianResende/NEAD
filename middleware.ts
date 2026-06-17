@@ -4,7 +4,7 @@ import { ROUTES } from "@/lib/constants";
 import { getSessionFromRequest, validateSession } from "@/lib/auth";
 import { getPostLoginRoute } from "@/lib/navigation";
 
-export default async function proxy(request: NextRequest) {
+export default async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   if (pathname.startsWith("/api") || pathname.startsWith("/_next") || pathname === "/favicon.ico") {
@@ -20,7 +20,14 @@ export default async function proxy(request: NextRequest) {
 
   const user = await validateSession(token);
   if (!user) {
-    return NextResponse.redirect(new URL(ROUTES.LOGIN, request.url));
+    const response =
+      pathname === ROUTES.LOGIN
+        ? NextResponse.next()
+        : NextResponse.redirect(new URL(ROUTES.LOGIN, request.url));
+
+    response.cookies.delete("session_token");
+
+    return response;
   }
 
   const postLoginRoute = getPostLoginRoute(user);
