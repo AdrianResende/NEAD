@@ -1,7 +1,6 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import { ROUTES } from "@/lib/constants";
 
 type HeaderProps = {
@@ -14,7 +13,6 @@ type HeaderProps = {
 
 export function Header({ currentUser }: HeaderProps) {
   const router = useRouter();
-  const isSolicitante = currentUser?.role === "solicitante";
 
   async function handleLogout() {
     await fetch("/api/auth/logout", { method: "POST" });
@@ -69,19 +67,7 @@ export function Header({ currentUser }: HeaderProps) {
           Sair
         </button>
 
-        {/* Botão novo chamado — abre modal na página de chamados */}
-        <Link
-          href={`${ROUTES.CHAMADOS}?novo=1`}
-          className="flex h-[38px] items-center gap-[7px] rounded-[10px] px-[15px] text-[13.5px] font-semibold transition-colors"
-          style={{ background: "var(--color-accent)", color: "white", boxShadow: "0 1px 2px rgba(46,92,88,0.25)" }}
-          onMouseEnter={(e) => (e.currentTarget.style.background = "var(--color-accent-h)")}
-          onMouseLeave={(e) => (e.currentTarget.style.background = "var(--color-accent)")}
-        >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M12 5v14M5 12h14" />
-          </svg>
-          {isSolicitante ? "Solicitar Serviço" : "Novo chamado"}
-        </Link>
+
       </div>
     </header>
   );

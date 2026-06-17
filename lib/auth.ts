@@ -36,7 +36,9 @@ export async function validateSession(token: string) {
   const session = await prisma.session.findUnique({
     where: { token },
     include: {
-      user: true,
+      user: {
+        include: { setor: { select: { id: true, nome: true } } },
+      },
     },
   });
 

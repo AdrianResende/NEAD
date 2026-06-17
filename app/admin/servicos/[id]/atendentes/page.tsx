@@ -1,9 +1,6 @@
-import { notFound, redirect } from "next/navigation";
-import { cookies } from "next/headers";
-import { SESSION_COOKIE_NAME, validateSession } from "@/lib/auth";
+import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import { ROUTES } from "@/lib/constants";
-import { getFirstMenuRouteByRole } from "@/lib/navigation";
+import { requireAdmin } from "@/lib/require-auth";
 import { VinculoAtendentesClient } from "./vinculo-atendentes.client";
 
 type PageProps = {
@@ -11,12 +8,7 @@ type PageProps = {
 };
 
 export default async function ServicoAtendentesPage({ params }: PageProps) {
-  const cookieStore = await cookies();
-  const token = cookieStore.get(SESSION_COOKIE_NAME)?.value;
-  const user = token ? await validateSession(token) : null;
-
-  if (!user) redirect(ROUTES.LOGIN);
-  if (user.role !== "admin") redirect(getFirstMenuRouteByRole(user.role));
+  await requireAdmin();
 
   const { id } = await params;
   const servicoId = Number(id);

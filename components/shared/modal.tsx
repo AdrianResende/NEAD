@@ -20,7 +20,7 @@ export function Modal({ title, description, onClose, size = "md", children }: Mo
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center px-4 py-6"
-      style={{ background: "rgba(28,28,26,0.45)", backdropFilter: "blur(2px)" }}
+      style={{ background: "rgba(28,28,26,0.55)" }}
       onClick={(e) => e.target === e.currentTarget && onClose()}
     >
       <div

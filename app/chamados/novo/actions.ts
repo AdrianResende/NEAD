@@ -5,20 +5,13 @@ import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { SESSION_COOKIE_NAME, validateSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { MAX_FILE_SIZE_BYTES, MAX_FILES_PER_CHAMADO, ALLOWED_MIME_TYPES, sanitizeFileName } from "@/lib/upload";
 
 export type NovoChamadoState = {
   error?: string;
   success?: boolean;
   chamadoId?: number;
 };
-
-const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024;
-const MAX_FILES = 5;
-const ALLOWED_MIME_TYPES = ["application/pdf", "image/png", "image/jpeg", "image/jpg", "image/webp"];
-
-function sanitizeFileName(fileName: string) {
-  return fileName.replace(/[^a-zA-Z0-9._-]/g, "_");
-}
 
 async function selecionarAtendentePorFila(servicoId: number): Promise<number | null> {
   const vinculados = await prisma.atendenteServico.findMany({
@@ -93,8 +86,8 @@ export async function abrirChamadoAction(
     return { error: "A justificativa de urgência deve ter no máximo 800 caracteres." };
   }
   if (!servico_id || isNaN(servico_id)) return { error: "Selecione um serviço." };
-  if (anexos.length > MAX_FILES) {
-    return { error: `Você pode enviar no máximo ${MAX_FILES} arquivos por chamado.` };
+  if (anexos.length > MAX_FILES_PER_CHAMADO) {
+    return { error: `Você pode enviar no máximo ${MAX_FILES_PER_CHAMADO} arquivos por chamado.` };
   }
 
   for (const anexo of anexos) {

@@ -1,8 +1,7 @@
 import { redirect, notFound } from "next/navigation";
-import { cookies } from "next/headers";
-import { SESSION_COOKIE_NAME, validateSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { ROUTES } from "@/lib/constants";
+import { requireAuth } from "@/lib/require-auth";
 import { autoFecharChamadosResolvidos } from "@/lib/chamados-status";
 import { ChamadoDetalheClient } from "./chamado.client";
 
@@ -12,31 +11,54 @@ export default async function ChamadoDetalhePage({
   params: Promise<{ id: string }>;
 }) {
   const { id: idParam } = await params;
-  const cookieStore = await cookies();
-  const token = cookieStore.get(SESSION_COOKIE_NAME)?.value;
-  const user = token ? await validateSession(token) : null;
-
-  if (!user) redirect(ROUTES.LOGIN);
+  const user = await requireAuth();
 
   await autoFecharChamadosResolvidos();
 
   const id = Number(idParam);
   if (isNaN(id)) notFound();
 
+  // select específico: evita carregar password, sessions, accounts e demais
+  // campos sensíveis dos usuários relacionados ao chamado
   const chamado = await prisma.chamado.findUnique({
     where: { id },
-    include: {
-      servico: { include: { setor: true } },
-      solicitante: true,
-      atendente: true,
-      anexos: { orderBy: { created_at: "asc" } },
+    select: {
+      id: true,
+      titulo: true,
+      descricao: true,
+      urgente: true,
+      urgencia_descricao: true,
+      status: true,
+      created_at: true,
+      updated_at: true,
+      solicitante_id: true,
+      servico_id: true,
+      servico: { select: { nome: true, setor: { select: { nome: true } } } },
+      solicitante: { select: { nome: true, email: true } },
+      atendente: { select: { id: true, nome: true } },
+      anexos: {
+        orderBy: { created_at: "asc" },
+        select: { id: true, nome_original: true, url: true, mime_type: true, tamanho_bytes: true },
+      },
       mensagens: {
         orderBy: { created_at: "asc" },
-        include: { autor: true },
+        select: {
+          id: true,
+          mensagem: true,
+          created_at: true,
+          autor: { select: { id: true, nome: true, role: true } },
+        },
       },
       historicoStatus: {
         orderBy: { created_at: "asc" },
-        include: { autor: true },
+        select: {
+          id: true,
+          de_status: true,
+          para_status: true,
+          created_at: true,
+          observacao: true,
+          autor: { select: { nome: true } },
+        },
       },
     },
   });

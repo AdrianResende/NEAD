@@ -2,7 +2,8 @@
 
 import { useActionState, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Search, UserCheck2, UserPlus, UserX2, Wrench } from "lucide-react";
+import { Pencil, Save, Search, UserCheck2, UserPlus, UserX, UserX2, X } from "lucide-react";
+import { useSetorServico } from "@/hooks/use-setor-servico";
 import {
   RoleBadge,
   Button,
@@ -73,11 +74,10 @@ export const CadastroClient = ({
   const [createRole, setCreateRole] = useState("");
   const [editRole, setEditRole] = useState("solicitante");
   const [query, setQuery] = useState("");
-  const [createSetorIds, setCreateSetorIds] = useState<string[]>([]);
-  const [createServicoIds, setCreateServicoIds] = useState<string[]>([]);
-  const [editSetorIds, setEditSetorIds] = useState<string[]>([]);
-  const [editServicoIds, setEditServicoIds] = useState<string[]>([]);
   const [paginaAtual, setPaginaAtual] = useState<number>(PAGINATION.DEFAULT_PAGE);
+
+  const createForm = useSetorServico(servicoOptions);
+  const editForm = useSetorServico(servicoOptions);
 
   const [createState, createAction, isCreating] = useActionState(criarUsuarioAction, {});
   const [editState, editAction, isEditing] = useActionState(editarUsuarioAction, {});
@@ -92,12 +92,11 @@ export const CadastroClient = ({
       setTimeout(() => {
         setCreateOpen(false);
         setCreateRole("");
-        setCreateSetorIds([]);
-        setCreateServicoIds([]);
+        createForm.reset();
         router.refresh();
       }, 0);
     }
-  }, [createState.error, createState.success, router]);
+  }, [createState.error, createState.success, router]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (editState.error) {
@@ -108,12 +107,11 @@ export const CadastroClient = ({
       setTimeout(() => {
         setEditingUser(null);
         setEditRole("solicitante");
-        setEditSetorIds([]);
-        setEditServicoIds([]);
+        editForm.reset();
         router.refresh();
       }, 0);
     }
-  }, [editState.error, editState.success, router]);
+  }, [editState.error, editState.success, router]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (!toggleState) {
@@ -139,88 +137,26 @@ export const CadastroClient = ({
     }
   }, [toggleState, toggleIntentAtivo, router]);
 
-  const createFilteredServicoOptions = useMemo(() => {
-    if (createSetorIds.length === 0) {
-      return [];
-    }
-
-    const setorSet = new Set(createSetorIds.map((id) => Number(id)));
-    return servicoOptions.filter((servico) => setorSet.has(servico.setor_id));
-  }, [createSetorIds, servicoOptions]);
-
-  const editFilteredServicoOptions = useMemo(() => {
-    if (editSetorIds.length === 0) {
-      return [];
-    }
-
-    const setorSet = new Set(editSetorIds.map((id) => Number(id)));
-    return servicoOptions.filter((servico) => setorSet.has(servico.setor_id));
-  }, [editSetorIds, servicoOptions]);
-
-  function filterServicoIdsBySetores(selectedSetores: string[], currentServicoIds: string[]) {
-    if (selectedSetores.length === 0) {
-      return [];
-    }
-
-    const allowedSetores = new Set(selectedSetores.map((id) => Number(id)));
-    const allowedServicos = new Set(
-      servicoOptions
-        .filter((servico) => allowedSetores.has(servico.setor_id))
-        .map((servico) => servico.value),
-    );
-
-    return currentServicoIds.filter((id) => allowedServicos.has(id));
-  }
-
   function deriveSetoresFromServicos(servicosIds: number[]) {
     const setorSet = new Set<string>();
     for (const servicoId of servicosIds) {
       const match = servicoOptions.find((opt) => Number(opt.value) === servicoId);
-      if (match) {
-        setorSet.add(String(match.setor_id));
-      }
+      if (match) setorSet.add(String(match.setor_id));
     }
-
     return Array.from(setorSet);
-  }
-
-  function toggleIdInList(current: string[], value: string, checked: boolean) {
-    if (checked) {
-      return current.includes(value) ? current : [...current, value];
-    }
-
-    return current.filter((id) => id !== value);
-  }
-
-  function handleCreateSetorToggle(value: string, checked: boolean) {
-    setCreateSetorIds((prev) => {
-      const next = toggleIdInList(prev, value, checked);
-      setCreateServicoIds((servicosPrev) => filterServicoIdsBySetores(next, servicosPrev));
-      return next;
-    });
-  }
-
-  function handleEditSetorToggle(value: string, checked: boolean) {
-    setEditSetorIds((prev) => {
-      const next = toggleIdInList(prev, value, checked);
-      setEditServicoIds((servicosPrev) => filterServicoIdsBySetores(next, servicosPrev));
-      return next;
-    });
   }
 
   function closeCreate() {
     setCreateOpen(false);
     setCreateRole("");
-    setCreateSetorIds([]);
-    setCreateServicoIds([]);
+    createForm.reset();
     router.refresh();
   }
 
   function closeEdit() {
     setEditingUser(null);
     setEditRole("solicitante");
-    setEditSetorIds([]);
-    setEditServicoIds([]);
+    editForm.reset();
     router.refresh();
   }
 
@@ -229,8 +165,10 @@ export const CadastroClient = ({
     setEditRole(user.role);
     const setoresFromServicos = deriveSetoresFromServicos(user.servico_ids);
     const baseSetores = user.setor_id ? [String(user.setor_id)] : [];
-    setEditSetorIds(Array.from(new Set([...baseSetores, ...setoresFromServicos])));
-    setEditServicoIds(user.servico_ids.map((id) => String(id)));
+    editForm.init(
+      Array.from(new Set([...baseSetores, ...setoresFromServicos])),
+      user.servico_ids.map((id) => String(id)),
+    );
   }
 
   function getUserInitials(nome: string) {
@@ -382,12 +320,10 @@ export const CadastroClient = ({
                     {canEdit && (
                       <div className="col-span-2 flex items-center justify-end gap-2">
                         <Button variant="ghost" size="sm" disabled={user.id === currentUserId} onClick={() => openEdit(user)}>
-                          <span className="material-symbols-outlined" aria-hidden="true">edit</span>
+                          <Pencil className="h-4 w-4" aria-hidden="true" />
                         </Button>
                         <Button variant="ghost" size="sm" disabled={user.id === currentUserId} onClick={() => setToggleConfirm(user)}>
-                          <span className="material-symbols-outlined text-[#9A463B]" aria-hidden="true">
-                            {aba === "ativos" ? "person_off" : "person_add"}
-                          </span>
+                          {aba === "ativos" ? <UserX className="h-4 w-4 text-[#9A463B]" aria-hidden="true" /> : <UserPlus className="h-4 w-4 text-[#9A463B]" aria-hidden="true" />}
                         </Button>
                       </div>
                     )}
@@ -438,12 +374,10 @@ export const CadastroClient = ({
                         <Td className="text-right">
                           <div className="flex items-center justify-end gap-1">
                             <Button variant="ghost" size="sm" disabled={user.id === currentUserId} onClick={() => openEdit(user)}>
-                              <span className="material-symbols-outlined" aria-hidden="true">edit</span>
+                              <Pencil className="h-4 w-4" aria-hidden="true" />
                             </Button>
                             <Button variant="ghost" size="sm" disabled={user.id === currentUserId} onClick={() => setToggleConfirm(user)}>
-                              <span className="material-symbols-outlined text-[#9A463B]" aria-hidden="true">
-                                {aba === "ativos" ? "person_off" : "person_add"}
-                              </span>
+                              {aba === "ativos" ? <UserX className="h-4 w-4 text-[#9A463B]" aria-hidden="true" /> : <UserPlus className="h-4 w-4 text-[#9A463B]" aria-hidden="true" />}
                             </Button>
                           </div>
                         </Td>
@@ -501,8 +435,7 @@ export const CadastroClient = ({
                 onChange={(e) => {
                   setCreateRole(e.target.value);
                   if (e.target.value === "solicitante" || e.target.value === "") {
-                    setCreateSetorIds([]);
-                    setCreateServicoIds([]);
+                    createForm.reset();
                   }
                 }}
               />
@@ -516,9 +449,9 @@ export const CadastroClient = ({
                       type="checkbox"
                       name="setor_ids"
                       value={setor.value}
-                      checked={createSetorIds.includes(setor.value)}
-                      required={createRole === "atendente" && createSetorIds.length === 0}
-                      onChange={(e) => handleCreateSetorToggle(setor.value, e.target.checked)}
+                      checked={createForm.setorIds.includes(setor.value)}
+                      required={createRole === "atendente" && createForm.setorIds.length === 0}
+                      onChange={(e) => createForm.handleSetorToggle(setor.value, e.target.checked)}
                     />
                     <span>{setor.label}</span>
                   </label>
@@ -531,13 +464,13 @@ export const CadastroClient = ({
               <div
                 id="c-servicos"
                 className={`${selectionPanelClasses} space-y-2 overflow-y-auto transition-all duration-300 ease-out ${
-                  createFilteredServicoOptions.length === 0 ? "max-h-16 opacity-80" : "max-h-44 opacity-100"
+                  createForm.filteredServicoOptions.length === 0 ? "max-h-16 opacity-80" : "max-h-44 opacity-100"
                 }`}
               >
-                {createFilteredServicoOptions.length === 0 ? (
+                {createForm.filteredServicoOptions.length === 0 ? (
                   <p className="text-sm text-zinc-500 dark:text-zinc-400">Selecione setor(es) para habilitar os serviços.</p>
                 ) : (
-                  createFilteredServicoOptions.map((servico, index) => (
+                  createForm.filteredServicoOptions.map((servico, index) => (
                     <label
                       key={servico.value}
                       className="flex items-center gap-2 text-sm text-zinc-700 transition-all duration-300 ease-out dark:text-zinc-200"
@@ -547,12 +480,10 @@ export const CadastroClient = ({
                         type="checkbox"
                         name="servico_ids"
                         value={servico.value}
-                        checked={createServicoIds.includes(servico.value)}
-                        disabled={createSetorIds.length === 0}
-                        required={createRole === "atendente" && createServicoIds.length === 0}
-                        onChange={(e) => {
-                          setCreateServicoIds((prev) => toggleIdInList(prev, servico.value, e.target.checked));
-                        }}
+                        checked={createForm.servicoIds.includes(servico.value)}
+                        disabled={createForm.setorIds.length === 0}
+                        required={createRole === "atendente" && createForm.servicoIds.length === 0}
+                        onChange={(e) => createForm.toggleServico(servico.value, e.target.checked)}
                       />
                       <span>{servico.label}</span>
                     </label>
@@ -564,15 +495,11 @@ export const CadastroClient = ({
 
             <div className="flex justify-end gap-2 pt-1">
               <Button type="button" variant="outline" onClick={closeCreate}>
-                <span className="material-symbols-outlined text-[18px]" title="Cancelar" aria-hidden="true">
-                  cancel
-                </span>
+                <X className="h-4 w-4" aria-hidden="true" />
                 Cancelar
               </Button>
               <Button type="submit" loading={isCreating}>
-                <span className="material-symbols-outlined text-[18px]" title="Cadastrar usuário" aria-hidden="true">
-                  person_add
-                </span>
+                <UserPlus className="h-4 w-4" aria-hidden="true" />
                 Cadastrar
               </Button>
             </div>
@@ -598,8 +525,7 @@ export const CadastroClient = ({
                 onChange={(e) => {
                   setEditRole(e.target.value);
                   if (e.target.value === "solicitante") {
-                    setEditSetorIds([]);
-                    setEditServicoIds([]);
+                    editForm.reset();
                   }
                 }}
               />
@@ -613,9 +539,9 @@ export const CadastroClient = ({
                       type="checkbox"
                       name="setor_ids"
                       value={setor.value}
-                      checked={editSetorIds.includes(setor.value)}
-                      required={editRole === "atendente" && editSetorIds.length === 0}
-                      onChange={(e) => handleEditSetorToggle(setor.value, e.target.checked)}
+                      checked={editForm.setorIds.includes(setor.value)}
+                      required={editRole === "atendente" && editForm.setorIds.length === 0}
+                      onChange={(e) => editForm.handleSetorToggle(setor.value, e.target.checked)}
                     />
                     <span>{setor.label}</span>
                   </label>
@@ -628,13 +554,13 @@ export const CadastroClient = ({
               <div
                 id="e-servicos"
                 className={`${selectionPanelClasses} space-y-2 overflow-y-auto transition-all duration-300 ease-out ${
-                  editFilteredServicoOptions.length === 0 ? "max-h-16 opacity-80" : "max-h-44 opacity-100"
+                  editForm.filteredServicoOptions.length === 0 ? "max-h-16 opacity-80" : "max-h-44 opacity-100"
                 }`}
               >
-                {editFilteredServicoOptions.length === 0 ? (
+                {editForm.filteredServicoOptions.length === 0 ? (
                   <p className="text-sm text-zinc-500 dark:text-zinc-400">Selecione setor(es) para habilitar os serviços.</p>
                 ) : (
-                  editFilteredServicoOptions.map((servico, index) => (
+                  editForm.filteredServicoOptions.map((servico, index) => (
                     <label
                       key={servico.value}
                       className="flex items-center gap-2 text-sm text-zinc-700 transition-all duration-300 ease-out dark:text-zinc-200"
@@ -644,12 +570,10 @@ export const CadastroClient = ({
                         type="checkbox"
                         name="servico_ids"
                         value={servico.value}
-                        checked={editServicoIds.includes(servico.value)}
-                        disabled={editSetorIds.length === 0}
-                        required={editRole === "atendente" && editServicoIds.length === 0}
-                        onChange={(e) => {
-                          setEditServicoIds((prev) => toggleIdInList(prev, servico.value, e.target.checked));
-                        }}
+                        checked={editForm.servicoIds.includes(servico.value)}
+                        disabled={editForm.setorIds.length === 0}
+                        required={editRole === "atendente" && editForm.servicoIds.length === 0}
+                        onChange={(e) => editForm.toggleServico(servico.value, e.target.checked)}
                       />
                       <span>{servico.label}</span>
                     </label>
@@ -661,15 +585,11 @@ export const CadastroClient = ({
 
             <div className="flex justify-end gap-2 pt-1">
               <Button type="button" variant="outline" onClick={closeEdit}>
-                <span className="material-symbols-outlined text-[18px]" title="Cancelar" aria-hidden="true">
-                  cancel
-                </span>
+                <X className="h-4 w-4" aria-hidden="true" />
                 Cancelar
               </Button>
               <Button type="submit" loading={isEditing}>
-                <span className="material-symbols-outlined text-[18px]" title="Salvar alterações" aria-hidden="true">
-                  save
-                </span>
+                <Save className="h-4 w-4" aria-hidden="true" />
                 Salvar
               </Button>
             </div>
@@ -699,9 +619,7 @@ export const CadastroClient = ({
             
             <div className="flex justify-end gap-2 pt-1">
               <Button type="button" variant="outline" onClick={() => setToggleConfirm(null)}>
-                <span className="material-symbols-outlined text-[18px]" title="Cancelar" aria-hidden="true">
-                  cancel
-                </span>
+                <X className="h-4 w-4" aria-hidden="true" />
                 Cancelar
               </Button>
               <Button 

@@ -7,6 +7,7 @@ import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { SESSION_COOKIE_NAME, validateSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { MAX_FILE_SIZE_BYTES, ALLOWED_MIME_TYPES, sanitizeFileName } from "@/lib/upload";
 
 export type AtenderChamadoState = {
   error?: string;
@@ -19,12 +20,6 @@ export type MensagemChamadoState = {
 };
 
 const STATUS_VALIDOS = ["aberto", "atribuido", "em_andamento", "resolvido", "fechado", "cancelado"] as const;
-const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024;
-const ALLOWED_MIME_TYPES = ["application/pdf", "image/png", "image/jpeg", "image/jpg", "image/webp"];
-
-function sanitizeFileName(fileName: string) {
-  return fileName.replace(/[^a-zA-Z0-9._-]/g, "_");
-}
 
 export async function atualizarChamadoAction(
   _prevState: AtenderChamadoState,
@@ -48,7 +43,7 @@ export async function atualizarChamadoAction(
 
   const chamado = await prisma.chamado.findUnique({
     where: { id },
-    include: { servico: true },
+    select: { id: true, status: true, solicitante_id: true, servico_id: true, atendente_id: true, urgente: true, urgencia_descricao: true },
   });
   if (!chamado) return { error: "Chamado não encontrado." };
 
@@ -152,7 +147,7 @@ export async function atualizarChamadoAction(
     } else {
       const atendente = await prisma.user.findUnique({
         where: { id: atendente_id },
-        select: { role: true },
+        select: { id: true, role: true },
       });
 
       if (!atendente) return { error: "Atendente não encontrado." };
@@ -276,7 +271,7 @@ export async function enviarMensagemChamadoAction(
 
   const chamado = await prisma.chamado.findUnique({
     where: { id: chamadoId },
-    include: { servico: true },
+    select: { id: true, solicitante_id: true, servico_id: true },
   });
 
   if (!chamado) return { error: "Chamado não encontrado." };

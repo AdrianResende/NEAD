@@ -14,16 +14,31 @@ const hanken = Hanken_Grotesk({
 
 export const metadata: Metadata = {
   title: {
-    default: "NEAD — Núcleo de Educação a Distância",
+    default: "NEAD — Central de Chamados",
     template: "%s | NEAD",
   },
   description:
-    "Plataforma de ensino a distância do Núcleo de Educação a Distância (NEAD).",
-  keywords: ["educação", "EAD", "cursos online", "NEAD"],
+    "Central de chamados do Núcleo de Educação a Distância (NEAD). Abra, acompanhe e gerencie solicitações de suporte.",
+  keywords: ["chamados", "suporte", "EAD", "NEAD", "helpdesk"],
+  applicationName: "NEAD",
+  authors: [{ name: "NEAD" }],
+  themeColor: "#3E6F6B",
+  colorScheme: "light",
+  icons: {
+    icon: [
+      { url: "/icon.svg", type: "image/svg+xml" },
+    ],
+    apple: [
+      { url: "/icon.svg", type: "image/svg+xml" },
+    ],
+    shortcut: "/icon.svg",
+  },
   openGraph: {
     type: "website",
     locale: "pt_BR",
     siteName: "NEAD",
+    title: "NEAD — Central de Chamados",
+    description: "Central de chamados do Núcleo de Educação a Distância.",
   },
 };
 
