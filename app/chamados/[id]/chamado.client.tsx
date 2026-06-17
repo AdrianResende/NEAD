@@ -318,40 +318,27 @@ function HistoricoStatusPanel({ chamado }: { chamado: Chamado }) {
       icon={<CalendarClock className="h-4 w-4" />}
     >
       {chamado.historicoStatus.length === 0 ? (
-        <p className="text-sm text-zinc-500 dark:text-zinc-400">Nenhuma mudança de status registrada.</p>
+        <p className="text-sm text-[#A8A89F]">Nenhuma mudança de status registrada.</p>
       ) : (
-        <ol className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-          {chamado.historicoStatus.map((item, index) => {
+        <ol className="divide-y divide-[#F0F0EB]">
+          {chamado.historicoStatus.map((item) => {
+            const Icon = STATUS_ICON[item.paraStatus] ?? CircleDashed;
             return (
-              <li
-                key={item.id}
-                className="relative rounded-[9px] border border-[#E8E8E3] bg-[#FAFAF8] p-2.5"
-              >
-                <div className="space-y-2">
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="min-w-0">
-                      <div className="flex flex-wrap items-center gap-1.5">
-                        {index === 0 ? (
-                          <>
-                            <StatusBadge status={item.deStatus} />
-                            <span className="text-xs text-[#A8A89F]">→</span>
-                            <StatusBadge status={item.paraStatus} />
-                          </>
-                        ) : (
-                          <StatusBadge status={item.paraStatus} />
-                        )}
-                      </div>
-                    </div>
-
-                    <div className="w-fit rounded-[7px] border border-[#ECECE7] bg-white px-1.5 py-1 text-right">
-                      <p className="text-[10px] font-medium leading-tight text-[#56564F]">{item.autorNome}</p>
-                      <p className="mt-0.5 whitespace-nowrap text-[10px] leading-tight text-[#A8A89F]">{formatDateTime(item.createdAt)}</p>
-                    </div>
-                  </div>
-
+              <li key={item.id} className="flex items-start gap-3 py-2.5 first:pt-0 last:pb-0">
+                <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-[#E8E8E3] bg-[#FAFAF8]">
+                  <Icon className="h-3 w-3 text-[#86867D]" />
+                </span>
+                <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-1.5 gap-y-1">
+                  <StatusBadge status={item.deStatus} />
+                  <span className="text-[11px] text-[#C4C4BB]">→</span>
+                  <StatusBadge status={item.paraStatus} />
                   {item.observacao && (
-                    <p className="text-[11px] leading-relaxed text-zinc-600 dark:text-zinc-300">{item.observacao}</p>
+                    <span className="w-full text-[11px] leading-relaxed text-[#86867D]">{item.observacao}</span>
                   )}
+                </div>
+                <div className="shrink-0 text-right">
+                  <p className="text-[11px] font-medium text-[#56564F]">{item.autorNome}</p>
+                  <p className="whitespace-nowrap text-[11px] text-[#A8A89F]">{formatDateTime(item.createdAt)}</p>
                 </div>
               </li>
             );

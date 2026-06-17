@@ -1,51 +1,45 @@
-import { redirect } from "next/navigation";
-import { cookies } from "next/headers";
-import { SESSION_COOKIE_NAME, validateSession } from "@/lib/auth";
+import { requireAuth } from "@/lib/require-auth";
 import { getAssignableRoles, ROLE_LABELS } from "@/lib/roles";
 import { prisma } from "@/lib/prisma";
-import { ROUTES } from "@/lib/constants";
 import { CadastroClient } from "./cadastro.client";
 
 export default async function CadastroPage() {
-  const cookieStore = await cookies();
-  const token = cookieStore.get(SESSION_COOKIE_NAME)?.value;
-  const currentUser = token ? await validateSession(token) : null;
+  const currentUser = await requireAuth();
 
-  if (!currentUser) {
-    redirect(ROUTES.LOGIN);
-  }
-
-  const [usersAtivos, usersDesativados, setores, servicos] = await Promise.all([
+  // Uma única query para todos os usuários, com select específico (evita carregar
+  // password, sessions, accounts e outros campos desnecessários)
+  const [allUsers, setores, servicos] = await Promise.all([
     prisma.user.findMany({
-      where: { ativo: true },
-      include: {
-        setor: true,
+      select: {
+        id: true,
+        nome: true,
+        email: true,
+        role: true,
+        setor_id: true,
+        ativo: true,
+        created_at: true,
+        setor: { select: { nome: true } },
         servicosAtendidos: {
-          include: {
-            servico: true,
+          select: {
+            servico_id: true,
+            servico: { select: { nome: true } },
           },
         },
       },
       orderBy: { created_at: "desc" },
     }),
-    prisma.user.findMany({
-      where: { ativo: false },
-      include: {
-        setor: true,
-        servicosAtendidos: {
-          include: {
-            servico: true,
-          },
-        },
-      },
-      orderBy: { created_at: "desc" },
+    prisma.setor.findMany({
+      select: { id: true, nome: true },
+      orderBy: { nome: "asc" },
     }),
-    prisma.setor.findMany({ orderBy: { nome: "asc" } }),
     prisma.servico.findMany({
-      include: { setor: true },
+      select: { id: true, nome: true, setor_id: true, setor: { select: { nome: true } } },
       orderBy: [{ setor: { nome: "asc" } }, { nome: "asc" }],
     }),
   ]);
+
+  const usersAtivos = allUsers.filter((u) => u.ativo);
+  const usersDesativados = allUsers.filter((u) => !u.ativo);
 
   const roleOptions = getAssignableRoles(currentUser.role).map((role) => ({
     value: role,
@@ -60,18 +54,19 @@ export default async function CadastroPage() {
   }));
   const canEdit = currentUser.role === "admin" || currentUser.role === "atendente";
 
-  const mapUsers = (users: typeof usersAtivos) => users.map((u) => ({
-    id: u.id,
-    nome: u.nome,
-    email: u.email,
-    role: u.role,
-    setor: u.role === "solicitante" ? null : u.setor?.nome ?? null,
-    setor_id: u.role === "solicitante" ? null : u.setor_id ?? null,
-    servico_ids: u.servicosAtendidos.map((v) => v.servico_id),
-    servicos: u.servicosAtendidos.map((v) => v.servico.nome),
-    createdAt: u.created_at.toISOString(),
-    ativo: u.ativo,
-  }));
+  const mapUsers = (users: typeof usersAtivos) =>
+    users.map((u) => ({
+      id: u.id,
+      nome: u.nome,
+      email: u.email,
+      role: u.role,
+      setor: u.role === "solicitante" ? null : u.setor?.nome ?? null,
+      setor_id: u.role === "solicitante" ? null : u.setor_id ?? null,
+      servico_ids: u.servicosAtendidos.map((v) => v.servico_id),
+      servicos: u.servicosAtendidos.map((v) => v.servico.nome),
+      createdAt: u.created_at.toISOString(),
+      ativo: u.ativo,
+    }));
 
   return (
     <CadastroClient

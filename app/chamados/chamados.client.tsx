@@ -88,15 +88,32 @@ export function ChamadosClient({ chamados, role, servicos = [], abrirModal = fal
   return (
     <div>
       {/* Page header */}
-      <div className="mb-[18px]">
-        <h1 className="mb-1 text-[25px] font-bold tracking-[-0.02em] text-[#1C1C1A]">
-          {isSolicitante ? "Meus Chamados" : "Chamados"}
-        </h1>
-        <p className="text-[14px] text-[#86867D]">
-          {isSolicitante
-            ? `Acompanhe o status das suas solicitações · ${chamados.length} chamados`
-            : `Fila operacional de atendimento · ${chamados.length} chamados`}
-        </p>
+      <div className="mb-[18px] flex items-start justify-between gap-4">
+        <div>
+          <h1 className="mb-1 text-[25px] font-bold tracking-[-0.02em] text-[#1C1C1A]">
+            {isSolicitante ? "Meus Chamados" : "Chamados"}
+          </h1>
+          <p className="text-[14px] text-[#86867D]">
+            {isSolicitante
+              ? `Acompanhe o status das suas solicitações · ${chamados.length} chamados`
+              : `Fila operacional de atendimento · ${chamados.length} chamados`}
+          </p>
+        </div>
+        {isSolicitante && (
+          <button
+            type="button"
+            onClick={() => setShowSolicitarModal(true)}
+            className="flex shrink-0 h-[38px] items-center gap-[7px] rounded-[10px] px-[15px] text-[13.5px] font-semibold transition-colors"
+            style={{ background: "var(--color-accent)", color: "white", boxShadow: "0 1px 2px rgba(46,92,88,0.25)" }}
+            onMouseEnter={(e) => (e.currentTarget.style.background = "var(--color-accent-h)")}
+            onMouseLeave={(e) => (e.currentTarget.style.background = "var(--color-accent)")}
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M12 5v14M5 12h14" />
+            </svg>
+            Solicitar Chamado
+          </button>
+        )}
       </div>
 
       {/* Mobile cards */}
@@ -291,7 +308,7 @@ export function ChamadosClient({ chamados, role, servicos = [], abrirModal = fal
 
       {showSolicitarModal && (
         <Modal
-          title={isSolicitante ? "Solicitar Serviço" : "Novo Chamado"}
+          title="Solicitar Chamado"
           description="Preencha as informações para abrir um chamado."
           size="lg"
           onClose={() => setShowSolicitarModal(false)}
