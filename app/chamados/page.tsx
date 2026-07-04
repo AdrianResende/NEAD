@@ -47,6 +47,7 @@ export default async function ChamadosPage({
         nome: s.nome,
         setor: s.setor.nome,
         setor_id: s.setor_id,
+        categoria: s.categoria ?? null,
       }))}
       chamados={chamados.map((c) => ({
         id: c.id,

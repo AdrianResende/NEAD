@@ -42,6 +42,7 @@ export default async function SetorServicosPage({
         id: s.id,
         nome: s.nome,
         descricao: s.descricao ?? null,
+        categoria: s.categoria ?? null,
         setor: { id: s.setor.id, nome: s.setor.nome },
         _count: s._count,
         atendentes: s.atendentes.map((a) => ({ id: a.user_id })),

@@ -36,7 +36,7 @@ export default async function ServicoAtendentesPage({ params }: PageProps) {
     }),
     prisma.user.findMany({
       where: {
-        role: "atendente",
+        role: { in: ["atendente", "admin"] },
       },
       orderBy: { nome: "asc" },
       select: {

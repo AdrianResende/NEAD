@@ -79,6 +79,7 @@ model Servico {
   id         Int       @id @default(autoincrement())
   nome       String    @db.VarChar(200)
   descricao  String?
+  categoria  String?   @db.VarChar(100)
   setor_id   Int
   created_at DateTime  @default(now())
   setor      Setor     @relation(fields: [setor_id], references: [id])

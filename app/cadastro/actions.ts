@@ -230,6 +230,57 @@ export async function editarUsuarioAction(
   return { success: true };
 }
 
+export type RedefinirSenhaState = {
+  error?: string;
+  success?: boolean;
+};
+
+export async function redefinirSenhaAction(
+  _prevState: RedefinirSenhaState,
+  formData: FormData
+): Promise<RedefinirSenhaState> {
+  const cookieStore = await cookies();
+  const sessionToken = cookieStore.get(SESSION_COOKIE_NAME)?.value;
+  const currentUser = sessionToken ? await validateSession(sessionToken) : null;
+
+  if (!currentUser || currentUser.role !== "admin") {
+    return { error: "Acesso negado." };
+  }
+
+  const targetId = Number(formData.get("userId"));
+  const newPassword = formData.get("password") as string | null;
+
+  if (!targetId || Number.isNaN(targetId)) {
+    return { error: "Usuário inválido." };
+  }
+
+  if (!newPassword || newPassword.length < 6) {
+    return { error: "A senha precisa ter no mínimo 6 caracteres." };
+  }
+
+  const target = await prisma.user.findUnique({ where: { id: targetId } });
+  if (!target) {
+    return { error: "Usuário não encontrado." };
+  }
+
+  if (target.id === currentUser.id) {
+    return { error: "Use a tela de alteração de senha para mudar sua própria senha." };
+  }
+
+  const passwordHash = await hashPassword(newPassword);
+
+  await prisma.user.update({
+    where: { id: targetId },
+    data: {
+      password: passwordHash,
+      mustChangePassword: true,
+    },
+  });
+
+  revalidatePath("/cadastro");
+  return { success: true };
+}
+
 export type ToggleActivoState = {
   error?: string;
   success?: boolean;

@@ -11,7 +11,7 @@ export default async function NovoChamadoPage() {
   const user = token ? await validateSession(token) : null;
 
   if (!user) redirect(ROUTES.LOGIN);
-  if (user.role !== "solicitante") redirect(ROUTES.CHAMADOS);
+  if (user.role !== "solicitante" && user.role !== "admin") redirect(ROUTES.CHAMADOS);
 
   const servicos = await prisma.servico.findMany({
     orderBy: { nome: "asc" },
@@ -25,6 +25,7 @@ export default async function NovoChamadoPage() {
         nome: s.nome,
         setor_id: s.setor_id,
         setor: s.setor.nome,
+        categoria: s.categoria ?? null,
       }))}
     />
   );

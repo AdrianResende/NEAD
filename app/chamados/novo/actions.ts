@@ -58,7 +58,7 @@ export async function abrirChamadoAction(
   const user = token ? await validateSession(token) : null;
 
   if (!user) return { error: "Não autenticado." };
-  if (user.role !== "solicitante") return { error: "Apenas solicitantes podem abrir chamados." };
+  if (user.role !== "solicitante" && user.role !== "admin") return { error: "Apenas solicitantes e administradores podem abrir chamados." };
 
   const titulo = (formData.get("titulo") as string | null)?.trim();
   const descricao = (formData.get("descricao") as string | null)?.trim();

@@ -208,7 +208,7 @@ export function VinculoAtendentesClient({ servico, atendentesDisponiveis }: Prop
           <div className="mb-4 flex items-center justify-between gap-3">
             <div>
               <h2 className="text-base font-semibold text-zinc-900 dark:text-zinc-100">Atendentes disponíveis</h2>
-              <p className="text-xs text-zinc-500 dark:text-zinc-400">Somente atendentes ativos e ainda não vinculados.</p>
+              <p className="text-xs text-zinc-500 dark:text-zinc-400">Somente atendentes e administradores ativos e ainda não vinculados.</p>
             </div>
             <Badge variant="default">{disponiveisFiltrados.length}</Badge>
           </div>

@@ -14,6 +14,7 @@ export type ServicoOption = {
   nome: string;
   setor: string;
   setor_id: number;
+  categoria: string | null;
 };
 
 export function NovoChamadoForm({ servicos }: { servicos: ServicoOption[] }) {
@@ -40,29 +41,43 @@ export function NovoChamadoForm({ servicos }: { servicos: ServicoOption[] }) {
     }
   }, [state.error]);
 
-  const servicoOptions = useMemo(
-    () =>
-      [...servicos]
-        .sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR"))
-        .map((s) => ({ value: String(s.id), label: `${s.nome} · ${s.setor}` })),
+  const servicosSorted = useMemo(
+    () => [...servicos].sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR")),
     [servicos],
   );
 
-  const servicoOptionsFiltrados = useMemo(() => {
+  const servicosFiltrados = useMemo(() => {
     const termo = filtroServico.trim().toLowerCase();
-    if (!termo) {
-      return servicoOptions;
+    if (!termo) return servicosSorted;
+    return servicosSorted.filter(
+      (s) =>
+        s.nome.toLowerCase().includes(termo) ||
+        s.setor.toLowerCase().includes(termo) ||
+        (s.categoria ?? "").toLowerCase().includes(termo),
+    );
+  }, [filtroServico, servicosSorted]);
+
+  const servicosAgrupados = useMemo(() => {
+    const comCategoria = servicosFiltrados.filter((s) => s.categoria);
+    const semCategoria = servicosFiltrados.filter((s) => !s.categoria);
+
+    const grupos = new Map<string, ServicoOption[]>();
+    for (const s of comCategoria) {
+      const cat = s.categoria!;
+      if (!grupos.has(cat)) grupos.set(cat, []);
+      grupos.get(cat)!.push(s);
     }
 
-    return servicoOptions.filter((s) => s.label.toLowerCase().includes(termo));
-  }, [filtroServico, servicoOptions]);
+    return { grupos, semCategoria };
+  }, [servicosFiltrados]);
 
-  const servicoSelecionadoLabel = useMemo(
-    () => servicoOptions.find((s) => s.value === servicoSelecionado)?.label,
-    [servicoOptions, servicoSelecionado],
-  );
+  const totalFiltrados = servicosFiltrados.length;
 
-  const termoFiltro = filtroServico.trim();
+  const servicoSelecionadoLabel = useMemo(() => {
+    const s = servicosSorted.find((s) => String(s.id) === servicoSelecionado);
+    if (!s) return undefined;
+    return s.categoria ? `${s.categoria} › ${s.nome} · ${s.setor}` : `${s.nome} · ${s.setor}`;
+  }, [servicosSorted, servicoSelecionado]);
 
   function handleSelecionarArquivos(event: React.ChangeEvent<HTMLInputElement>) {
     const files = Array.from(event.target.files ?? []);
@@ -90,7 +105,7 @@ export function NovoChamadoForm({ servicos }: { servicos: ServicoOption[] }) {
           label="Serviço"
           htmlFor="servico_id"
           required
-          hint="Primeiro filtre pelo nome ou setor e depois escolha uma opção na lista."
+          hint="Filtre pelo nome, setor ou categoria e escolha uma opção na lista. Serviços com categoria aparecem agrupados."
         >
           <div className="space-y-2.5 rounded-[10px] border border-[#E8E8E3] bg-[#F4F4F2] p-3">
             <label
@@ -102,7 +117,7 @@ export function NovoChamadoForm({ servicos }: { servicos: ServicoOption[] }) {
             <Input
               id="filtro_servico"
               type="text"
-              placeholder="Filtre o setor ou serviço"
+              placeholder="Filtre por nome, setor ou categoria"
               value={filtroServico}
               onChange={(event) => setFiltroServico(event.target.value)}
             />
@@ -114,19 +129,43 @@ export function NovoChamadoForm({ servicos }: { servicos: ServicoOption[] }) {
               Serviço
             </label>
 
-            <Select
-              id="servico_id"
-              name="servico_id"
-              options={servicoOptionsFiltrados}
-              placeholder={termoFiltro ? "Selecione um serviço filtrado" : "Selecione um serviço"}
-              value={servicoSelecionado}
-              onChange={(event) => setServicoSelecionado(event.target.value)}
-              required
-            />
+            <div className="relative">
+              <select
+                id="servico_id"
+                name="servico_id"
+                value={servicoSelecionado}
+                onChange={(event) => setServicoSelecionado(event.target.value)}
+                required
+                className="h-[38px] w-full appearance-none rounded-[9px] border border-[#E4E4DE] bg-white px-3 pr-9 text-[13.5px] text-[#1C1C1A] outline-none transition-colors focus:border-[#3E6F6B] focus:ring-2 focus:ring-[rgba(62,111,107,0.15)]"
+              >
+                <option value="" disabled>
+                  {filtroServico.trim() ? "Selecione um serviço filtrado" : "Selecione um serviço"}
+                </option>
+                {Array.from(servicosAgrupados.grupos.entries()).map(([categoria, itens]) => (
+                  <optgroup key={categoria} label={categoria}>
+                    {itens.map((s) => (
+                      <option key={s.id} value={String(s.id)}>
+                        {s.nome} · {s.setor}
+                      </option>
+                    ))}
+                  </optgroup>
+                ))}
+                {servicosAgrupados.semCategoria.map((s) => (
+                  <option key={s.id} value={String(s.id)}>
+                    {s.nome} · {s.setor}
+                  </option>
+                ))}
+              </select>
+              <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[#A8A89F]">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" className="h-4 w-4">
+                  <path fillRule="evenodd" d="M4.22 6.22a.75.75 0 0 1 1.06 0L8 8.94l2.72-2.72a.75.75 0 1 1 1.06 1.06l-3.25 3.25a.75.75 0 0 1-1.06 0L4.22 7.28a.75.75 0 0 1 0-1.06Z" clipRule="evenodd" />
+                </svg>
+              </span>
+            </div>
 
             <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-[#86867D]">
-              <span>{servicoOptionsFiltrados.length} serviço(s) encontrado(s)</span>
-              {termoFiltro && (
+              <span>{totalFiltrados} serviço(s) encontrado(s)</span>
+              {filtroServico.trim() && (
                 <button
                   type="button"
                   onClick={() => setFiltroServico("")}
@@ -137,7 +176,7 @@ export function NovoChamadoForm({ servicos }: { servicos: ServicoOption[] }) {
               )}
             </div>
 
-            {servicoOptionsFiltrados.length === 0 && (
+            {totalFiltrados === 0 && (
               <p className="text-sm text-[#86867D]">
                 Nenhum serviço encontrado. Tente outro termo de busca.
               </p>

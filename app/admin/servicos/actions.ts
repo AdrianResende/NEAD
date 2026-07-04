@@ -27,16 +27,18 @@ export async function criarServicoAction(
 
   const nome = (formData.get("nome") as string | null)?.trim();
   const descricao = (formData.get("descricao") as string | null)?.trim() || null;
+  const categoria = (formData.get("categoria") as string | null)?.trim() || null;
   const setor_id = Number(formData.get("setor_id"));
 
   if (!nome) return { error: "O nome do serviço é obrigatório." };
   if (nome.length > 200) return { error: "Nome deve ter no máximo 200 caracteres." };
+  if (categoria && categoria.length > 100) return { error: "Categoria deve ter no máximo 100 caracteres." };
   if (!setor_id || isNaN(setor_id)) return { error: "Selecione um setor." };
 
   const setorExists = await prisma.setor.findUnique({ where: { id: setor_id } });
   if (!setorExists) return { error: "Setor não encontrado." };
 
-  await prisma.servico.create({ data: { nome, descricao, setor_id } });
+  await prisma.servico.create({ data: { nome, descricao, categoria, setor_id } });
   revalidatePath("/admin/servicos");
   revalidatePath(`/admin/setores/${setor_id}/servicos`);
   return { success: true };
@@ -52,11 +54,13 @@ export async function editarServicoAction(
   const id = Number(formData.get("id"));
   const nome = (formData.get("nome") as string | null)?.trim();
   const descricao = (formData.get("descricao") as string | null)?.trim() || null;
+  const categoria = (formData.get("categoria") as string | null)?.trim() || null;
   const setor_id = Number(formData.get("setor_id"));
 
   if (!id || isNaN(id)) return { error: "Serviço inválido." };
   if (!nome) return { error: "O nome do serviço é obrigatório." };
   if (nome.length > 200) return { error: "Nome deve ter no máximo 200 caracteres." };
+  if (categoria && categoria.length > 100) return { error: "Categoria deve ter no máximo 100 caracteres." };
   if (!setor_id || isNaN(setor_id)) return { error: "Selecione um setor." };
 
   const setorExists = await prisma.setor.findUnique({ where: { id: setor_id } });
@@ -65,7 +69,7 @@ export async function editarServicoAction(
   const existingServico = await prisma.servico.findUnique({ where: { id } });
   if (!existingServico) return { error: "Serviço não encontrado." };
 
-  await prisma.servico.update({ where: { id }, data: { nome, descricao, setor_id } });
+  await prisma.servico.update({ where: { id }, data: { nome, descricao, categoria, setor_id } });
   revalidatePath("/admin/servicos");
   revalidatePath(`/admin/setores/${setor_id}/servicos`);
   revalidatePath(`/admin/setores/${existingServico.setor_id}/servicos`);
@@ -107,7 +111,7 @@ export async function adicionarAtendenteAction(
   const targetUser = await prisma.user.findUnique({ where: { id: user_id } });
   if (!targetUser) return { error: "Usuário não encontrado." };
 
-  if (targetUser.role !== "atendente") return { error: "Apenas atendentes podem ser vinculados." };
+  if (targetUser.role !== "atendente" && targetUser.role !== "admin") return { error: "Apenas atendentes ou administradores podem ser vinculados." };
 
   const existing = await prisma.atendenteServico.findUnique({
     where: { user_id_servico_id: { user_id, servico_id } },

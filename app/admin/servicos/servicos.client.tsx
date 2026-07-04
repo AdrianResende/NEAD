@@ -31,6 +31,7 @@ type Servico = {
   id: number;
   nome: string;
   descricao: string | null;
+  categoria: string | null;
   setor: Setor;
   _count: { chamados: number };
   atendentes: Array<{ id: number }>;
@@ -47,7 +48,7 @@ function ServicoForm({
   error,
   submitLabel,
 }: {
-  defaultValues?: { nome: string; descricao: string | null; setor_id: number };
+  defaultValues?: { nome: string; descricao: string | null; categoria: string | null; setor_id: number };
   setores: Setor[];
   setorFixo?: Setor;
   action: (formData: FormData) => void;
@@ -80,6 +81,9 @@ function ServicoForm({
           />
         </Field>
       )}
+      <Field label="Categoria" htmlFor="categoria" hint="Agrupe serviços relacionados sob o mesmo nome de categoria. Ex: Eleição, Campus Virtual.">
+        <Input id="categoria" name="categoria" defaultValue={defaultValues?.categoria ?? ""} maxLength={100} placeholder="Ex: Eleição (opcional)" />
+      </Field>
       <Field label="Descrição" htmlFor="descricao">
         <Textarea id="descricao" name="descricao" defaultValue={defaultValues?.descricao ?? ""} rows={3} placeholder="Descrição opcional" />
       </Field>
@@ -120,7 +124,8 @@ export function ServicosClient({
         if (!filtroNormalizado) return true;
         return (
           servico.nome.toLowerCase().includes(filtroNormalizado) ||
-          servico.setor.nome.toLowerCase().includes(filtroNormalizado)
+          servico.setor.nome.toLowerCase().includes(filtroNormalizado) ||
+          (servico.categoria ?? "").toLowerCase().includes(filtroNormalizado)
         );
       }),
     [filtroNormalizado, servicos],
@@ -196,6 +201,7 @@ export function ServicosClient({
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
                   <h3 className="truncate text-sm font-semibold text-zinc-900 dark:text-zinc-50">{s.nome}</h3>
+                  {s.categoria && <p className="mt-0.5 text-xs font-medium text-[#3E6F6B]">Categoria: {s.categoria}</p>}
                   <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">{s.descricao ?? "Sem descrição"}</p>
                 </div>
                 <div className="flex items-center gap-1">
@@ -237,6 +243,7 @@ export function ServicosClient({
           <TableHead>
             <tr>
               <Th>Nome</Th>
+              <Th>Categoria</Th>
               <Th>Descrição</Th>
               <Th className="text-center">Chamados</Th>
               <Th className="text-right">Ações</Th>
@@ -244,11 +251,12 @@ export function ServicosClient({
           </TableHead>
           <TableBody>
             {servicosFiltrados.length === 0 ? (
-              <TableEmpty colSpan={4} message={filtroNormalizado ? "Nenhum serviço encontrado para o filtro." : "Nenhum serviço cadastrado."} />
+              <TableEmpty colSpan={5} message={filtroNormalizado ? "Nenhum serviço encontrado para o filtro." : "Nenhum serviço cadastrado."} />
             ) : (
               servicosPaginados.map((s) => (
                 <Tr key={s.id}>
                   <Td className="font-semibold">{s.nome}</Td>
+                  <Td><span className="text-[13px] text-[#3E6F6B]">{s.categoria ?? "—"}</span></Td>
                   <Td className="text-zinc-500 dark:text-zinc-400">{s.descricao ?? "—"}</Td>
                   <Td className="text-center">
                     <div className="flex items-center justify-center gap-1">
@@ -359,7 +367,7 @@ function EditarServicoForm({ servico, setores, setorFixo, onClose }: { servico: 
 
   return (
     <ServicoForm
-      defaultValues={{ nome: servico.nome, descricao: servico.descricao, setor_id: servico.setor.id }}
+      defaultValues={{ nome: servico.nome, descricao: servico.descricao, categoria: servico.categoria, setor_id: servico.setor.id }}
       setores={setores}
       setorFixo={setorFixo}
       action={wrappedAction}

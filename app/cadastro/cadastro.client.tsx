@@ -2,7 +2,7 @@
 
 import { useActionState, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Pencil, Save, Search, UserCheck2, UserPlus, UserX, UserX2, X } from "lucide-react";
+import { KeyRound, Pencil, Save, Search, UserCheck2, UserPlus, UserX, UserX2, X } from "lucide-react";
 import { useSetorServico } from "@/hooks/use-setor-servico";
 import {
   RoleBadge,
@@ -20,7 +20,7 @@ import {
   Th,
   Tr,
 } from "@/components/ui";
-import { criarUsuarioAction, editarUsuarioAction, toggleActivoUsuarioAction } from "./actions";
+import { criarUsuarioAction, editarUsuarioAction, redefinirSenhaAction, toggleActivoUsuarioAction } from "./actions";
 import { notifyError, notifySuccess } from "@/lib/toast";
 import { PAGINATION } from "@/lib/constants";
 import { Modal } from "@/components/shared/modal";
@@ -71,6 +71,7 @@ export const CadastroClient = ({
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [toggleConfirm, setToggleConfirm] = useState<User | null>(null);
   const [toggleIntentAtivo, setToggleIntentAtivo] = useState<boolean | null>(null);
+  const [redefinirSenhaUser, setRedefinirSenhaUser] = useState<User | null>(null);
   const [createRole, setCreateRole] = useState("");
   const [editRole, setEditRole] = useState("solicitante");
   const [query, setQuery] = useState("");
@@ -82,6 +83,7 @@ export const CadastroClient = ({
   const [createState, createAction, isCreating] = useActionState(criarUsuarioAction, {});
   const [editState, editAction, isEditing] = useActionState(editarUsuarioAction, {});
   const [toggleState, toggleAction, isToggling] = useActionState(toggleActivoUsuarioAction, {});
+  const [redefinirState, redefinirAction, isRedefinindo] = useActionState(redefinirSenhaAction, {});
 
   useEffect(() => {
     if (createState.error) {
@@ -136,6 +138,17 @@ export const CadastroClient = ({
       }, 0);
     }
   }, [toggleState, toggleIntentAtivo, router]);
+
+  useEffect(() => {
+    if (redefinirState.error) notifyError(redefinirState.error);
+    if (redefinirState.success) {
+      notifySuccess("Senha redefinida. O usuário deverá trocar a senha no próximo acesso.");
+      setTimeout(() => {
+        setRedefinirSenhaUser(null);
+        router.refresh();
+      }, 0);
+    }
+  }, [redefinirState.error, redefinirState.success, router]);
 
   function deriveSetoresFromServicos(servicosIds: number[]) {
     const setorSet = new Set<string>();
@@ -322,6 +335,9 @@ export const CadastroClient = ({
                         <Button variant="ghost" size="sm" disabled={user.id === currentUserId} onClick={() => openEdit(user)}>
                           <Pencil className="h-4 w-4" aria-hidden="true" />
                         </Button>
+                        <Button variant="ghost" size="sm" disabled={user.id === currentUserId} onClick={() => setRedefinirSenhaUser(user)} title="Redefinir senha">
+                          <KeyRound className="h-4 w-4 text-[#6E8B89]" aria-hidden="true" />
+                        </Button>
                         <Button variant="ghost" size="sm" disabled={user.id === currentUserId} onClick={() => setToggleConfirm(user)}>
                           {aba === "ativos" ? <UserX className="h-4 w-4 text-[#9A463B]" aria-hidden="true" /> : <UserPlus className="h-4 w-4 text-[#9A463B]" aria-hidden="true" />}
                         </Button>
@@ -375,6 +391,9 @@ export const CadastroClient = ({
                           <div className="flex items-center justify-end gap-1">
                             <Button variant="ghost" size="sm" disabled={user.id === currentUserId} onClick={() => openEdit(user)}>
                               <Pencil className="h-4 w-4" aria-hidden="true" />
+                            </Button>
+                            <Button variant="ghost" size="sm" disabled={user.id === currentUserId} onClick={() => setRedefinirSenhaUser(user)} title="Redefinir senha">
+                              <KeyRound className="h-4 w-4 text-[#6E8B89]" aria-hidden="true" />
                             </Button>
                             <Button variant="ghost" size="sm" disabled={user.id === currentUserId} onClick={() => setToggleConfirm(user)}>
                               {aba === "ativos" ? <UserX className="h-4 w-4 text-[#9A463B]" aria-hidden="true" /> : <UserPlus className="h-4 w-4 text-[#9A463B]" aria-hidden="true" />}
@@ -591,6 +610,46 @@ export const CadastroClient = ({
               <Button type="submit" loading={isEditing}>
                 <Save className="h-4 w-4" aria-hidden="true" />
                 Salvar
+              </Button>
+            </div>
+          </Form>
+        </Modal>
+      )}
+
+      {/* Modal: Redefinir senha */}
+      {redefinirSenhaUser && (
+        <Modal
+          title="Redefinir senha"
+          description="Defina uma nova senha temporária. O usuário será obrigado a trocá-la no próximo acesso."
+          onClose={() => setRedefinirSenhaUser(null)}
+        >
+          <p className="mb-4 text-[13px] text-[#56564F]">
+            Redefinindo senha de{" "}
+            <span className="font-semibold text-[#1C1C1A]">{redefinirSenhaUser.nome}</span>
+          </p>
+          <Form action={redefinirAction}>
+            <input type="hidden" name="userId" value={redefinirSenhaUser.id} />
+            <Field label="Nova senha" htmlFor="reset-password">
+              <Input
+                id="reset-password"
+                name="password"
+                type="password"
+                placeholder="Mínimo 6 caracteres"
+                required
+                minLength={6}
+              />
+            </Field>
+            <p className="mb-3 rounded-[9px] bg-[#EEF4F3] p-3 text-[13px] text-[#3E6F6B]">
+              O usuário deverá alterar esta senha ao fazer o próximo login.
+            </p>
+            <div className="flex justify-end gap-2 pt-1">
+              <Button type="button" variant="outline" onClick={() => setRedefinirSenhaUser(null)}>
+                <X className="h-4 w-4" aria-hidden="true" />
+                Cancelar
+              </Button>
+              <Button type="submit" loading={isRedefinindo}>
+                <KeyRound className="h-4 w-4" aria-hidden="true" />
+                Redefinir senha
               </Button>
             </div>
           </Form>
