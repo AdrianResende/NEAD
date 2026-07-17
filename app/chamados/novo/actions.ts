@@ -1,11 +1,9 @@
 "use server";
 
 import { cookies } from "next/headers";
-import { mkdir, writeFile } from "node:fs/promises";
-import path from "node:path";
 import { SESSION_COOKIE_NAME, validateSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { MAX_FILE_SIZE_BYTES, MAX_FILES_PER_CHAMADO, ALLOWED_MIME_TYPES, sanitizeFileName } from "@/lib/upload";
+import { MAX_FILE_SIZE_BYTES, MAX_FILES_PER_CHAMADO, ALLOWED_MIME_TYPES, uploadAnexoChamado } from "@/lib/upload";
 
 export type NovoChamadoState = {
   error?: string;
@@ -144,9 +142,6 @@ export async function abrirChamadoAction(
   });
 
   if (anexos.length > 0) {
-    const uploadDir = path.join(process.cwd(), "public", "uploads", "chamados", String(chamado.id));
-    await mkdir(uploadDir, { recursive: true });
-
     const anexosData: Array<{
       chamado_id: number;
       nome_original: string;
@@ -156,21 +151,8 @@ export async function abrirChamadoAction(
     }> = [];
 
     for (const anexo of anexos) {
-      const extension = path.extname(anexo.name).toLowerCase();
-      const baseName = sanitizeFileName(path.basename(anexo.name, extension));
-      const storedFileName = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}-${baseName}${extension}`;
-      const targetPath = path.join(uploadDir, storedFileName);
-      const bytes = Buffer.from(await anexo.arrayBuffer());
-
-      await writeFile(targetPath, bytes);
-
-      anexosData.push({
-        chamado_id: chamado.id,
-        nome_original: anexo.name,
-        mime_type: anexo.type,
-        tamanho_bytes: anexo.size,
-        url: `/uploads/chamados/${chamado.id}/${storedFileName}`,
-      });
+      const uploaded = await uploadAnexoChamado(chamado.id, anexo);
+      anexosData.push({ chamado_id: chamado.id, ...uploaded });
     }
 
     await prisma.chamadoAnexo.createMany({ data: anexosData });
