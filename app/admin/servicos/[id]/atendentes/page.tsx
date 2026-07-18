@@ -17,36 +17,36 @@ export default async function ServicoAtendentesPage({ params }: PageProps) {
     notFound();
   }
 
-  const [servico, atendentesDisponiveis] = await Promise.all([
-    prisma.servico.findUnique({
-      where: { id: servicoId },
-      include: {
-        setor: true,
-        atendentes: {
-          include: {
-            user: true,
-          },
-          orderBy: {
-            user: {
-              nome: "asc",
-            },
+  // Consultas sequenciais (não Promise.all): o pooler do Supabase não lida bem
+  // com múltiplas queries concorrentes na mesma conexão.
+  const servico = await prisma.servico.findUnique({
+    where: { id: servicoId },
+    include: {
+      setor: true,
+      atendentes: {
+        include: {
+          user: true,
+        },
+        orderBy: {
+          user: {
+            nome: "asc",
           },
         },
       },
-    }),
-    prisma.user.findMany({
-      where: {
-        role: { in: ["atendente", "admin"] },
-      },
-      orderBy: { nome: "asc" },
-      select: {
-        id: true,
-        nome: true,
-        email: true,
-        ativo: true,
-      },
-    }),
-  ]);
+    },
+  });
+  const atendentesDisponiveis = await prisma.user.findMany({
+    where: {
+      role: { in: ["atendente", "admin"] },
+    },
+    orderBy: { nome: "asc" },
+    select: {
+      id: true,
+      nome: true,
+      email: true,
+      ativo: true,
+    },
+  });
 
   if (!servico) {
     notFound();

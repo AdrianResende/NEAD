@@ -8,35 +8,35 @@ export default async function CadastroPage() {
 
   // Uma única query para todos os usuários, com select específico (evita carregar
   // password, sessions, accounts e outros campos desnecessários)
-  const [allUsers, setores, servicos] = await Promise.all([
-    prisma.user.findMany({
-      select: {
-        id: true,
-        nome: true,
-        email: true,
-        role: true,
-        setor_id: true,
-        ativo: true,
-        created_at: true,
-        setor: { select: { nome: true } },
-        servicosAtendidos: {
-          select: {
-            servico_id: true,
-            servico: { select: { nome: true } },
-          },
+  // Consultas sequenciais (não Promise.all): o pooler do Supabase não lida bem
+  // com múltiplas queries concorrentes na mesma conexão.
+  const allUsers = await prisma.user.findMany({
+    select: {
+      id: true,
+      nome: true,
+      email: true,
+      role: true,
+      setor_id: true,
+      ativo: true,
+      created_at: true,
+      setor: { select: { nome: true } },
+      servicosAtendidos: {
+        select: {
+          servico_id: true,
+          servico: { select: { nome: true } },
         },
       },
-      orderBy: { created_at: "desc" },
-    }),
-    prisma.setor.findMany({
-      select: { id: true, nome: true },
-      orderBy: { nome: "asc" },
-    }),
-    prisma.servico.findMany({
-      select: { id: true, nome: true, setor_id: true, setor: { select: { nome: true } } },
-      orderBy: [{ setor: { nome: "asc" } }, { nome: "asc" }],
-    }),
-  ]);
+    },
+    orderBy: { created_at: "desc" },
+  });
+  const setores = await prisma.setor.findMany({
+    select: { id: true, nome: true },
+    orderBy: { nome: "asc" },
+  });
+  const servicos = await prisma.servico.findMany({
+    select: { id: true, nome: true, setor_id: true, setor: { select: { nome: true } } },
+    orderBy: [{ setor: { nome: "asc" } }, { nome: "asc" }],
+  });
 
   const usersAtivos = allUsers.filter((u) => u.ativo);
   const usersDesativados = allUsers.filter((u) => !u.ativo);

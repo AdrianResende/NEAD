@@ -22,21 +22,21 @@ export default async function ChamadosPage({
         ? { atendente_id: user.id }
         : {};
 
-  const [chamados, servicos] = await Promise.all([
-    prisma.chamado.findMany({
-      where,
-      orderBy: [{ urgente: "desc" }, { created_at: "desc" }],
-      include: {
-        servico: true,
-        solicitante: true,
-        atendente: true,
-      },
-    }),
-    prisma.servico.findMany({
-      orderBy: [{ setor: { nome: "asc" } }, { nome: "asc" }],
-      include: { setor: true },
-    }),
-  ]);
+  // Consultas sequenciais (não Promise.all): o pooler do Supabase não lida bem
+  // com múltiplas queries concorrentes na mesma conexão.
+  const chamados = await prisma.chamado.findMany({
+    where,
+    orderBy: [{ urgente: "desc" }, { created_at: "desc" }],
+    include: {
+      servico: true,
+      solicitante: true,
+      atendente: true,
+    },
+  });
+  const servicos = await prisma.servico.findMany({
+    orderBy: [{ setor: { nome: "asc" } }, { nome: "asc" }],
+    include: { setor: true },
+  });
 
   return (
     <ChamadosClient
