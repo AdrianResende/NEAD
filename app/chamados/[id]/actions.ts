@@ -3,11 +3,9 @@
 import type { PrismaPromise } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
-import { mkdir, writeFile } from "node:fs/promises";
-import path from "node:path";
 import { SESSION_COOKIE_NAME, validateSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { MAX_FILE_SIZE_BYTES, ALLOWED_MIME_TYPES, sanitizeFileName } from "@/lib/upload";
+import { MAX_FILE_SIZE_BYTES, ALLOWED_MIME_TYPES, uploadAnexoChamado } from "@/lib/upload";
 
 export type AtenderChamadoState = {
   error?: string;
@@ -318,24 +316,12 @@ export async function enviarMensagemChamadoAction(
   }
 
   if (arquivo) {
-    const uploadDir = path.join(process.cwd(), "public", "uploads", "chamados", String(chamadoId));
-    await mkdir(uploadDir, { recursive: true });
-
-    const extension = path.extname(arquivo.name).toLowerCase();
-    const baseName = sanitizeFileName(path.basename(arquivo.name, extension));
-    const storedFileName = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}-${baseName}${extension}`;
-    const targetPath = path.join(uploadDir, storedFileName);
-    const bytes = Buffer.from(await arquivo.arrayBuffer());
-
-    await writeFile(targetPath, bytes);
+    const uploaded = await uploadAnexoChamado(chamadoId, arquivo);
 
     await prisma.chamadoAnexo.create({
       data: {
         chamado_id: chamadoId,
-        nome_original: arquivo.name,
-        mime_type: arquivo.type,
-        tamanho_bytes: arquivo.size,
-        url: `/uploads/chamados/${chamadoId}/${storedFileName}`,
+        ...uploaded,
       },
     });
   }

@@ -280,11 +280,13 @@ Mínimo necessário:
 - DATABASE_URL
 - DIRECT_URL
 - NODE_ENV
+- SUPABASE_URL
+- SUPABASE_SERVICE_ROLE_KEY
+- SUPABASE_ANEXOS_BUCKET (opcional, default `chamados-anexos`)
 
-Exemplo:
-DATABASE_URL="postgresql://user:password@localhost:5432/nead"
-DIRECT_URL="postgresql://user:password@localhost:5432/nead"
-NODE_ENV="development"
+Ver `.env.example` para o formato completo. Os anexos de chamados são enviados para um
+bucket do Supabase Storage (necessário em produção, já que a Vercel roda com filesystem
+somente-leitura).
 
 ### 11.3 Instalação
 1. npm install
