@@ -465,7 +465,13 @@ export function ChamadoDetalheClient({ chamado, currentUserId, currentUserRole, 
                 <div className="rounded-[9px] border border-[#E8E8E3] bg-[#FAFAF8] p-2.5">
                   <p className="text-[10px] font-semibold uppercase tracking-[0.05em] text-[#A8A89F]">Status</p>
                   <div className="mt-1">
-                    <Select id="status" name="status" options={STATUS_OPTIONS_ATENDENTE} defaultValue={chamado.status} />
+                    <Select
+                      key={chamado.status}
+                      id="status"
+                      name="status"
+                      options={STATUS_OPTIONS_ATENDENTE}
+                      defaultValue={chamado.status}
+                    />
                   </div>
                 </div>
 
@@ -474,6 +480,7 @@ export function ChamadoDetalheClient({ chamado, currentUserId, currentUserRole, 
                   <div className="mt-1">
                     {isAdmin ? (
                       <Select
+                        key={chamado.atendente?.id ?? "sem-atendente"}
                         id="atendente_id"
                         name="atendente_id"
                         options={atendenteOptions}

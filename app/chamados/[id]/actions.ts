@@ -4,6 +4,7 @@ import type { PrismaPromise } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
 import { SESSION_COOKIE_NAME, validateSession } from "@/lib/auth";
+import { enviarEmailMudancaStatus } from "@/lib/email";
 import { prisma } from "@/lib/prisma";
 import { MAX_FILE_SIZE_BYTES, ALLOWED_MIME_TYPES, uploadAnexoChamado } from "@/lib/upload";
 
@@ -41,7 +42,17 @@ export async function atualizarChamadoAction(
 
   const chamado = await prisma.chamado.findUnique({
     where: { id },
-    select: { id: true, status: true, solicitante_id: true, servico_id: true, atendente_id: true, urgente: true, urgencia_descricao: true },
+    select: {
+      id: true,
+      titulo: true,
+      status: true,
+      solicitante_id: true,
+      servico_id: true,
+      atendente_id: true,
+      urgente: true,
+      urgencia_descricao: true,
+      solicitante: { select: { email: true, nome: true } },
+    },
   });
   if (!chamado) return { error: "Chamado não encontrado." };
 
@@ -64,6 +75,15 @@ export async function atualizarChamadoAction(
           },
         }),
       ]);
+
+      void enviarEmailMudancaStatus({
+        to: chamado.solicitante.email,
+        nomeSolicitante: chamado.solicitante.nome,
+        chamadoId: id,
+        titulo: chamado.titulo,
+        deStatus: chamado.status,
+        paraStatus: status,
+      });
     }
 
     revalidatePath(`/chamados/${id}`);
@@ -140,35 +160,42 @@ export async function atualizarChamadoAction(
     }
 
     if (isNaN(atendente_id)) return { error: "Atendente inválido." };
-    if (!atendente_id) {
-      updateData.atendente_id = null;
-    } else {
-      const atendente = await prisma.user.findUnique({
-        where: { id: atendente_id },
-        select: { id: true, role: true },
-      });
 
-      if (!atendente) return { error: "Atendente não encontrado." };
+    // O <select> de atendente sempre envia um valor, mesmo quando não foi alterado.
+    // Só tratamos como reatribuição se o valor realmente mudou em relação ao atual.
+    const atendenteMudou = atendente_id !== (chamado.atendente_id ?? 0);
 
-      if (atendente.role === "atendente") {
-        const vinculoAtendente = await prisma.atendenteServico.findUnique({
-          where: {
-            user_id_servico_id: {
-              user_id: atendente_id,
-              servico_id: chamado.servico_id,
-            },
-          },
+    if (atendenteMudou) {
+      if (!atendente_id) {
+        updateData.atendente_id = null;
+      } else {
+        const atendente = await prisma.user.findUnique({
+          where: { id: atendente_id },
+          select: { id: true, role: true },
         });
 
-        if (!vinculoAtendente) {
-          return { error: "Este atendente não está vinculado ao serviço deste chamado." };
+        if (!atendente) return { error: "Atendente não encontrado." };
+
+        if (atendente.role === "atendente") {
+          const vinculoAtendente = await prisma.atendenteServico.findUnique({
+            where: {
+              user_id_servico_id: {
+                user_id: atendente_id,
+                servico_id: chamado.servico_id,
+              },
+            },
+          });
+
+          if (!vinculoAtendente) {
+            return { error: "Este atendente não está vinculado ao serviço deste chamado." };
+          }
         }
+
+        updateData.atendente_id = atendente_id;
+
+        // Toda atribuição manual força o chamado para "atribuido".
+        updateData.status = "atribuido";
       }
-
-      updateData.atendente_id = atendente_id;
-
-      // Toda atribuição manual força o chamado para "atribuido".
-      updateData.status = "atribuido";
     }
   }
 
@@ -223,6 +250,17 @@ export async function atualizarChamadoAction(
     }
 
     await prisma.$transaction(operations);
+
+    if (novoStatus && novoStatus !== chamado.status) {
+      void enviarEmailMudancaStatus({
+        to: chamado.solicitante.email,
+        nomeSolicitante: chamado.solicitante.nome,
+        chamadoId: id,
+        titulo: chamado.titulo,
+        deStatus: chamado.status,
+        paraStatus: novoStatus,
+      });
+    }
   }
 
   revalidatePath(`/chamados/${id}`);

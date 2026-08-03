@@ -1,3 +1,4 @@
+import { enviarEmailMudancaStatus } from "@/lib/email";
 import { prisma } from "@/lib/prisma";
 
 const DIAS_AUTO_FECHAMENTO = 15;
@@ -10,7 +11,12 @@ export async function autoFecharChamadosResolvidos() {
       status: "resolvido",
       updated_at: { lte: limite },
     },
-    select: { id: true, status: true },
+    select: {
+      id: true,
+      status: true,
+      titulo: true,
+      solicitante: { select: { email: true, nome: true } },
+    },
   });
 
   if (chamados.length === 0) return 0;
@@ -32,6 +38,17 @@ export async function autoFecharChamadosResolvidos() {
       }),
     ]),
   );
+
+  for (const chamado of chamados) {
+    void enviarEmailMudancaStatus({
+      to: chamado.solicitante.email,
+      nomeSolicitante: chamado.solicitante.nome,
+      chamadoId: chamado.id,
+      titulo: chamado.titulo,
+      deStatus: chamado.status,
+      paraStatus: "fechado",
+    });
+  }
 
   return chamados.length;
 }
