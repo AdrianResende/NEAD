@@ -4,20 +4,7 @@ import { useActionState, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Plus, Edit2, Trash2 } from "lucide-react";
 import { PAGINATION, ROUTES } from "@/lib/constants";
-import {
-  Button,
-  Field,
-  Form,
-  Input,
-  Pagination,
-  Table,
-  TableBody,
-  TableEmpty,
-  TableHead,
-  Td,
-  Th,
-  Tr,
-} from "@/components/ui";
+import { Button, Field, Form, Input, Pagination } from "@/components/ui";
 import { Textarea } from "@/components/ui/textarea";
 import { criarSetorAction, editarSetorAction, excluirSetorAction } from "./actions";
 import { notifyError, notifySuccess } from "@/lib/toast";

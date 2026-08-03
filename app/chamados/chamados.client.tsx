@@ -37,15 +37,6 @@ type Props = {
   abrirModal?: boolean;
 };
 
-const STATUS_LABEL: Record<string, string> = {
-  aberto: "Aberto",
-  atribuido: "Atribuído",
-  em_andamento: "Em andamento",
-  resolvido: "Resolvido",
-  fechado: "Fechado",
-  cancelado: "Cancelado",
-};
-
 type TabKey = "todos" | "abertos" | "andamento" | "resolvidos";
 
 const TAB_DEFS: { key: TabKey; label: string }[] = [

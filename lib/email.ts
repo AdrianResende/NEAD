@@ -1,3 +1,5 @@
+import { CHAMADO_STATUS_LABELS } from "@/lib/constants";
+
 const BREVO_API_KEY = process.env.BREVO_API_KEY;
 const EMAIL_FROM = process.env.EMAIL_FROM;
 const EMAIL_FROM_NAME = process.env.EMAIL_FROM_NAME || "NEAD";
@@ -50,17 +52,8 @@ export async function sendEmail({ to, subject, html }: SendEmailInput): Promise<
   }
 }
 
-const STATUS_LABELS: Record<string, string> = {
-  aberto: "Aberto",
-  atribuido: "Atribuído",
-  em_andamento: "Em andamento",
-  resolvido: "Resolvido",
-  fechado: "Fechado",
-  cancelado: "Cancelado",
-};
-
 export function formatStatusLabel(status: string): string {
-  return STATUS_LABELS[status] ?? status;
+  return CHAMADO_STATUS_LABELS[status] ?? status;
 }
 
 function escapeHtml(value: string): string {

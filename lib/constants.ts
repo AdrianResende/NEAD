@@ -18,3 +18,12 @@ export const PAGINATION = {
   DEFAULT_PAGE: 1,
   DEFAULT_PER_PAGE: 12,
 } as const;
+
+export const CHAMADO_STATUS_LABELS: Record<string, string> = {
+  aberto: "Aberto",
+  atribuido: "Atribuído",
+  em_andamento: "Em andamento",
+  resolvido: "Resolvido",
+  fechado: "Fechado",
+  cancelado: "Cancelado",
+};

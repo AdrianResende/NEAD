@@ -1,14 +1,15 @@
 import * as React from "react";
 import { cn } from "@/lib/utils";
+import { CHAMADO_STATUS_LABELS } from "@/lib/constants";
 
 // --- Status badge (chamado status) ---
 const STATUS_MAP: Record<string, { bg: string; color: string; dot: string; label: string }> = {
-  aberto:       { bg: "#EAF1F7", color: "#2F6593", dot: "#4189C4", label: "Aberto" },
-  atribuido:    { bg: "#EEEDF8", color: "#56539B", dot: "#7A77C9", label: "Atribuído" },
-  em_andamento: { bg: "#FAF1E2", color: "#946726", dot: "#D89B3B", label: "Em andamento" },
-  resolvido:    { bg: "#EAF3EC", color: "#3A6B47", dot: "#5A9E6B", label: "Resolvido" },
-  fechado:      { bg: "#EFEFEC", color: "#6B6B62", dot: "#A0A099", label: "Fechado" },
-  cancelado:    { bg: "#F8ECEA", color: "#9A463B", dot: "#C9685A", label: "Cancelado" },
+  aberto:       { bg: "#EAF1F7", color: "#2F6593", dot: "#4189C4", label: CHAMADO_STATUS_LABELS.aberto },
+  atribuido:    { bg: "#EEEDF8", color: "#56539B", dot: "#7A77C9", label: CHAMADO_STATUS_LABELS.atribuido },
+  em_andamento: { bg: "#FAF1E2", color: "#946726", dot: "#D89B3B", label: CHAMADO_STATUS_LABELS.em_andamento },
+  resolvido:    { bg: "#EAF3EC", color: "#3A6B47", dot: "#5A9E6B", label: CHAMADO_STATUS_LABELS.resolvido },
+  fechado:      { bg: "#EFEFEC", color: "#6B6B62", dot: "#A0A099", label: CHAMADO_STATUS_LABELS.fechado },
+  cancelado:    { bg: "#F8ECEA", color: "#9A463B", dot: "#C9685A", label: CHAMADO_STATUS_LABELS.cancelado },
 };
 
 // --- Role badge ---

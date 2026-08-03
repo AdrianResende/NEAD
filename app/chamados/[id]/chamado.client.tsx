@@ -12,7 +12,6 @@ import {
   Clock3,
   Download,
   FileText,
-  LifeBuoy,
   MessageSquareText,
   SendHorizonal,
   ShieldCheck,
@@ -68,24 +67,6 @@ type Props = {
   currentUserId: number;
   currentUserRole: string;
   atendentes: Atendente[];
-};
-
-const STATUS_BADGE: Record<string, "default" | "warning" | "success" | "danger" | "info"> = {
-  aberto: "info",
-  atribuido: "default",
-  em_andamento: "warning",
-  resolvido: "success",
-  fechado: "default",
-  cancelado: "danger",
-};
-
-const STATUS_LABEL: Record<string, string> = {
-  aberto: "Aberto",
-  atribuido: "Atribuído",
-  em_andamento: "Em andamento",
-  resolvido: "Resolvido",
-  fechado: "Fechado",
-  cancelado: "Cancelado",
 };
 
 const STATUS_OPTIONS_ATENDENTE = [
@@ -356,7 +337,6 @@ export function ChamadoDetalheClient({ chamado, currentUserId, currentUserRole, 
   const isAdmin = currentUserRole === "admin";
   const canAtend = isAdmin || isAtendente;
   const canSolicitanteAction = isSolicitante;
-  const StatusIcon = STATUS_ICON[chamado.status] ?? CircleDashed;
   const [atendimentoState, atendimentoAction, atendimentoPending] = useActionState(atualizarChamadoAction, {});
   const [urgenteAtendimento, setUrgenteAtendimento] = useState<"sim" | "nao">(chamado.urgente ? "sim" : "nao");
   const [motivoAtendimento, setMotivoAtendimento] = useState(chamado.urgenciaDescricao ?? "");

@@ -3,15 +3,7 @@
 import { useRouter } from "next/navigation";
 import { ROUTES } from "@/lib/constants";
 
-type HeaderProps = {
-  currentUser: {
-    nome: string;
-    role: string;
-    setor: string | null;
-  } | null;
-};
-
-export function Header({ currentUser }: HeaderProps) {
+export function Header() {
   const router = useRouter();
 
   async function handleLogout() {
