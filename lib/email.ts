@@ -1,24 +1,7 @@
-import nodemailer from "nodemailer";
-
-const EMAIL_USER = process.env.EMAIL_USER;
-const EMAIL_PASSWORD = process.env.EMAIL_PASSWORD;
-const EMAIL_FROM = process.env.EMAIL_FROM || EMAIL_USER;
+const BREVO_API_KEY = process.env.BREVO_API_KEY;
+const EMAIL_FROM = process.env.EMAIL_FROM;
+const EMAIL_FROM_NAME = process.env.EMAIL_FROM_NAME || "NEAD";
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
-
-let transporter: nodemailer.Transporter | null = null;
-
-function getTransporter(): nodemailer.Transporter | null {
-  if (!EMAIL_USER || !EMAIL_PASSWORD) return null;
-
-  if (!transporter) {
-    transporter = nodemailer.createTransport({
-      service: "gmail",
-      auth: { user: EMAIL_USER, pass: EMAIL_PASSWORD },
-    });
-  }
-
-  return transporter;
-}
 
 type SendEmailInput = {
   to: string;
@@ -27,22 +10,42 @@ type SendEmailInput = {
 };
 
 /**
- * Envia um email. Nunca lança erro: se as credenciais não estiverem
- * configuradas ou o envio falhar, apenas registra um aviso no log,
+ * Envia um email via API do Brevo. Nunca lança erro: se as credenciais não
+ * estiverem configuradas ou o envio falhar, apenas registra um aviso no log,
  * para não quebrar o fluxo (ex: atualização de status) que disparou o email.
+ *
+ * Usa a API HTTP (em vez de SMTP) porque provedores de email pessoais via
+ * SMTP (ex: Gmail) costumam aceitar e descartar silenciosamente mensagens
+ * enviadas a partir de IPs de datacenter (serverless), sem erro nem bounce.
  */
 export async function sendEmail({ to, subject, html }: SendEmailInput): Promise<void> {
-  const client = getTransporter();
-
-  if (!client) {
+  if (!BREVO_API_KEY || !EMAIL_FROM) {
     console.warn(
-      `[email] EMAIL_USER/EMAIL_PASSWORD não configurados — email para "${to}" não foi enviado.`
+      `[email] BREVO_API_KEY/EMAIL_FROM não configurados — email para "${to}" não foi enviado.`
     );
     return;
   }
 
   try {
-    await client.sendMail({ from: EMAIL_FROM, to, subject, html });
+    const response = await fetch("https://api.brevo.com/v3/smtp/email", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+        "api-key": BREVO_API_KEY,
+      },
+      body: JSON.stringify({
+        sender: { email: EMAIL_FROM, name: EMAIL_FROM_NAME },
+        to: [{ email: to }],
+        subject,
+        htmlContent: html,
+      }),
+    });
+
+    if (!response.ok) {
+      const body = await response.text();
+      console.error(`[email] Falha ao enviar email para "${to}": ${response.status} ${body}`);
+    }
   } catch (error) {
     console.error(`[email] Falha ao enviar email para "${to}":`, error);
   }
