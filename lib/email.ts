@@ -1,7 +1,6 @@
 const BREVO_API_KEY = process.env.BREVO_API_KEY;
 const EMAIL_FROM = process.env.EMAIL_FROM;
 const EMAIL_FROM_NAME = process.env.EMAIL_FROM_NAME || "NEAD";
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 
 type SendEmailInput = {
   to: string;
@@ -91,7 +90,6 @@ export async function enviarEmailMudancaStatus({
   deStatus,
   paraStatus,
 }: EnviarEmailMudancaStatusInput): Promise<void> {
-  const link = `${APP_URL}/chamados/${chamadoId}`;
   const subject = `Chamado #${chamadoId} atualizado: ${formatStatusLabel(paraStatus)}`;
 
   const html = `
@@ -103,11 +101,6 @@ export async function enviarEmailMudancaStatus({
         <span style="color:#6b7280;">${formatStatusLabel(deStatus)}</span>
         <span style="margin: 0 8px;">&rarr;</span>
         <strong style="color:#111827;">${formatStatusLabel(paraStatus)}</strong>
-      </p>
-      <p>
-        <a href="${link}" style="display:inline-block; margin-top:8px; padding:10px 16px; background:#2563eb; color:#ffffff; text-decoration:none; border-radius:6px;">
-          Ver chamado
-        </a>
       </p>
       <p style="font-size:12px; color:#9ca3af; margin-top:32px;">
         Este é um email automático do NEAD. Não responda a esta mensagem.
